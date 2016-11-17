@@ -111,16 +111,18 @@ var _modelCreateOrUpdateBlockDef = function(defs, templateName, properties, name
   }
   
   for (var np in namedProperties) {
-    if ( namedProperties.hasOwnProperty(np) && typeof namedProperties[np] !== 'undefined' && typeof namedProperties[np].replace === 'function' ) {
-      // Strip out double quotes from quoted properties (allows escaping of semi-colons in property values)
-      namedProperties[np] = namedProperties[np].replace(/^"([^"]*)"$/g, '$1' );
+    if ( namedProperties.hasOwnProperty(np) && typeof namedProperties[np] !== 'undefined' ) {
+      if ( typeof namedProperties[np].replace === 'function' ) {
+        // Strip out double quotes from quoted properties (allows escaping of semi-colons in property values)
+        namedProperties[np] = namedProperties[np].replace(/^"([^"]*)"$/g, '$1' );
+      }
+      
+      if ( ['name', 'extend', 'contextName', 'globalStyle','themeOverride'].indexOf(np) == -1 ) {
+        defs[templateName]['_'+np] = namedProperties[np];
+      }
     }
   }
-
-  for (var np in namedProperties) if (namedProperties.hasOwnProperty(np) && typeof namedProperties[np] !== 'undefined' && ['name', 'extend', 'contextName', 'globalStyle','themeOverride'].indexOf(np) == -1) {
-    defs[templateName]['_'+np] = namedProperties[np];
-  }
-
+  
   if (typeof properties != 'undefined' && properties.length > 0) {
     defs[templateName]._props = typeof defs[templateName]._props != 'undefined' && defs[templateName]._props.length > 0 ? defs[templateName]._props + " " + properties : properties;
   }

@@ -289,8 +289,12 @@ function initializeEditor(content, blockDefs, thumbPathConverter, galleryUrl) {
     if (typeof block !== 'undefined') viewModel.selectBlock(block, false, true);
     if (val != item) {
       valueAccessor(item);
-      // On selectItem if we were on "Blocks" toolbox tab we move to "Content" toolbox tab.
-      if (item !== null && viewModel.selectedTool() === blocksIndex) viewModel.selectedTool(blocksIndex + 1);
+      // On selectItem if we were not on either the "Content" or "Style" toolbox tab, move to either the "Content" or "Style" toolbox tab.
+      var selectedTool = viewModel.selectedTool();
+      var targetTool = (typeof block === 'undefined' ? blocksIndex + 2 : blocksIndex + 1 );
+      if (item !== null && selectedTool !== targetTool) {
+        viewModel.selectedTool(targetTool);
+      }
     }
     return false;
   }.bind(viewModel, viewModel.selectedItem);
@@ -307,7 +311,9 @@ function initializeEditor(content, blockDefs, thumbPathConverter, galleryUrl) {
       valueAccessor(item);
       // hide gallery on block selection
       viewModel.showGallery(false);
-      if (item !== null && !doNotSelect && viewModel.selectedTool() === blocksIndex) viewModel.selectedTool(blocksIndex + 1);
+      var selectedTool = viewModel.selectedTool();
+      var targetTool = (!doNotUnselectItem ? blocksIndex + 2 : blocksIndex + 1 );
+      if (item !== null && !doNotSelect && selectedTool !== targetTool) viewModel.selectedTool(targetTool);
     }
   }.bind(viewModel, viewModel.selectedBlock);
 

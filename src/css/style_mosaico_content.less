@@ -394,7 +394,31 @@
   max-width: 100%;
 }
 
-// Add shadow to tinymce buttonbar buttons
-.mce-toolbar-grp.mce-panel .mce-btn-group {
-  box-shadow: 0 0 5px @mosaico-button-shadow-color;
+.mce-tinymce-inline {
+  .mce-container-body.mce-abs-layout {
+    background-color: rgb(255, 87, 34);
+    border-radius: 5px;
+    border-style: solid;
+    border-color: #686565;
+    box-shadow: 2px 2px 5px #686565;
+    top: -10px;
+  }
+
+  .mce-btn {
+    background-color: #787878;
+  }
+
+  .mce-btn-group {
+    .mce-first {
+      border-radius: 5px 0 0 5px;
+    }
+
+    .mce-last {
+      border-radius: 0 5px 5px 0;
+    }
+
+    .mce-first.mce-last {
+      border-radius: 5px;
+    }
+  }
 }
