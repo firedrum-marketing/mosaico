@@ -68,9 +68,24 @@ function getTemplateContent(id) {
   }
 }
 
+function getTemplateIds() {
+  var result = [];
+  
+  for ( var templateId in templates ) {
+    if (templates.hasOwnProperty(templateId) ) {
+      result.push(templateId);
+    }
+  }
+  
+  result.concat( origTemplateSystem.getTemplateIds() );
+
+  return result;
+}
+
 module.exports = {
   init: init,
   addTemplate: pushTemplate,
   removeTemplate: removeTemplate,
-  getTemplateContent: getTemplateContent
+  getTemplateContent: getTemplateContent,
+  getTemplateIds: getTemplateIds
 };

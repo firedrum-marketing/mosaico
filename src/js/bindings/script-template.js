@@ -22,9 +22,21 @@ function getTemplateContent(id) {
   else return undefined;
 }
 
+function getTemplateIds() {
+  var result = [];
+  var templates = global.document.querySelectorAll('script[id]');
+
+  for (var i = 0; i < templates.length; i++) {
+    result.push(templates[i].getAttribute('id'));
+  }
+
+  return result;
+}
+
 module.exports = {
   init: init,
   addTemplate: pushTemplate,
   removeTemplate: removeTemplate,
-  getTemplateContent: getTemplateContent
+  getTemplateContent: getTemplateContent,
+  getTemplateIds: getTemplateIds
 };

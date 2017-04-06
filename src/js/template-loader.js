@@ -10,8 +10,6 @@ var console = require("console");
 var initializeViewmodel = require("./viewmodel.js");
 var templateSystem = require('./bindings/choose-template.js');
 
-if (!$.ui.version.match(/^1\.11\..*$/)) throw "Usupported jQuery UI version detected: "+$.ui.version+" (we only support 1.11.*)";
-
 // call a given method on every plugin implementing it.
 // supports a "reverse" parameter to call the methods from the last one to the first one.
 var pluginsCall = function(plugins, methodName, args, reverse) {
@@ -133,7 +131,7 @@ var _templateUrlConverter = function(basePath, url) {
   }
 };
 
-var templateLoader = function(performanceAwareCaller, templateFileName, templateMetadata, jsorjson, extensions, galleryUrl) {
+var templateLoader = function(performanceAwareCaller, templateFileName, templateMetadata, jsorjson, extensions, galleryUrl, options) {
   var templateFile = typeof templateFileName == 'string' ? templateFileName : templateMetadata.template;
   var templatePath = "./";
   var p = templateFile.lastIndexOf('/');
@@ -156,12 +154,12 @@ var templateLoader = function(performanceAwareCaller, templateFileName, template
   }
 
   $.get(templateFile, function(templatecode) {
-    var res = templateCompiler(performanceAwareCaller, templateUrlConverter, "template", templatecode, jsorjson, metadata, extensions, galleryUrl);
-    res.init();
+    var res = templateCompiler(performanceAwareCaller, templateUrlConverter, "template", templatecode, jsorjson, metadata, extensions, galleryUrl, options, {init: true, templatePath: templatePath});
+    //res.init();
   });
 };
 
-var templateCompiler = function(performanceAwareCaller, templateUrlConverter, templateName, templatecode, jsorjson, metadata, extensions, galleryUrl) {
+var templateCompiler = function(performanceAwareCaller, templateUrlConverter, templateName, templatecode, jsorjson, metadata, extensions, galleryUrl, options, finalOptions) {
   // we strip content before <html> tag and after </html> because jquery doesn't parse it.
   // we'll keep it "raw" and use it in the preview/output methods.
   var res = templatecode.match(/^([\S\s]*)([<]html[^>]*>[\S\s]*<\/html>)([\S\s]*)$/i);
@@ -223,102 +221,148 @@ var templateCompiler = function(performanceAwareCaller, templateUrlConverter, te
   // templatecreator tracks created template (via templateAdder) so to be able to dispose them later
   var myTemplateCreator = templateCreator.bind(undefined, templatesPlugin);
 
-  // first pass: we "compile" the template into a termplateDef object
-  var templateDef = performanceAwareCaller('translateTemplate', templateConverter.translateTemplate.bind(undefined, templateName, html, templateUrlConverter, myTemplateCreator));
-
-  // second pass: given the templateDef we create a base content model object for this template.
-  var content = performanceAwareCaller('generateModel', templateConverter.wrappedResultModel.bind(undefined, templateDef));
-
-  // third pass: we create "style/content editors" for every block
-  var widgets = {};
-  var widgetPlugins = pluginsCall(plugins, 'widget', [$, ko, kojqui]);
-  for (var wi = 0; wi < widgetPlugins.length; wi++) {
-    widgets[widgetPlugins[wi].widget] = widgetPlugins[wi];
-  }
-  blockDefs.push.apply(blockDefs, performanceAwareCaller('generateEditors', templateConverter.generateEditors.bind(undefined, templateDef, widgets, templateUrlConverter, myTemplateCreator, baseThreshold)));
-
-  var incompatibleTemplate = false;
-  if (typeof jsorjson !== 'undefined' && jsorjson !== null) {
-    var unwrapped;
-    if (typeof jsorjson == 'string') {
-      unwrapped = ko.utils.parseJson(jsorjson);
-    } else {
-      unwrapped = jsorjson;
+  // first pass: we "compile" the template into a templateDef object
+  var workerMessage = function(evt) {
+    var templateDef = evt.data.templateDefs;
+    for( var i = 0; i < evt.data.templateSystemData.length; i++) {
+      templateSystem.addTemplate(evt.data.templateSystemData[i].id, evt.data.templateSystemData[i].html);
+      createdTemplates.push(evt.data.templateSystemData[i].id);
     }
 
-    // we run a basic compatibility check between the content-model we expect and the initialization model
-    var checkModelRes = performanceAwareCaller('checkModel', templateConverter.checkModel.bind(undefined, content._unwrap(), blockDefs, unwrapped));
-    // if checkModelRes is 1 then the model is not fully compatible but we fixed it
-    if (checkModelRes == 2) {
-      console.error("Trying to compile an incompatible template version!", content._unwrap(), blockDefs, unwrapped);
-      incompatibleTemplate = true;
+    // second pass: given the templateDef we create a base content model object for this template.
+    var content = performanceAwareCaller('generateModel', templateConverter.wrappedResultModel.bind(undefined, templateDef));
+    modelReferences = content._unwrap();
+
+    // third pass: we create "style/content editors" for every block
+    var widgets = {};
+    var widgetPlugins = pluginsCall(plugins, 'widget', [$, ko, kojqui]);
+    for (var wi = 0; wi < widgetPlugins.length; wi++) {
+      widgets[widgetPlugins[wi].widget] = widgetPlugins[wi];
+    }
+    blockDefs.push.apply(blockDefs, performanceAwareCaller('generateEditors', templateConverter.generateEditors.bind(undefined, templateDef, widgets, templateUrlConverter, myTemplateCreator, baseThreshold)));
+
+    var incompatibleTemplate = false;
+    if (typeof jsorjson !== 'undefined' && jsorjson !== null) {
+      var unwrapped;
+      if (typeof jsorjson == 'string') {
+        unwrapped = ko.utils.parseJson(jsorjson);
+      } else {
+        unwrapped = jsorjson;
+      }
+
+      // we run a basic compatibility check between the content-model we expect and the initialization model
+      var checkModelRes = performanceAwareCaller('checkModel', templateConverter.checkModel.bind(undefined, content._unwrap(), blockDefs, unwrapped));
+      // if checkModelRes is 1 then the model is not fully compatible but we fixed it
+      if (checkModelRes == 2) {
+        console.error("Trying to compile an incompatible template version!", content._unwrap(), blockDefs, unwrapped);
+        incompatibleTemplate = true;
+      }
+
+      try {
+        content._wrap(unwrapped);
+      } catch (ex) {
+        console.error("Unable to inject model content!", ex);
+        incompatibleTemplate = true;
+      }
     }
 
-    try {
-      content._wrap(unwrapped);
-    } catch (ex) {
-      console.error("Unable to inject model content!", ex);
-      incompatibleTemplate = true;
+    // This build the template for the preview/output, but concatenating prefix, template and content and stripping the "replaced" prefix added to "problematic" tag (html/head/body)
+    var iframeTpl = prefix + templateSystem.getTemplateContent(templateName + '-iframe').replace(/(<\/?)replaced(html|head|body)([^>]*>)/gi, function(match, p1, p2, p3) {
+      return p1 + p2 + p3;
+    }) + postfix;
+
+    // store this so to restore it on disposale
+    var origiFrameTpl = ko.bindingHandlers.bindIframe.tpl;
+    ko.bindingHandlers.bindIframe.tpl = iframeTpl;
+    var iFramePlugin = {
+      dispose: function() {
+        ko.bindingHandlers.bindIframe.tpl = origiFrameTpl;
+      }
+    };
+
+    plugins.push(iFramePlugin);
+    plugins.push(templatesPlugin);
+
+    // initialize the viewModel object based on the content model.
+    var viewModel = performanceAwareCaller('initializeViewmodel', initializeViewmodel.bind(this, content, blockDefs, templateUrlConverter, galleryUrl));
+    if (typeof templateDef._defs.firedrum != 'undefined') {
+      templateDef._defs.firedrum._props.split(' ').forEach(function(firedrumProp) {
+        viewModel[firedrumProp] = performanceAwareCaller('generateFireDrumModel', templateConverter.wrappedFireDrumResultModel.bind(undefined, templateDef, firedrumProp));
+      });
     }
-  }
+    
+    viewModel.metadata = metadata;
+    // let's run some version check on template and editor used to build the model being loaded.
+  // This will be replaced by browserify-versionify during the build
+  var editver = '__VERSION__';
+    if (typeof viewModel.metadata.editorversion !== 'undefined' && viewModel.metadata.editorversion !== editver) {
+    console.log("The model being loaded has been created with a different editor version", viewModel.metadata.editorversion, "runtime:", editver);
+    }
+    viewModel.metadata.editorversion = editver;
 
-  // This build the template for the preview/output, but concatenating prefix, template and content and stripping the "replaced" prefix added to "problematic" tag (html/head/body)
-  var iframeTpl = prefix + templateSystem.getTemplateContent(templateName + '-iframe').replace(/(<\/?)replaced(html|head|body)([^>]*>)/gi, function(match, p1, p2, p3) {
-    return p1 + p2 + p3;
-  }) + postfix;
+    if (typeof templateDef.version !== 'undefined') {
+      if (typeof viewModel.metadata.templateversion !== 'undefined' && viewModel.metadata.templateversion !== templateDef.version) {
+      console.log("The model being loaded has been created with a different template version", viewModel.metadata.templateversion, "runtime:", templateDef.version);
+      }
+      viewModel.metadata.templateversion = templateDef.version;
+    }
 
-  // store this so to restore it on disposale
-  var origiFrameTpl = ko.bindingHandlers.bindIframe.tpl;
-  ko.bindingHandlers.bindIframe.tpl = iframeTpl;
-  var iFramePlugin = {
-    dispose: function() {
-      ko.bindingHandlers.bindIframe.tpl = origiFrameTpl;
+    templateSystem.init();
+
+    // everything's ready, start knockout bindings.
+    plugins.push(bindingPluginMaker(performanceAwareCaller, options));
+  
+    // make sure to call the afterBinding callback plugin, if it exists
+    if (onAfterBinding !== null) {
+      if (typeof onAfterBinding == 'function') {
+        plugins.push(_viewModelPluginInstance(onAfterBinding));
+      } else {
+        plugins.push(onAfterBinding);
+      }
+    }
+
+    pluginsCall(plugins, 'viewModel', [viewModel]);
+
+    if (incompatibleTemplate) {
+      $('#incompatible-template').dialog({
+        modal: true,
+        appendTo: '#mo-body',
+        buttons: {
+          Ok: function() {
+            $(this).dialog("close");
+          }
+        }
+      });
+    }
+
+    if (typeof finalOptions !== 'undefined') {
+      if (finalOptions.init) {
+        pluginsCall(plugins, 'init', undefined, true);
+      }
     }
   };
 
-  plugins.push(iFramePlugin);
-  plugins.push(templatesPlugin);
-
-  // initialize the viewModel object based on the content model.
-  var viewModel = performanceAwareCaller('initializeViewmodel', initializeViewmodel.bind(this, content, blockDefs, templateUrlConverter, galleryUrl));
-
-  viewModel.metadata = metadata;
-  // let's run some version check on template and editor used to build the model being loaded.
-  // This will be replaced by browserify-versionify during the build
-  var editver = '__VERSION__';
-  if (typeof viewModel.metadata.editorversion !== 'undefined' && viewModel.metadata.editorversion !== editver) {
-    console.log("The model being loaded has been created with a different editor version", viewModel.metadata.editorversion, "runtime:", editver);
-  }
-  viewModel.metadata.editorversion = editver;
-
-  if (typeof templateDef.version !== 'undefined') {
-    if (typeof viewModel.metadata.templateversion !== 'undefined' && viewModel.metadata.templateversion !== templateDef.version) {
-      console.log("The model being loaded has been created with a different template version", viewModel.metadata.templateversion, "runtime:", templateDef.version);
-    }
-    viewModel.metadata.templateversion = templateDef.version;
-  }
-
-  templateSystem.init();
-
-  // everything's ready, start knockout bindings.
-  plugins.push(bindingPluginMaker(performanceAwareCaller));
-
-  pluginsCall(plugins, 'viewModel', [viewModel]);
-
-  if (incompatibleTemplate) {
-    $('#incompatible-template').dialog({
-      modal: true,
-      appendTo: '#mo-body',
-      buttons: {
-        Ok: function() {
-          $(this).dialog("close");
-        }
-      }
+  if ( options.templateTranslationWorker === null ) {
+    // This is IE... sadly, we have to process in the main thread
+    workerMessage( {
+      data: {
+        templateDefs: performanceAwareCaller('translateTemplate', templateConverter.translateTemplate.bind(undefined, templateName, html, templateUrlConverter, myTemplateCreator)),
+        templateSystemData: []
+      } 
+    } );
+  } else {
+    var templateTranslationWorker = options.templateTranslationWorker || new global.Worker("/template-translation-loader.js");
+    templateTranslationWorker.onmessage = workerMessage;
+    templateTranslationWorker.postMessage({
+      templateName: templateName,
+      html: html,
+      templatePath: finalOptions.templatePath,
+      existingTemplateIds: templateSystem.getTemplateIds()
     });
   }
 
   return {
-    model: viewModel,
+    //model: viewModel,
     init: function() {
       pluginsCall(plugins, 'init', undefined, true);
     },
@@ -326,7 +370,6 @@ var templateCompiler = function(performanceAwareCaller, templateUrlConverter, te
       pluginsCall(plugins, 'dispose', undefined, true);
     }
   };
-
 };
 
 

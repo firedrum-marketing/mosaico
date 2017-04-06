@@ -2,7 +2,10 @@
   "name": "mosaico",
   "version": "0.17.3",
   "description": "Mosaico - OpenSource Email Template Editor",
-  "main": "./src/js/app.js",
+  "main": [
+    "./src/js/app.js",
+    "./src/js/template-translation-worker.js"
+  ],
   "repository": {
     "type": "git",
     "url": "git@github.com:voidlabs/mosaico.git"
@@ -77,6 +80,7 @@
     "jquery-ui": "jhorowitz-firedrum/jquery-ui",
     "jquery-ui-touch-punch": "^0.2.3",
     "jquery.iframe-transport": "^1.0.0",
+    "jsdom": "^11.8.0",
     "jsep": "^0.3.3",
     "juice": "^4.2.3",
     "knockout": "jhorowitz-firedrum/knockout",
@@ -124,6 +128,7 @@
     "grunt-release": "0.13.1",
     "jasmine-core": "3.1.0",
     "jquery-file-upload-middleware": "0.1.8",
+    "jsdom-global": "jhorowitz-firedrum/jsdom-global",
     "jshint-stylish": "2.2.1",
     "license-checker": "16.0.0",
     "load-grunt-tasks": "3.5.2",

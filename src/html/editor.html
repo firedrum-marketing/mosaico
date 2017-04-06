@@ -31,7 +31,8 @@ $(function() {
     fileuploadConfig: {
       url: basePath+'/upload/',
       // messages??
-    }
+    },
+    templateTranslationWorker: new Worker('dist/template-translation-loader.min.js?v=0.16')
   }, plugins);
   if (!ok) {
     console.log("Missing initialization hash, redirecting to main entrypoint");

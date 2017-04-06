@@ -92,6 +92,26 @@ module.exports = function(grunt) {
         files: {
           'build/mosaico.js': ['./src/js/app.js', './build/templates.js']
         }
+      },
+      templateTranslationWorkerMain: {
+        options: {
+          browserifyOptions: {
+            debug: true,
+            fullPaths: false,
+            standalone: 'Mosaico'
+          },
+          transform: [['browserify-shim', {global: true}], ['uglifyify', {global: true}]],
+          cacheFile: 'build/template-translation-loader-main-incremental.bin',
+          banner: '/** \n'+
+                  ' * <%= pkg.description %> - v<%= pkg.version %> - <%= grunt.template.today("yyyy-mm-dd") %> \n'+
+                  ' * Licensed under the <%= pkg.license %> (<%= pkg.licenseurl %>)\n'+
+                  ' * \n'+
+                  ' * Copyright (c) <%= grunt.template.today("yyyy") %> <%= pkg.author %> \n'+
+                  ' */',
+        },
+        files: {
+          'build/template-translation-loader.js': ['./src/js/template-translation-loader.js']
+        }  
       }
     },
 
@@ -102,6 +122,14 @@ module.exports = function(grunt) {
         },
         files: {
           'dist/rs/mosaico.min.js.map': ['build/mosaico.js'],
+        }
+      },
+      templateTranslationWorkerMain: {
+        options: {
+          bundleDest: 'dist/rs/template-translation-loader.min.js'
+        },
+        files: {
+          'dist/rs/template-translation-loader.min.js.map': ['build/template-translation-loader.js']
         }
       }
     },
