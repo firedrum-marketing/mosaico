@@ -20,9 +20,9 @@
 .button-style() {
   .input-button-common();
   display: inline-block;
-  background-color: @button-background-color;
+  background-color: #545454;
   border: @input-border-size solid @button-border-color; // hidden, but declared to keep size consistency between input and buttons.
-  color: @button-text-color;
+  color: inherit;
   li & { color: @button-text-color; } // Buttons inside LI should preserve their color (declared for "li a")
   border-radius: @button-border-radius;
   font-weight: bold;
@@ -39,17 +39,17 @@
   }
   &:hover, &.pressed, &.selected /*, &.active*/ {
     text-decoration: none;
-    background-color: @button-hover-background-color;
+    background-color: #6E6E6E;
   }
   &.disabled {
-    color: @button-text-color-disabled;
+    color: #A5A5A5;
     a, .link { // .link serve solo per poter fare l'import a style_elements_jquery.less
-      color: @button-text-color-disabled;
+      color: #A5A5A5;
     }
     &:hover {
-      background-color: @button-background-color;
+      background-color: #545454;
       border: @input-border-size solid @button-border-color;
-      color: @button-text-color-disabled;
+      color: #A5A5A5;
     }
   }
   .container-inline & {
@@ -346,7 +346,7 @@
     background-color: @sidebar-background-color;
   }
   margin: 0;
-  border-bottom: @tabs-border-width solid @accent-color;
+  border-top: @tabs-border-width solid #FF5722;
   .clear-after;
   li {
     float: left;
@@ -376,9 +376,14 @@
     a:focus {
       outline: 0 none !important;
     }
+
+    > a:hover {
+      background-color: #E5E5E5;
+      border-top-color: #E5E5E5;
+    }
   }
   li@{activeclass} a {
-    border-bottom: @tabs-border-width solid @background-color;
+    border-top: @tabs-border-width solid #FF5722;
     background: transparent;
     font-weight: bold;
     & when(@buttonstyle) {

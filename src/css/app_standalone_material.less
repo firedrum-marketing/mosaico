@@ -1,10 +1,10 @@
 @import 'app_standalone.less';
 
-@accent-color: #900000; // #A01020; // #ff9800;
-@background-color: #eeeeee;
-// @link-color: #ff9800;
-// @link-color: #ff5722; // #ea1c0d;
-@link-color: #ff5722; // #ea1c0d;
+@accent-color: #333333; // #A01020; // #ff9800; // #900000;
+@background-color: #EEEEEE;
+// @link-color: #FF9800;
+// @link-color: #FF5722; // #ea1c0d;
+@link-color: #FF5722; // #ea1c0d;
 
 @font-family: "Noto Sans", "Helvetica Neue", Helvetica, Arial, "Nimbus Sans L", "Liberation Sans", Arimo, sans-serif;
 @standard-border-radius: 2px;
@@ -21,11 +21,11 @@
 @mosaico-selection-color: @link-color;
 
 #main-preview #preview-toolbar {
-  padding: 1px 5px;
+  padding: 1px 5px 0;
 }
 
 #toolbar {
-  padding: 1px 5px;
+  padding: 0 5px;
 }
 
 @button-background-color: @link-color;
@@ -48,20 +48,25 @@
 
 #toolbar, #preview-toolbar {
   .ui-button {
-    padding-top: 7px;
-    padding-bottom: 7px;
-    line-height: 22px;
+    padding-top: 0;
+    padding-bottom: 0;
+    line-height: @topbar-height - 2px;
+    margin-top: 2px;
 
-    background-color: @mosaico-ui-background-color;
+    background-color: transparent;
     &:hover, &.pressed {
+      margin-top: 0;
+      border-top: 2px solid lighten(#FF5722, 10%);
+      border-bottom: 0;
       background-color: lighten(@mosaico-ui-background-color, 10%);
     }
     &.selected, &.ui-state-active {
-      border-bottom: 2px solid @button-text-color;
-      border-top: 0;
+      margin-top: 0px;
+      border-top: 2px solid #FF5722;
+      border-bottom: 0;
     }
     &.ui-button-disabled, &.ui-button-disabled .ui-icon, &.ui-button-disabled .ui-button-text {
-      color: mix(@mosaico-ui-background-color, @button-text-color);
+      color: #A5A5A5;
     }
   }
 } 
@@ -76,10 +81,13 @@
 
 #main-toolbox #tooltabs.ui-tabs {
   .ui-tabs-nav {
-    font-size: 1em;
+    font-size: .9em;
     li {
-      margin: 1px 1px 0 0;
-      line-height: @topbar-height - 4px;
+      margin: 3px 1px 0 0;
+    }
+    
+    li:hover, li.ui-state-active {
+      margin: 0 1px 0 0;
     }
   }
 }
@@ -93,14 +101,14 @@
   text-transform: uppercase;
 
   & when (@buttonstyle) {
-    border-bottom: 0;
+    border-top: 0;
     background-color: transparent;
   }
   li > a when (@buttonstyle) {
     background-color: transparent; 
     &:hover {
       background-color: lighten(@mosaico-ui-background-color, 10%);
-      border-bottom: 3px solid lighten(@mosaico-ui-background-color, 10%);
+      border-top: 3px solid lighten(#FF5722, 10%);
     } 
   }
 
@@ -108,7 +116,7 @@
     & when(@buttonstyle) {
       background-color: transparent;
       color: @button-text-color;
-      border-bottom: 3px solid @button-text-color;
+      border-top: 3px solid #FF5722;
     } 
   }
 }
@@ -308,12 +316,17 @@
   .mo .propInput input[type=url],
   .mo .propInput select,
   .mo .propInput .data-select select,
-  .mo .propInput .ui-spinner .ui-spinner-input {
+  .mo .propInput .ui-spinner .ui-spinner-input,
+  .mo .propInput textarea  {
     border-width: 0 0 2px 0;
     background-color: transparent;
     &:hover, &:focus {
       border-color: @link-color;
     }
+  }
+  
+  .mo .propInput textarea {
+    border-width: 0 2px 2px 2px;
   }
 
   .mo .propInput .data-color input[type=text] {

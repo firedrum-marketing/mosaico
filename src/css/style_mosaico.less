@@ -37,6 +37,8 @@
 
 @leftsidebar-width: 400px;
 @rightsidebar-width: 340px;
+@rightsidebar-width-desktop: 680px;
+@rightsidebar-width-large: 850px;
 @mainarea-minwidth: 600px;
 @topbar-height: 40px;
 
@@ -68,6 +70,10 @@
 
 // Icone font-awesome (.fa-* , configurable via @fa-css-prefix)
 @import (optional) "font-awesome/less/font-awesome.less";
+
+.fa {
+  font-size: 1.45em;
+}
 
 // Mosaico: editing tools (toolbar, left toolbox, right preview)
 @import 'style_mosaico_tools.less';
@@ -153,11 +159,9 @@
   }
   &@{selectedSelector}@{borderElementSelector} {
     outline-color: transparent;
-    // border: @selectedSize dashed @mosaico-selection-color;
-    // border-left-width: @size;
-    // border-right-width: @size;
-    border-color: @mosaico-selection-color;
-    border-style: dashed solid;
+    border: @selectedSize solid @mosaico-selection-color;
+    border-left-width: @size;
+    border-right-width: @size;
     animation: border-color-selection-pulsate 4s infinite;
   }
   &:hover@{borderElementSelector} {
@@ -174,30 +178,6 @@
     z-index: 11;
   }
 
-}
-
-.makeEditableHover(@size, @editableSelector, @borderElementSelector: ~':before') {
-  @{editableSelector}@{borderElementSelector} {
-    content: "";
-    display: block;
-    position: absolute;
-    // z-index: 0;
-    top: -3px; bottom: -3px;
-    left: -7px; right: -7px;
-    border: 1px dashed transparent;
-    opacity: 0.3;
-
-    // otherwise this catches clicks and prevent correct selection of underlying text
-    pointer-events: none;
-  }
-
-  &:hover @{editableSelector}@{borderElementSelector} {
-    border-color: @mosaico-outline-color;
-  }
-
-  &:hover @{editableSelector}:hover@{borderElementSelector} {
-    border-color: transparent;
-  }
 }
 
 .resetFont() {
@@ -254,11 +234,13 @@ a[disabledhref]:-moz-read-write {
 
 #page {
   position: absolute;
-  top: 0;
+  top: 144px;
   bottom: 0;
   left: 0;
   right: 0;
   overflow: hidden;
+  z-index: 0;
+  background-color: #F9F9F9;
 }
 
 #main-edit-area {
@@ -267,13 +249,17 @@ a[disabledhref]:-moz-read-write {
   overflow: hidden;
 }
 
-#main-edit-area, #toolbar {
+#toolbar {
   min-width: @mainarea-minwidth;
+}
+
+#main-edit-area, #main-preview, #toolbar, #main-toolbox {
+  transition: transform .2s ease-out, right .2s ease-out, width .2s ease-out, left .2s ease-out;
 }
 
 #toolbar {
   z-index: 110 !important; // Bigger than #main-toolbox .ui-tabs .ui-tabs-panel
-  background-color: @mosaico-ui-background-color;
+  background-color: transparent;
   box-sizing: border-box;
   position: absolute;
   top: 0;
@@ -284,13 +270,13 @@ a[disabledhref]:-moz-read-write {
 
 #main-toolbox {
   backface-visibility: hidden;
-  display: none;
   left: 0;
+  transform: translate3d(-100%, 0, 0);
   width: @leftsidebar-width;
   box-shadow: 0 0 10px @mosaico-shadow-color, 0 0 5px @mosaico-shadow-color;
 }
 .withToolbox #main-toolbox {
-  display: block;
+  transform: translate3d(0, 0, 0);
 }
 .withToolbox #main-edit-area,
 .withToolbox #toolbar {
@@ -299,17 +285,33 @@ a[disabledhref]:-moz-read-write {
 
 #main-preview {
   backface-visibility: hidden;
-  display: none;
   right: 0;
   width: @rightsidebar-width;
-  //padding: 10px;
   overflow: hidden;
+  transform: translate3d(100%, 0, 0);
 }
+
+.desktop #main-preview {
+  width: @rightsidebar-width-desktop;
+}
+
+.large #main-preview {
+  width: @rightsidebar-width-large;
+}
+
 .withPreviewFrame #main-preview {
-  display: block;
+  transform: translate3d(0, 0, 0);
 }
 .withPreviewFrame #main-edit-area {
   right: (@rightsidebar-width + 5px);
+}
+
+.withPreviewFrame.desktop #main-edit-area {
+  right: (@rightsidebar-width-desktop + 5px);
+}
+
+.withPreviewFrame.large #main-edit-area {
+  right: (@rightsidebar-width-large + 5px);
 }
 
 #main-edit-area:before,

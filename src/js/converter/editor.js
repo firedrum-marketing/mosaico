@@ -418,6 +418,8 @@ var generateEditors = function(templateDef, widgets, templateUrlConverter, templ
   }
 
   if (typeof defs['theme'] != 'undefined') createBlockEditor(defs, widgets, undefined, templateUrlConverter, templateName, 'theme', 'styler', templateCreator, undefined, false, false, -1);
+  if (typeof defs['envelope'] != 'undefined') createBlockEditor(defs, widgets, undefined, templateUrlConverter, templateName, 'envelope', 'edit', templateCreator, 0, false, true, 0);
+  if (typeof defs['socialSharing'] != 'undefined') createBlockEditor(defs, widgets, undefined, templateUrlConverter, templateName, 'socialSharing', 'edit', templateCreator, 0, false, true, 0);
   return blockDefs;
 };
 

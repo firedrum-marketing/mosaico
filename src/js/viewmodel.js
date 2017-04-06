@@ -284,12 +284,13 @@ function initializeEditor(content, blockDefs, thumbPathConverter, galleryUrl) {
 
   // Used by editor and main "converter" to support item selection
   viewModel.selectItem = function(valueAccessor, item, block) {
+    var blocksIndex = (typeof viewModel.envelope !== 'undefined' ? 1 : 0);
     var val = ko.utils.peekObservable(valueAccessor);
     if (typeof block !== 'undefined') viewModel.selectBlock(block, false, true);
     if (val != item) {
       valueAccessor(item);
       // On selectItem if we were on "Blocks" toolbox tab we move to "Content" toolbox tab.
-      if (item !== null && viewModel.selectedTool() === 0) viewModel.selectedTool(1);
+      if (item !== null && viewModel.selectedTool() === blocksIndex) viewModel.selectedTool(blocksIndex + 1);
     }
     return false;
   }.bind(viewModel, viewModel.selectedItem);
@@ -299,13 +300,14 @@ function initializeEditor(content, blockDefs, thumbPathConverter, galleryUrl) {
   };
 
   viewModel.selectBlock = function(valueAccessor, item, doNotSelect, doNotUnselectItem) {
+    var blocksIndex = (typeof viewModel.envelope !== 'undefined' ? 1 : 0);
     var val = ko.utils.peekObservable(valueAccessor);
     if (!doNotUnselectItem) viewModel.selectItem(null);
     if (val != item) {
       valueAccessor(item);
       // hide gallery on block selection
       viewModel.showGallery(false);
-      if (item !== null && !doNotSelect && viewModel.selectedTool() === 0) viewModel.selectedTool(1);
+      if (item !== null && !doNotSelect && viewModel.selectedTool() === blocksIndex) viewModel.selectedTool(blocksIndex + 1);
     }
   }.bind(viewModel, viewModel.selectedBlock);
 

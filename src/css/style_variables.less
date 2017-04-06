@@ -3,8 +3,8 @@
  *************************************************************************************************************************/
 
 @base-font-size: 13.6px; /* 20140929: Previously 0.85em, but we don't want user selected sizes because it breaks around */
-@accent-color: #D2CBB1;
-@background-color: #FEFDFC;
+@accent-color: #333333;
+@background-color: #F9F9F9;
 @link-color: #9C010F;
 
 @red: #9C010F;
@@ -34,15 +34,15 @@
 @status-progress-bar-color-ok: #48AF26;
 
 /**************************************************************************************************************************
- * COMPUTED CONFIUGRATION
+ * COMPUTED CONFIGURATION
  *************************************************************************************************************************/
 
 @sidebar-background-color: @accent-color;
 @highlight-background-color: mix(@accent-color, @background-color, 60%);
 @sidebar-highlight-background-color: mix(@sidebar-background-color, @background-color, 60%);
-@button-text-color: @background-color;
+@button-text-color: inherit;
 @button-text-color-disabled: lighten(@button-background-color, 20%);
-@button-background-color: @text-color;
+@button-background-color: #F9F9F9;
 @button-hover-background-color: darken(@button-background-color, 10%);
 @button-border-color: @button-background-color;
 @button-border-color-split: contrast(difference(@button-border-color, @button-background-color), @button-border-color, @background-color, 5%);
@@ -57,7 +57,7 @@
 
 // TODO remove unused vars
 
-@font-family: "trebuchet ms",arial,sans-serif;
+@font-family: Noto Sans, Helvetica Neue, Helvetica, Arial, Nimbus Sans L, Liberation Sans, Arimo, sans-serif;
 @standard-border-radius: 5px;
 @info-border-radius: @standard-border-radius;
 @button-border-radius: @standard-border-radius;
