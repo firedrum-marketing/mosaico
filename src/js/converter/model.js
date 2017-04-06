@@ -109,6 +109,13 @@ var _modelCreateOrUpdateBlockDef = function(defs, templateName, properties, name
     }
     if (typeof namedProperties.extend != 'undefined') defs[templateName].type = namedProperties.extend;
   }
+  
+  for (var np in namedProperties) {
+    if ( namedProperties.hasOwnProperty(np) && typeof namedProperties[np] !== 'undefined' && typeof namedProperties[np].replace === 'function' ) {
+      // Strip out double quotes from quoted properties (allows escaping of semi-colons in property values)
+      namedProperties[np] = namedProperties[np].replace(/^"([^"]*)"$/g, '$1' );
+    }
+  }
 
   for (var np in namedProperties) if (namedProperties.hasOwnProperty(np) && typeof namedProperties[np] !== 'undefined' && ['name', 'extend', 'contextName', 'globalStyle','themeOverride'].indexOf(np) == -1) {
     defs[templateName]['_'+np] = namedProperties[np];
