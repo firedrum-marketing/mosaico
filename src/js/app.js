@@ -45,7 +45,7 @@ var applyBindingOptions = function(options, ko) {
     var imgProcessorBackend = options.imgProcessorBackend ? options.imgProcessorBackend : './upload';
     var backEndMatch = imgProcessorBackend.match(/^(https?:\/\/[^\/]*\/).*$/);
     var srcMatch = src.match(/^(https?:\/\/[^\/]*\/).*$/);
-    if (backEndMatch === null || (srcMatch !== null && backEndMatch[1] == srcMatch[1])) {
+    if ((backEndMatch === null || srcMatch === null) || (backEndMatch[1] == srcMatch[1])) {
       queryParamSeparator = imgProcessorBackend.indexOf('?') == -1 ? '?' : '&';
       return _appendUrlParameters(imgProcessorBackend, { src: src, method: method, params: width + "," + height });
     } else {
@@ -110,7 +110,8 @@ var start = function(options, templateFile, templateMetadata, jsorjson, customEx
       vm.t = function(key, objParam) {
         var res = options.strings[key];
         if (typeof res == 'undefined') {
-          console.warn("Missing translation string for",key,": using default string");
+          // All these warnings are killing performance!!!
+          //console.warn("Missing translation string for",key,": using default string");
           res = key;
         }
         return vm.tt(res, objParam);
@@ -128,7 +129,7 @@ var start = function(options, templateFile, templateMetadata, jsorjson, customEx
   applyBindingOptions(options, ko);
 
   // TODO what about appending to another element?
-  $("<!-- ko template: 'main' --><!-- /ko -->").appendTo(global.document.body);
+  $("<!-- ko template: 'main' --><!-- /ko -->").appendTo(typeof options.mainElement != 'undefined' ? options.mainElement : global.document.body);
 
   // templateFile may override the template path in templateMetadata
   if (typeof templateFile == 'undefined' && typeof templateMetadata != 'undefined') {
@@ -136,7 +137,7 @@ var start = function(options, templateFile, templateMetadata, jsorjson, customEx
   }
   // TODO canonicalize templateFile to absolute or relative depending on "relativeUrlsException" plugin
 
-  templateLoader.load(performanceAwareCaller, templateFile, templateMetadata, jsorjson, extensions, galleryUrl);
+  templateLoader.load(performanceAwareCaller, templateFile, templateMetadata, jsorjson, extensions, galleryUrl, options);
 
 };
 
@@ -176,6 +177,10 @@ var init = function(options, customExtensions) {
   return true;
 };
 
+var getModelReferences = function() {
+	return templateLoader.getModelReferences();
+};
+
 module.exports = {
   isCompatible: templateLoader.isCompatible,
   init: init,
@@ -183,5 +188,6 @@ module.exports = {
   ko: ko,
   $: $,
   url: require('url'),
-  download: require('downloadjs')
+  download: require('downloadjs'),
+  getModelReferences: getModelReferences
 };

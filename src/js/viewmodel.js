@@ -1,5 +1,5 @@
 "use strict";
-/* global global: false */
+/* global global: false, Image: false */
 
 var $ = require("jquery");
 require('jquery-ui');
@@ -357,6 +357,19 @@ function initializeEditor(content, blockDefs, thumbPathConverter, galleryUrl) {
       return dd;
     });
   }
+
+  viewModel.getDataUri = function(url, callback) {
+    var image = new Image();
+    image.onload = function () {
+      var canvas = global.document.createElement('canvas');
+      canvas.width = this.naturalWidth; // or 'width' if you want a special/scaled size
+      canvas.height = this.naturalHeight; // or 'height' if you want a special/scaled size
+      canvas.getContext('2d').drawImage(this, 0, 0);
+      // Get raw image data
+      callback(canvas.toDataURL('image/png').replace(/^data:image\/[^;]+;base64,/, ''));
+    };
+    image.src = url;
+  };
 
   viewModel.exportHTML = function(callback) {
     var id = 'exportframe';

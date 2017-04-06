@@ -26,8 +26,7 @@ var pluginsCall = function(plugins, methodName, args, reverse) {
   }
   for (var i = start; i != end + diff; i += diff) {
     if (typeof plugins[i][methodName] !== 'undefined') {
-      res = plugins[i][methodName].apply(plugins[i], args);
-      if (typeof res !== 'undefined') results.push(res);
+      global.requestAnimationFrame( plugins[i][methodName].bind.apply(plugins[i][methodName], [plugins[i]].concat(args)));
     }
   }
   return results;
@@ -48,11 +47,11 @@ ko.utils.domNodeDisposal.addDisposeCallback = function(node, callback) {
   origDisposeCallback(node, newCallback);
 };
 
-var bindingPluginMaker = function(performanceAwareCaller) {
+var bindingPluginMaker = function(performanceAwareCaller, options) {
   return {
     viewModel: function(viewModel) {
       try {
-        performanceAwareCaller('applyBindings', ko.applyBindings.bind(undefined, viewModel));
+        performanceAwareCaller('applyBindings', ko.applyBindings.bind(undefined, viewModel, options.mainElement));
       } catch (err) {
         console.warn(err, err.stack);
         throw err;
@@ -60,7 +59,7 @@ var bindingPluginMaker = function(performanceAwareCaller) {
     },
     dispose: function() {
       try {
-        performanceAwareCaller('unapplyBindings', ko.cleanNode.bind(this, global.document.body));
+        performanceAwareCaller('unapplyBindings', ko.cleanNode.bind(this, typeof options.mainElement !== 'undefined' ? options.mainElement : global.document.body));
       } catch (err) {
         console.warn(err, err.stack);
         throw err;
@@ -159,6 +158,8 @@ var templateLoader = function(performanceAwareCaller, templateFileName, template
   });
 };
 
+var modelReferences = null;
+
 var templateCompiler = function(performanceAwareCaller, templateUrlConverter, templateName, templatecode, jsorjson, metadata, extensions, galleryUrl, options, finalOptions) {
   // we strip content before <html> tag and after </html> because jquery doesn't parse it.
   // we'll keep it "raw" and use it in the preview/output methods.
@@ -180,6 +181,12 @@ var templateCompiler = function(performanceAwareCaller, templateUrlConverter, te
   var enableUndo = true;
   var enableRecorder = true;
   var baseThreshold = '+$root.contentListeners()';
+  
+  var onAfterBinding = null;
+  if (options && typeof options.onAfterBinding == "function") 
+    onAfterBinding = options.onAfterBinding;
+  else if (options && typeof options.onAfterBinding == "string" && typeof global[options.onAfterBinding] == "function")
+    onAfterBinding = global[options.onAfterBinding];
 
   var plugins = [];
 
@@ -486,9 +493,14 @@ var fixPageEvents = function() {
   }
 };
 
+var getModelReferences = function() {
+  return modelReferences;
+};
+
 module.exports = {
   compile: templateCompiler,
   load: templateLoader,
   isCompatible: isCompatible,
-  fixPageEvents: fixPageEvents
+  fixPageEvents: fixPageEvents,
+  getModelReferences: getModelReferences
 };
