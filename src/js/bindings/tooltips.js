@@ -2,6 +2,7 @@
 
 var ko = require("knockout");
 var $ = require("jquery");
+require('jquery-ui');
 var kojqui = require("knockout-jqueryui");
 var console = require("console");
 

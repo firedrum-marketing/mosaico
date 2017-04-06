@@ -7,6 +7,7 @@ var console = require("console");
 var ko = require("knockout");
 var $ = require("jquery");
 require("./ko-bindings.js");
+require('jquery-ui');
 var performanceAwareCaller = require("./timed-call.js").timedCall;
 
 var addUndoStackExtensionMaker = require("./undomanager/undomain.js");
@@ -178,5 +179,8 @@ var init = function(options, customExtensions) {
 module.exports = {
   isCompatible: templateLoader.isCompatible,
   init: init,
-  start: start
+  start: start,
+  ko: ko,
+  $: $,
+  url: require('url')
 };

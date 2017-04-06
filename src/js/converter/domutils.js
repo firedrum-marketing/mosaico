@@ -5,6 +5,7 @@
 // Otherwise we would need jsDom to run the compiler in the server (without a real browser)
 
 var $ = require("jquery");
+require('jquery-ui');
 
 function _extend(target, source) {
   if (source) {

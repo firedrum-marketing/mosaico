@@ -3,6 +3,7 @@
 var console = require("console");
 var ko = require("knockout");
 var $ = require("jquery");
+require('jquery-ui');
 
 var lsLoader = function(hash_key, emailProcessorBackend) {
   var mdStr = global.localStorage.getItem("metadata-" + hash_key);

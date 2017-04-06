@@ -1,9 +1,16 @@
 "use strict";
 /* global global: false */
 
+var $ = require("jquery");
+require('jquery-ui');
+
+var originaljQuery = global.jQuery;
+global.jQuery = $;
+
 require("evol-colorpicker");
 
-var $ = require("jquery");
+global.jQuery = originaljQuery;
+
 var ko = require("knockout");
 var kojqui = require("knockout-jqueryui");
 

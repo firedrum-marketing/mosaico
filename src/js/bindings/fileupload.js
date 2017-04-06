@@ -11,6 +11,8 @@
 //require("jquery-file-upload/js/jquery.fileupload-validate.js");
 
 var $ = require("jquery");
+require('jquery-ui');
+require("blueimp-file-upload");
 var ko = require("knockout");
 var console = require("console");
 

@@ -2,6 +2,7 @@
 /* global global: false */
 
 var $ = require("jquery");
+require('jquery-ui');
 var console = require("console");
 var converterUtils = require("./utils.js");
 var elaborateDeclarations = require("./declarations.js");

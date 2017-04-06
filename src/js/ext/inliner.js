@@ -2,6 +2,7 @@
 /* global global: false */
 var console = require("console");
 var $ = require("jquery");
+require('jquery-ui');
 var inlineDocument = require("juice/lib/inline")({}).inlineDocument;
 
 var inlinerPlugin = function(vm) {

@@ -3,6 +3,7 @@
 
 var ko = require("knockout");
 var $ = require("jquery");
+require('jquery-ui');
 var console = require("console");
 var tinymce = require("tinymce");
 

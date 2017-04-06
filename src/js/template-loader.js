@@ -2,6 +2,7 @@
 /* global global: false */
 
 var $ = require("jquery");
+require('jquery-ui');
 var ko = require("knockout");
 var kojqui = require("knockout-jqueryui"); // just for the widget plugins
 var templateConverter = require("./converter/main.js");

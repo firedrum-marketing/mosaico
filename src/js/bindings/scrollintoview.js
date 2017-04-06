@@ -1,6 +1,7 @@
 "use strict";
 
 var $ = require("jquery");
+require('jquery-ui');
 var ko = require("knockout");
 var console = require("console");
 

@@ -7,6 +7,10 @@
     "type": "git",
     "url": "git@github.com:voidlabs/mosaico.git"
   },
+  "browser": {
+    "jquery.ui.widget": "jquery-ui/ui/widget.js",
+    "jquery-ui": "jquery-ui/dist/jquery-ui.js"
+  },
   "browserify": {
     "transform": [
       "aliasify",
@@ -18,6 +22,13 @@
   "aliasify": {
     "aliases": {
       "console": "console-browserify",
+      "jquery-ui/draggable": "jquery-ui/ui/widgets/draggable.js",
+      "jquery-ui/droppable": "jquery-ui/ui/widgets/droppable.js",
+      "jquery-ui/sortable": "jquery-ui/ui/widgets/sortable.js",
+      "jquery-ui/spinner": "jquery-ui/ui/widgets/spinner.js",
+      "jquery-ui/tabs": "jquery-ui/ui/widgets/tabs.js",
+      "jquery.ui.widget": "jquery-ui/ui/widget.js",
+      "jquery-ui": "jquery-ui/dist/jquery-ui.js",
       "jqueryui-touch-punch": "jquery-ui-touch-punch",
       "knockout-jqueryui": "knockout-jqueryui/dist/knockout-jqueryui.js",
       "knockoutjs-reactor": "ko-reactor/dist/ko-reactor.js",
@@ -25,14 +36,32 @@
     }
   },
   "browserify-shim": {
-    "jquery": "global:jQuery",
-    "jquery-ui/ui/widgets/sortable": "global:jQuery.ui.sortable",
-    "jquery-ui/ui/widgets/draggable": "global:jQuery.ui.draggable",
-    "jquery-ui/ui/widgets/droppable": "global:jQuery.ui.droppable",
-    "jquery-ui/ui/widgets/spinner": "global:jQuery.ui.spinner",
-    "jquery-ui/ui/widgets/tabs": "global:jQuery.ui.tabs",
-    "knockout": "global:ko",
-    "knockout-jqueryui": "global:kojqui",
+    "jquery": {
+	  "exports": "$",
+	  "depends": ["jsdom-global"]
+	},
+    "jquery-ui": {
+	  "depends": ["jquery:jQuery"]
+	},
+	"jquery-ui/draggable": {
+	  "depends": ["jquery:jQuery"]
+	},
+	"jquery-ui/droppable": {
+	  "depends": ["jquery:jQuery"]
+	},
+	"jquery-ui/sortable": {
+	  "depends": ["jquery:jQuery"]
+	},
+	"jquery-ui/spinner": {
+	  "depends": ["jquery:jQuery"]
+	},
+	"jquery-ui/tabs": {
+	  "depends": ["jquery:jQuery"]
+	},
+    "knockout-jqueryui": {
+		"exports": "kojqui",
+		"depends": ["jquery:jQuery", "knockout:ko" ]
+	},
     "tinymce": "global:tinymce"
   },
   "dependencies": {
