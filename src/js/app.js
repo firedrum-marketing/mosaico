@@ -182,5 +182,6 @@ module.exports = {
   start: start,
   ko: ko,
   $: $,
-  url: require('url')
+  url: require('url'),
+  download: require('downloadjs')
 };

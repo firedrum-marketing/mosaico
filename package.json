@@ -73,6 +73,7 @@
     "blueimp-file-upload": "9.21.0",
     "console-browserify": "^1.1.0",
     "default-passive-events": "^1.0.7",
+    "downloadjs": "~1.4.6",
     "evol-colorpicker": "^3.3.1",
     "font-awesome": "^4.7.0",
     "jquery": "^3.3.1",

@@ -6,6 +6,8 @@ require('jquery-ui');
 var ko = require("knockout");
 var console = require("console");
 var performanceAwareCaller = require("./timed-call.js").timedCall;
+var url = require("url");
+var querystring = require("querystring");
 
 var toastr = require("toastr");
 toastr.options = {
@@ -356,7 +358,7 @@ function initializeEditor(content, blockDefs, thumbPathConverter, galleryUrl) {
     });
   }
 
-  viewModel.exportHTML = function() {
+  viewModel.exportHTML = function(callback) {
     var id = 'exportframe';
     $('body').append('<iframe id="' + id + '" data-bind="bindIframe: $data"></iframe>');
     var frameEl = global.document.getElementById(id);
@@ -365,47 +367,57 @@ function initializeEditor(content, blockDefs, thumbPathConverter, galleryUrl) {
     ko.cleanNode(frameEl);
 
     if (viewModel.inline) viewModel.inline(frameEl.contentWindow.document);
+    
+    var completeExport = function() {
+      // Obsolete method didn't work on IE11 when using "HTML5 doctype":
+      // var docType = new XMLSerializer().serializeToString(global.document.doctype);
+      var docType = "";
+      var node = frameEl.contentWindow.document.doctype;
+      docType = "<!DOCTYPE " + node.name +
+        (node.publicId ? ' PUBLIC "' + node.publicId + '"' : '') +
+        (!node.publicId && node.systemId ? ' SYSTEM' : '') +
+        (node.systemId ? ' "' + node.systemId + '"' : '') + '>';
+    
+      var content = docType + '\n' + frameEl.contentWindow.document.documentElement.outerHTML;
+      ko.removeNode(frameEl);
 
-    // Obsolete method didn't work on IE11 when using "HTML5 doctype":
-    // var docType = new XMLSerializer().serializeToString(global.document.doctype);
-    var node = frameEl.contentWindow.document.doctype;
-    var docType = "<!DOCTYPE " + node.name +
-      (node.publicId ? ' PUBLIC "' + node.publicId + '"' : '') +
-      (!node.publicId && node.systemId ? ' SYSTEM' : '') +
-      (node.systemId ? ' "' + node.systemId + '"' : '') + '>';
-    var content = docType + "\n" + frameEl.contentWindow.document.documentElement.outerHTML;
-    ko.removeNode(frameEl);
+      content = content.replace(/<script ([^>]* )?type="text\/html"[^>]*>[\s\S]*?<\/script>/gm, '');
+      // content = content.replace(/<!-- ko .*? -->/g, ''); // sometimes we have expressions like (<!-- ko var > 2 -->)
+      content = content.replace(/<!-- ko ((?!--).)*? -->/g, ''); // this replaces the above with a more formal (but slower) solution
+      content = content.replace(/<!-- \/ko -->/g, '');
+      // Remove data-bind/data-block attributes
+      content = content.replace(/ data-bind="[^"]*"/gm, '');
+      // Remove trash leftover by TinyMCE
+      content = content.replace(/ data-mce-(href|src|style)="[^"]*"/gm, '');
 
-    content = content.replace(/<script ([^>]* )?type="text\/html"[^>]*>[\s\S]*?<\/script>/gm, '');
-    // content = content.replace(/<!-- ko .*? -->/g, ''); // sometimes we have expressions like (<!-- ko var > 2 -->)
-    content = content.replace(/<!-- ko ((?!--).)*? -->/g, ''); // this replaces the above with a more formal (but slower) solution
-    content = content.replace(/<!-- \/ko -->/g, '');
-    // Remove data-bind/data-block attributes
-    content = content.replace(/ data-bind="[^"]*"/gm, '');
-    // Remove trash leftover by TinyMCE
-    content = content.replace(/ data-mce-(href|src|style)="[^"]*"/gm, '');
+      // Replace "replacedstyle" to "style" attributes (chrome puts replacedstyle after style)
+      content = content.replace(/ style="[^"]*"([^>]*) replaced(style="[^"]*")/gm, '$1 $2');
+      // Replace "replacedstyle" to "style" attributes (ie/ff have reverse order)
+      content = content.replace(/ replaced(style="[^"]*")([^>]*) style="[^"]*"/gm, ' $1$2');
+      content = content.replace(/ replaced(style="[^"]*")/gm, ' $1');
 
-    // Replace "replacedstyle" to "style" attributes (chrome puts replacedstyle after style)
-    content = content.replace(/ style="[^"]*"([^>]*) replaced(style="[^"]*")/gm, '$1 $2');
-    // Replace "replacedstyle" to "style" attributes (ie/ff have reverse order)
-    content = content.replace(/ replaced(style="[^"]*")([^>]*) style="[^"]*"/gm, ' $1$2');
-    content = content.replace(/ replaced(style="[^"]*")/gm, ' $1');
+      // same as style, but for http-equiv (some browser break it if we don't replace, but then we find it duplicated)
+      content = content.replace(/ http-equiv="[^"]*"([^>]*) replaced(http-equiv="[^"]*")/gm, '$1 $2');
+      content = content.replace(/ replaced(http-equiv="[^"]*")([^>]*) http-equiv="[^"]*"/gm, ' $1$2');
+      content = content.replace(/ replaced(http-equiv="[^"]*")/gm, ' $1');
 
-    // same as style, but for http-equiv (some browser break it if we don't replace, but then we find it duplicated)
-    content = content.replace(/ http-equiv="[^"]*"([^>]*) replaced(http-equiv="[^"]*")/gm, '$1 $2');
-    content = content.replace(/ replaced(http-equiv="[^"]*")([^>]*) http-equiv="[^"]*"/gm, ' $1$2');
-    content = content.replace(/ replaced(http-equiv="[^"]*")/gm, ' $1');
+      // We already replace style and http-equiv and we don't need this.
+      // content = content.replace(/ replaced([^= ]*=)/gm, ' $1');
+      // Restore conditional comments
+      content = conditional_restore(content);
+      var trash = content.match(/ data-[^ =]+(="[^"]+")? /) || content.match(/ replaced([^= ]*=)/);
+      if (trash) {
+        console.warn("Output HTML contains unexpected data- attributes or replaced attributes", trash);
+      }
 
-    // We already replace style and http-equiv and we don't need this.
-    // content = content.replace(/ replaced([^= ]*=)/gm, ' $1');
-    // Restore conditional comments
-    content = conditional_restore(content);
-    var trash = content.match(/ data-[^ =]+(="[^"]+")? /) || content.match(/ replaced([^= ]*=)/);
-    if (trash) {
-      console.warn("Output HTML contains unexpected data- attributes or replaced attributes", trash);
-    }
-
-    return content;
+      return content;
+	};
+    
+    if ( typeof callback === 'function' ) {
+        callback(frameEl.contentWindow.document.documentElement, url, querystring, completeExport );
+	} else {
+		return completeExport();
+	}
   };
 
   viewModel.exportHTMLtoTextarea = function(textareaid) {
@@ -423,6 +435,10 @@ function initializeEditor(content, blockDefs, thumbPathConverter, galleryUrl) {
   viewModel.exportMetadata = function() {
     var json = ko.toJSON(viewModel.metadata);
     return json;
+  };
+
+  viewModel.exportMetadataJS = function() {
+    return ko.toJS(viewModel.metadata);
   };
 
   viewModel.exportJSON = function() {
