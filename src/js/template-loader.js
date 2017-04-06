@@ -292,9 +292,9 @@ var templateCompiler = function(performanceAwareCaller, templateUrlConverter, te
 
     // initialize the viewModel object based on the content model.
     var viewModel = performanceAwareCaller('initializeViewmodel', initializeViewmodel.bind(this, content, blockDefs, templateUrlConverter, galleryUrl));
-    if (typeof templateDef._defs.firedrum != 'undefined') {
-      templateDef._defs.firedrum._props.split(' ').forEach(function(firedrumProp) {
-        viewModel[firedrumProp] = performanceAwareCaller('generateFireDrumModel', templateConverter.wrappedFireDrumResultModel.bind(undefined, templateDef, firedrumProp));
+    if (typeof options.additionalModel === 'string' && typeof templateDef._defs[options.additionalModel] != 'undefined') {
+      templateDef._defs[options.additionalModel]._props.split(' ').forEach(function(additionalProp) {
+        viewModel[additionalProp] = performanceAwareCaller('generateAdditionalModel', templateConverter.wrappedModel.bind(undefined, templateDef, additionalProp));
       });
     }
     

@@ -50,7 +50,9 @@ var _propInput = function(model, prop, propAccessor, editType, widgets) {
   // For content editors we deal with focusing (clicking is handled by the container DIV).
   var onfocusbinding = 'focusable: true';
   if (editType == 'edit') {
-    onfocusbinding += ', event: { focus: function(ui, event) { $($element).click(); } } ';
+    onfocusbinding += ', event: { focus: function(ui, event) { $($element).click(); ' + ( model !== null && typeof model._allowSystemTags != 'undefined' ? '$root.currentSystemTagField = $($element); ' : '' ) + '} } ';
+  } else if ( model !== null && typeof model._allowSystemTags != 'undefined' ) {
+    onfocusbinding += ', event: { focus: function(ui, event) { $root.currentSystemTagField = $($element); } } ';  
   }
 
   html += '<label class="data-' + widget + '"' + (widget == 'boolean' ? ' data-bind="event: { mousedown: function(ui, evt) { if (evt.button == 0) { var input = $($element).find(\'input\'); var ch = input.prop(\'checked\'); setTimeout(function() { input.click(); input.prop(\'checked\', !ch); input.trigger(\'change\'); }, 0); } } }, click: function(ui, evt) { evt.preventDefault(); }, clickBubble: false"' : '') + '>';
@@ -79,6 +81,12 @@ var _propInput = function(model, prop, propAccessor, editType, widgets) {
         }
       html += '</select>';
     }
+  } else if (widget == 'longtext') {
+    html += '<textarea size="7" data-bind="value: ' + propAccessor + ', ' + onfocusbinding + '">nothing</textarea>';
+  } else if (widget == 'hidden') {
+    html += '<input type="hidden" value="nothing" data-bind="value: ' + propAccessor + ', ' + onfocusbinding + '" />';
+  } else if (widget == 'file') {
+    html += '<input type="hidden" value="nothing" data-bind="value: ' + propAccessor + ', ' + onfocusbinding + '" /><input type="text" data-bind="value: ( ' + propAccessor + '() != null ? ' + propAccessor + '().substr( ' + propAccessor + '().lastIndexOf( \'/\' ) + 1 ) : \'\' )" disabled />';
   } else if (widget == 'font') {
     html += '<select type="text" data-bind="value: ' + propAccessor + ', ' + onfocusbinding + '">';
     html += '<optgroup label="Sans-Serif Fonts">';
@@ -100,7 +108,7 @@ var _propInput = function(model, prop, propAccessor, editType, widgets) {
     html += '<div class="ui-textbutton">';
     // <a class="ui-spinner-button ui-spinner-down ui-corner-br ui-button ui-widget ui-state-default ui-button-text-only" tabindex="-1" role="button"><span class="ui-button-text"><span class="ui-icon fa fa-fw caret-down">▼</span></span></a>
     html += '<input class="ui-textbutton-input" size="7" type="url" pattern="(mailto:.+@.+|https?://.+\\..+|\\[.*\\].*)" value="nothing" data-bind="css: { withButton: typeof $root.linkDialog !== \'undefined\' }, validatedValue: ' + propAccessor + ', ' + onfocusbinding + '" />';
-    html += '<a class="ui-textbutton-button" data-bind="visible: typeof $root.linkDialog !== \'undefined\', click: typeof $root.linkDialog !== \'undefined\' ? $root.linkDialog.bind($element.previousSibling) : false, button: { icons: { primary: \'fa fa-fw fa-ellipsis-h\' }, label: \'Opzioni\', text: false }">Opzioni</a>';
+    html += '<a class="ui-textbutton-button" data-bind="visible: typeof $root.linkDialog !== \'undefined\', click: typeof $root.linkDialog !== \'undefined\' ? $root.linkDialog.bind($element.previousSibling) : false, button: { icon: \'fa fa-fw fa-ellipsis-h\', label: \'Opzioni\', text: false }">Opzioni</a>';
     html += '</div>';
   } else if (widget == 'integer') {
     // at this time the "step" depends on max being greater than 100.
@@ -168,6 +176,10 @@ var _propEditor = function(withBindingProvider, widgets, templateUrlConverter, m
   // tracking (subscriptionCount)
   // NOTE baseThreshold is an "expression" and not a fixed number, so this is a concatenation
   if (typeof globalStyleProp == 'undefined' && typeof baseThreshold !== 'undefined') ifSubsThreshold += baseThreshold;
+  
+  if (typeof model == 'object' && model !== null && typeof model._ifSubsThreshold !== 'undefined') {
+	  ifSubsThreshold = model._ifSubsThreshold;
+  }
 
   if (typeof prop != 'undefined' && !!trackUsage) {
     html += '<!-- ko ifSubs: { data: ' + ifSubsProp + ', threshold: ' + ifSubsThreshold + ', gutter: ' + ifSubsGutter + ' } -->';
@@ -265,18 +277,6 @@ var _propEditor = function(withBindingProvider, widgets, templateUrlConverter, m
         }
       }
     }
-    for (i = 0; i < props.length; i++) {
-      newPath = path.length > 0 ? path + "." + props[i] : props[i];
-      if (!(typeof model[props[i]] != 'object' || model[props[i]] === null || typeof model[props[i]]._widget != 'undefined')) {
-        newGlobalStyleProp = undefined;
-        if (level === 0 && props[i] == 'theme')
-          html += _propEditor(withBindingProvider, widgets, templateUrlConverter, model[props[i]], newThemeModel, newPath, props[i], editType, 0, baseThreshold, undefined, undefined, trackUsage, rootPreviewBinding);
-        else {
-          newGlobalStyleProp = _getGlobalStyleProp(globalStyles, model[props[i]], props[i], newPath);
-          html += _propEditor(withBindingProvider, widgets, templateUrlConverter, model[props[i]], newThemeModel, newPath, props[i], editType, level + 1, baseThreshold, globalStyles, newGlobalStyleProp, trackUsage, rootPreviewBinding, previewBG);
-        }
-      }
-    }
 
     var added = html.length - before;
     if (added === 0) {
@@ -301,18 +301,31 @@ var _propEditor = function(withBindingProvider, widgets, templateUrlConverter, m
 
     if (model === null || typeof model != 'object' || typeof model._widget != 'undefined') {
       var bindings = [];
+      if (model !== null && typeof model._hideif != 'undefined') {
+        bindings.push('css: {hidden: ' + model._hideif + '}');
+      }
 
       if (typeof globalStyleProp != 'undefined') bindings.push('css: { notnull: ' + prop + '() !== null }');
       title = model !== null && typeof model._help !== 'undefined' ? ' title="' + utils.addSlashes(model._help) + '" data-bind="attr: { title: $root.ut(\'template\', \'' + utils.addSlashes(model._help) + '\') }"' : '';
       if (title.length > 0) bindings.push('tooltips: {}');
       var bind = bindings.length > 0 ? 'data-bind="' + utils.addSlashes(bindings.join()) + '"' : '';
-      html += '<div class="propEditor ' + (checkboxes ? 'checkboxes' : '') + '"' + bind + '>';
+      html += '<div class="propEditor ' + propAccessor + (checkboxes ? ' checkboxes' : '') + '"' + bind + '>';
 
       var modelName2 = (model !== null && typeof model._name != 'undefined' ? model._name : (typeof prop !== 'undefined' ? '[' + prop + ']' : ''));
       modelName2 = '<span data-bind="text: $root.ut(\'template\', \'' + utils.addSlashes(modelName2) + '\')">' + modelName2 + '</span>';
       html += '<span' + title + ' class="propLabel">' + modelName2 + '</span>';
       html += '<div class="propInput ' + (typeof globalStyles != 'undefined' ? 'local' : '') + '" data-bind="css: { default: ' + prop + '() === null }">';
       html += _propInput(model, prop, propAccessor, editType, widgets);
+      for (var j = ''; typeof model['_button' + j] != 'undefined'; j++) {
+        var btnOpts = _getOptionsObject(model['_button' + j]);
+        var btnType = ( btnOpts.hasOwnProperty( 'type' ) ? btnOpts.type : '' );
+        var btnLabel = ( btnOpts.hasOwnProperty( 'label' ) ? btnOpts.label : '' );
+        var btnClick = 'function(evt){' + ( btnOpts.hasOwnProperty( 'click' ) ? btnOpts.click : '' ) + '}';
+        html += '<a href="javascript:void(0)" class="' + btnType + 'button ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" data-bind="click: ' + btnClick + ', button: { label: $root.t(\'' + btnLabel + '\') }" role="button" aria-disabled="false"><span class="ui-button-text">' + btnLabel + '</span></a>';
+        if (j === '') {
+          j = 1;
+        }
+      }
       html += '</div>';
       if (typeof globalStyleProp != 'undefined') {
         html += '<div class="propInput global" data-bind="css: { overridden: ' + prop + '() !== null }">';

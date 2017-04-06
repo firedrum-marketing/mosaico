@@ -17,6 +17,18 @@ var wrappedResultModel = function(templateDef) {
 };
 
 // requires only when imported
+var wrappedModel = function(templateDef, name) {
+  var defs = templateDef._defs;
+  var finalModelDef = modelDef.getDef(defs, name);
+
+  var finalModel = modelDef.generateModel(defs, name);
+  
+  var wrapper = require("./wrapper.js");
+  var res = wrapper(finalModel, finalModelDef, defs);
+
+  return res;
+};
+
 var translateTemplate = function() {
   var tt = require('./parser.js');
   return tt.apply(tt, arguments);
@@ -36,6 +48,7 @@ var checkModel = function() {
 module.exports = {
   translateTemplate: translateTemplate,
   wrappedResultModel: wrappedResultModel,
+  wrappedModel: wrappedModel,
   generateResultModel: modelDef.generateResultModel,
   generateEditors: generateEditors,
   checkModel: checkModel
