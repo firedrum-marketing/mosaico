@@ -29,6 +29,7 @@ toastr.options = {
 function initializeEditor(content, blockDefs, thumbPathConverter, galleryUrl) {
 
   var viewModel = {
+    showGallery: ko.observable(false),
     galleryRecent: ko.observableArray([]).extend({
       paging: 16
     }),
@@ -46,10 +47,8 @@ function initializeEditor(content, blockDefs, thumbPathConverter, galleryUrl) {
     previewMode: ko.observable('mobile'),
     showToolbox: ko.observable(true),
     showTheme: ko.observable(false),
-    showGallery: ko.observable(false),
     debug: ko.observable(false),
     contentListeners: ko.observable(0),
-    
     logoPath: 'rs/img/mosaico32.png',
     logoUrl: '.',
     logoAlt: 'mosaico'
@@ -292,7 +291,7 @@ function initializeEditor(content, blockDefs, thumbPathConverter, galleryUrl) {
       // On selectItem if we were not on either the "Content" or "Style" toolbox tab, move to either the "Content" or "Style" toolbox tab.
       var selectedTool = viewModel.selectedTool();
       var targetTool = (typeof block === 'undefined' ? blocksIndex + 2 : blocksIndex + 1 );
-      if (item !== null && selectedTool !== targetTool) {
+      if (item !== null && selectedTool <= blocksIndex) {
         viewModel.selectedTool(targetTool);
       }
     }
@@ -313,7 +312,7 @@ function initializeEditor(content, blockDefs, thumbPathConverter, galleryUrl) {
       viewModel.showGallery(false);
       var selectedTool = viewModel.selectedTool();
       var targetTool = (!doNotUnselectItem ? blocksIndex + 2 : blocksIndex + 1 );
-      if (item !== null && !doNotSelect && selectedTool !== targetTool) viewModel.selectedTool(targetTool);
+      if (item !== null && !doNotSelect && selectedTool <= blocksIndex) viewModel.selectedTool(targetTool);
     }
   }.bind(viewModel, viewModel.selectedBlock);
 
