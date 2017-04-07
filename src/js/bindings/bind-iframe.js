@@ -25,9 +25,9 @@ ko.bindingHandlers.bindIframe = {
                 var iframe = element.contentDocument;
                 iframe.open();
                 iframe.write(ko.bindingHandlers.bindIframe.tpl);
-                iframe.close();
 
                 try {
+                    var iframeInit = element.contentWindow.initChildFrame;
                     var iframedoc = iframe.body;
                     if (iframedoc) {
                         // scripts have to be duplicated (maybe this is not needed anymore since using string-templates)
@@ -43,7 +43,11 @@ ko.bindingHandlers.bindIframe = {
                             evt.preventDefault();
                             return false;
                         }, false);
+                    }
 
+                    if (iframeInit) {
+                        iframeInit(ko, valueAccessor());
+                    } else if (iframedoc) {
                         var html = iframe.getElementsByTagName("HTML");
 
                         ko.utils.domNodeDisposal.addDisposeCallback(element, function() {
