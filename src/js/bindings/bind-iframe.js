@@ -38,6 +38,12 @@ ko.bindingHandlers.bindIframe = {
                             }
                         }
 
+                        // Prevent default click handlers
+                        iframedoc.addEventListener('click', function(evt) {
+                            evt.preventDefault();
+                            return false;
+                        }, false);
+
                         var html = iframe.getElementsByTagName("HTML");
 
                         ko.utils.domNodeDisposal.addDisposeCallback(element, function() {
