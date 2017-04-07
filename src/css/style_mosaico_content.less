@@ -2,7 +2,6 @@
 
 #main-edit-area .editable {
   position: relative;
-  // display: table;
 }
 
 /* minimum size for empty dropzones */
@@ -14,7 +13,6 @@
   justify-content: center;
   align-items: center;
   margin: 20px 30px;
-  // flex-direction: column;
   border: 2px dashed @mosaico-outline-color;
   border-radius: 20px;
   animation: border-color-selection-pulsate 4s infinite;
@@ -23,12 +21,10 @@
 
 #main-edit-area .sortable-blocks-edit.empty:after {
   content: attr(data-empty-content);
-  // reset font (eredito i colori)
   font-size: @base-font-size * 1.6;
   font-weight: normal;
   text-decoration: none;
   font-family: @font-family;
-  // text-shadow: 1px 1px 0 #FFFFFF, 0 0 10px #FFFFFF;
 }
 
 #main-edit-area .isdragging .sortable-blocks-edit.empty:after {
@@ -67,8 +63,6 @@
 
 #main-edit-area .img-wysiwyg {
   position: relative;
-  /* questo dovrebbe avere lo stesso stile dell'immagine rimpiazzata! */
-  /* display: inline-block; */
   display: block;
   width: auto;
 }
@@ -107,12 +101,10 @@
 }
 
 #main-edit-area .editable.sortable-placeholder:hover .tools {
-  // display: none;
   visibility: hidden;
 }
 
 #main-edit-area .editable:hover .tools {
-  // display: block;
   visibility: visible;
 }
 
@@ -230,25 +222,20 @@
   z-index: 30; 
   position: absolute; 
   bottom: 16px;
-  // width: 100%;
   text-align: left;
 }
 #main-edit-area .img-wysiwyg:hover .midtools {
-  // display: block;
   visibility: visible;
 }
 // nascondo un po' di cose durante l'upload
 #main-edit-area .uploading {
   .midtools {
-    // display: none !important;
     visibility: hidden !important;
   }
   .fileuploadtext {
-    // display: none !important;
     visibility: hidden !important;
   }
   .fileupload.withfile {
-    // display: none;
     visibility: hidden;
   }
 }
@@ -257,7 +244,7 @@
 #main-edit-area .img-wysiwyg .img-size {
   visibility: hidden;
   position: absolute;
-  top: 0;
+  top: 16px;
   right: 0;
   padding: 2px;
   font-family: @font-family;
@@ -273,14 +260,12 @@
 #main-edit-area .midtools {
   margin-left: 4px;
   .tool {
-    // z-index: 20;
     margin-left: 4px;
 }
 }
 
 #main-edit-area .tools {
   position: absolute;
-  // display: none;
   visibility: hidden;
   margin: 0;
   top: -16px;
@@ -291,8 +276,6 @@
   height: 1px;
   z-index: 20;
   text-align: center;
-  /* width: 100%;*/
-  /* padding: 0.25em; */
 }
 
 #main-wysiwyg-area {
@@ -367,6 +350,9 @@
       .makeSelectable(5px, ~'.selecteditem', 0);
       cursor: text;
     }
+    span.mce-content-body {
+      display: inline-block;
+    }
     // images
     .selectable-img {
       .makeSelectable(5px, ~'.selecteditem', 0, ~' .mo-imgselectionhelper:after');
@@ -377,7 +363,6 @@
     text-shadow: none !important;
     font-weight: bold;
     background-color: fade(white, 20%);
-    /* border-radius: 5px; */
     padding: 3px;
     position: absolute;
     top: 2px;
@@ -394,14 +379,26 @@
   max-width: 100%;
 }
 
-.mce-tinymce-inline {
+.mce-tinymce.mce-tinymce-inline {
+  width: auto !important;
+
   .mce-container-body.mce-abs-layout {
-    background-color: rgb(255, 87, 34);
+    width: auto !important;
+    background-color: #DDDDDD;
     border-radius: 5px;
     border-style: solid;
     border-color: #686565;
     box-shadow: 2px 2px 5px #686565;
     top: -10px;
+
+    .mce-toolbar-grp {
+      width: auto !important;
+      position: static;
+
+      .mce-container-body {
+        width: auto !important;
+      }
+    }
   }
 
   .mce-btn {
