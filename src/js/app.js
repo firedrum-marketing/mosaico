@@ -137,7 +137,6 @@ var start = function(options, templateFile, templateMetadata, jsorjson, customEx
   var galleryUrl = options.fileuploadConfig ? options.fileuploadConfig.url : '/upload/';
   applyBindingOptions(options, ko);
 
-  // TODO what about appending to another element?
   $("<!-- ko template: 'main' --><!-- /ko -->").appendTo(typeof options.mainElement != 'undefined' ? options.mainElement : global.document.body);
 
   // templateFile may override the template path in templateMetadata
