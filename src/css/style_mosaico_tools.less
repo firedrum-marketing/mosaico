@@ -18,8 +18,9 @@
   .objLabel.level0, .pane-title {
     font-size: 1.2em;
     font-weight: 700;
-    margin-top: 12px;
     padding: 3px 10px;
+    text-align: left;
+    border-bottom: 2px solid #000000;
   }
   .objLabel.level1 {
     font-size: 1.2em;
@@ -48,15 +49,32 @@
   }
 }
 
-#toolimages, #toolsocialsharing, #toolspamassassin, #toolsend, #toolinboxpreview {
-  padding: .7em;
+#toolimages, #toolsocialsharing, #toolspamassassin, #toolsend, #toolinboxpreview, #tooldebug, #tooltheme {
+  padding: .7em 0;
+  display: box;
+  box-orient: vertical;
+  display: flex;
+  flex-direction: column;
+
+  .pane-content {
+    box-flex: 2;
+    flex: 2;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
 }
 
 #toolspamassassin {
   width: 701px;
+
+  &.hidden {
+    left: -751px;
+  }
 }
 
 #toolimages {
+  padding: .7em 0;
+
   .img-dropzone {
     position: relative;
   }
@@ -64,8 +82,10 @@
     .makeDroppable();
     line-height: 45px;
     height: auto;
-    top: -10px;
-    bottom: -10px;
+    top: 5px;
+    bottom: 5px;
+    left: 5px;
+    right: 5px;
   }
   .img-dropzone.ui-state-draghover:before {
     background-color: fade(@mosaico-selection-color, 80%);
@@ -186,12 +206,13 @@
     &[title]:before {
       .makeFontAwesome();
       float: right;
-      position: initial;
+      position: static;
       color: #5D96CF;
       content: "\f059";
       line-height: .75em;
       margin-left: 0.5em;
       font-size: 2em;
+      border-bottom: none;
     }
 
     &[title] span {
@@ -370,7 +391,7 @@
     margin-bottom: 3px;
   }
   .objLabel.level1 {
-    color: black;
+    color: #FFFFFF;
     display: block;
   }
 
@@ -384,9 +405,10 @@
     border-bottom: 3px solid @accent-color;
     color: @mosaico-text-color;
     display: block;
-    margin: -4px -2px 6px;
+    margin: -6px -6px 6px;
     padding: 5px;
-    border-radius: 6px 6px 0 0;
+    background-color: #738999;
+    text-align: center;
   }
 
   .objEdit.level0 {
@@ -586,7 +608,6 @@
   }
 
   .propLabel[title] {
-    text-decoration: underline;
     cursor: help;
   }
 
@@ -956,7 +977,22 @@
   }
   .block-list {
     // suppongo che le immagini siano create per i 340px
-    max-width: 346px;
+    .draggable-item {
+      margin: 4px 0;
+      padding: .5em;
+      background-color: #F9F9F9;
+      border-radius: 5px;
+
+      > div:before {
+        content: attr(data-block-name);
+        display: block;
+        font-size: 1.25em;
+        font-weight: bold;
+        color: #FF5722;
+        line-height: 1.25em;
+        height: 1.5em;
+      }
+    }
   }
 
   // mette i blocchi al 100%
@@ -1136,16 +1172,14 @@
   box-shadow: 1px 0px 3px @mosaico-shadow-color;
 
   .close {
-    float: right;
-    visibility: hidden;
+    position: absolute;
+    right: 0;
     cursor: pointer;
     width: 24px;
     display: block;
-    position: relative;
     z-index: 1;
 
     &:before {
-      visibility: visible;
       font-size: 24px;
       font-family: FontAwesome;
       content: '\f00d';
@@ -1195,6 +1229,10 @@
 
 #toolsocialsharing {
   width: 592px;
+
+  &.hidden {
+    left: -642px;
+  }
 
   .socialSharePreviewTabContainer {
     padding: 0.2em;
