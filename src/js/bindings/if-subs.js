@@ -88,8 +88,8 @@ if (typeof ko.subscription == 'function' && typeof ko.isWritableObservable !== '
   beforeSubscriptionProp = 'Pa';
   afterSubscriptionProp = 'ab';
 } else if (ko.version == "3.5.0-pre") {
-  beforeSubscriptionProp = 'Ca';
-  afterSubscriptionProp = 'Sa';
+  beforeSubscriptionProp = 'Fa';
+  afterSubscriptionProp = 'Va';
 }
 else throw "Unsupported minimized Knockout version " + ko.version + " (supported DEBUG or minimized 3.2.0 ... 3.5.0-pre)";
 
