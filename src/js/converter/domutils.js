@@ -49,6 +49,11 @@ var getInnerText = function(element) {
   // else return element.textContent;
 };
 
+var getOuterHtml = function(element) {
+  return $('<div></div>').append($(element).clone()).html();
+  // return element.outerHTML;
+};
+
 var getInnerHtml = function(element) {
   return $(element).html();
   // return element.innerHTML;
@@ -86,6 +91,7 @@ module.exports = {
   removeAttribute: removeAttribute,
   getInnerText: getInnerText,
   getInnerHtml: getInnerHtml,
+  getOuterHtml: getOuterHtml,
   getLowerTagName: getLowerTagName,
   setContent: setContent,
   replaceHtml: replaceHtml,
