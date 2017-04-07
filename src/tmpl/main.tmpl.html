@@ -1,47 +1,48 @@
 <div id="page" style="display: none;" data-bind="visible: true, css: { withToolbox: $root.showToolbox, withPreviewFrame: showPreviewFrame, desktop: $root.previewMode() == 'desktop', mobile: $root.previewMode() == 'mobile', large: $root.previewMode() == 'large' }, event: {click: function(data, event) { if ( !$.contains( $( '#testMenu' )[0], event.target ) ) { $root.showTestMenu(false); } return true;}}">
   <div id="main-edit-area" data-bind="click: function(obj, evt) { $root.selectBlock(null); return true; }, clickBubble: false">
+    <div id="main-tinymce-toolbar"></div>
     <!-- ko withProperties: { templateMode: 'wysiwyg', templateModeFallback: 'show' } -->
     <div id="main-wysiwyg-area" data-bind="wysiwygScrollfix: true, scrollable: true, fudroppable: { active: draggingImage }, css: { isdragging: dragging, isdraggingimg: draggingImage }, block: content"></div>
     <!-- /ko -->
   </div>
 
-  <div id="toolbar" class="mo" data-bind="tooltips: {}">
+  <div id="toolbar" class="mo" data-bind="tooltips: {classes: {'ui-tooltip':'toolbar-tooltip'}}">
     <!-- ko if: typeof $root.undo != 'undefined' -->
     <span data-bind="buttonset: { }" class="leftButtons">
-    <a href="javascript:void(0)" data-bind="click: $root.undo.execute, clickBubble: false, button: { disabled: !$root.undo.enabled(), icon: 'fa fa-reply', label: $root.undo.name, text: true }">UNDO</a>
-    <a href="javascript:void(0)" data-bind="click: $root.redo.execute, clickBubble: false, button: { disabled: !$root.redo.enabled(), icon: 'fa fa-share', label: $root.redo.name, text: true }">REDO</a>
+    <a title="Undo last operation" href="javascript:void(0)" data-bind="attr: { title: $root.t('Undo last operation') }, click: $root.undo.execute, clickBubble: false, button: { disabled: !$root.undo.enabled(), icon: 'fa fa-reply', label: $root.undo.name, showLabel: true }">UNDO</a>
+    <a title="Redo last operation" href="javascript:void(0)" data-bind="attr: { title: $root.t('Redo last operation') }, click: $root.redo.execute, clickBubble: false, button: { disabled: !$root.redo.enabled(), icon: 'fa fa-share', label: $root.redo.name, showLabel: true }">REDO</a>
     </span>
     <!-- ko if: $root.debug -->
-    <a href="javascript:void(0)" data-bind="click: $root.undoReset, clickBubble: false, button: { disabled: !$root.undo.enabled() && !$root.redo.enabled(), label: 'reset', text: true }">RESET</a>
+    <a href="javascript:void(0)" data-bind="click: $root.undoReset, clickBubble: false, button: { disabled: !$root.undo.enabled() && !$root.redo.enabled(), label: 'reset', showLabel: true }">RESET</a>
     <!-- /ko -->
     <!-- /ko -->
 
     <span>
-      <input id="showGallery" type="checkbox" data-bind="checked: $root.showGallery, button: { refreshOn: $root.showGallery, icon: 'fa fa-fw fa-picture-o', text: true, label: $root.t('Gallery') }"><label for="showGallery">show gallery</label></input>
+      <label title="Show image gallery" data-bind="attr: { title: $root.t('Show image gallery') }"><input id="showGallery" type="checkbox" data-bind="checked: $root.showGallery, button: { refreshOn: $root.showGallery, icon: 'fa fa-fw fa-picture-o', showLabel: true, label: $root.t('Gallery') }">show gallery</input></label>
     </span>
 
     <span style="position:relative;">
-      <input id="previewFrameToggle" type="checkbox" data-bind="checked: $root.showPreviewFrame, button: { refreshOn: $root.showPreviewFrame, icon: 'fa fa-fw fa-search', text: true, label: $root.t('Preview') }"><label for="previewFrameToggle">PREVIEW</label></input>
+      <label title="Show live preview" data-bind="attr: { title: $root.t('Show live preview') }"><input id="previewFrameToggle" type="checkbox" data-bind="checked: $root.showPreviewFrame, button: { refreshOn: $root.showPreviewFrame, icon: 'fa fa-fw fa-search', showLabel: true, label: $root.t('Preview') }">PREVIEW</input></label>
     </span>
 
     <!-- ko if: typeof $root.showSocialSharing !== 'undefined' -->
     <span>
-      <input id="showSocialSharing" type="checkbox" data-bind="checked: $root.showSocialSharing, button: { refreshOn: $root.showSocialSharing, icon: 'fa fa-fw fa-share-alt', text: true, label: $root.t('Social Sharing') }"><label for="showSocialSharing">show social sharing</label></input>
+      <label  title="Show social content" data-bind="attr: { title: $root.t('Show social content') }"><input id="showSocialSharing" type="checkbox" data-bind="checked: $root.showSocialSharing, button: { refreshOn: $root.showSocialSharing, icon: 'fa fa-fw fa-share-alt', showLabel: true, label: $root.t('Social Content') }">show social content</input></label>
     </span>
     <!-- /ko -->
 
     <!-- ko if: typeof $root.test !== 'undefined' -->
     <div id="testMenu">
-      <a href="javascript:void(0)" data-bind="button: { icon: 'fa fa-fw fa-flask', label: $root.t('Test'), text: true }">TEST</a>
+      <a href="javascript:void(0)" data-bind="button: { icon: 'fa fa-fw fa-flask', label: $root.t('Test'), showLabel: true }">TEST</a>
       <div>
-        <!-- ko if: typeof $root.test.inboxPreview != 'undefined' -->
-        <a href="javascript:void(0)" data-bind="click: $root.testMode.bind($root.testMode, 'inboxPreview'), clickBubble: false, button: { icon: 'fa fa-fw fa-search', label: $root.t('Inbox Preview Assistant'), text: true }">INBOX PREVIEW ASSISTANT</a>
+        <!-- ko if: typeof $root.test.eoa != 'undefined' -->
+        <a href="javascript:void(0)" data-bind="click: $root.testMode.bind($root.testMode, 'eoa'), clickBubble: false, button: { icon: 'fa fa-fw fa-search', label: $root.t('Inbox Preview Assistant'), showLabel: true }">INBOX PREVIEW ASSISTANT</a>
         <!-- /ko -->
         <!-- ko if: typeof $root.test.send != 'undefined' -->
-        <a href="javascript:void(0)" data-bind="click: $root.testMode.bind($root.testMode, 'send'), clickBubble: false, button: { icon: 'fa fa-fw fa-paper-plane-o', label: $root.t('Send a Test Email'), text: true }">SEND A TEST EMAIL</a>
+        <a href="javascript:void(0)" data-bind="click: $root.testMode.bind($root.testMode, 'send'), clickBubble: false, button: { icon: 'fa fa-fw fa-paper-plane-o', label: $root.t('Send a Test Email'), showLabel: true }">SEND A TEST EMAIL</a>
         <!-- /ko -->
         <!-- ko if: typeof $root.test.spamassassin != 'undefined' -->
-        <a href="javascript:void(0)" data-bind="click: $root.testMode.bind($root.testMode, 'spamassassin'), clickBubble: false, button: { icon: 'fa fa-fw fa-bolt', label: $root.t('Content Spam Checker'), text: true }">CONTENT SPAM CHECKER</a>
+        <a href="javascript:void(0)" data-bind="click: $root.testMode.bind($root.testMode, 'spamassassin'), clickBubble: false, button: { icon: 'fa fa-fw fa-bolt', label: $root.t('Content Spam Checker'), showLabel: true }">CONTENT SPAM CHECKER</a>
         <!-- /ko -->
       </div>
     </div>
@@ -54,18 +55,16 @@
       </label>
       <div id="variation-toolbar" style="display: inline-block;">
         <div data-bind="visible: true, buttonset: { refreshOn: $root.currentVariationIndex }" style="display: inline-block" class="ui-buttonset">
-          <input id="variationA" type="radio" name="variation" value="0" data-bind="checked: $root.currentVariationIndex, button: { text: true, label: 'A' }">
-          <label for="variationA">A</label>
-          <input id="variationB" type="radio" name="variation" value="1" data-bind="checked: $root.currentVariationIndex, button: { text: true, label: 'B' }">
-          <label for="variationB">B</label>
+          <label title="Variation A" data-bind="attr: { title: $root.t('Variation A') }"><input id="variationA" type="radio" name="variation" value="0" data-bind="checked: $root.currentVariationIndex, button: { showLabel: true, label: 'A' }"> A</label>
+          <label title="Variation B" data-bind="attr: { title: $root.t('Variation A') }"><input id="variationB" type="radio" name="variation" value="1" data-bind="checked: $root.currentVariationIndex, button: { showLabel: true, label: 'B' }"> B</label>
         </div>
       </div>
     </span>
 
     <!-- ko if: $root.debug -->
-    <a href="javascript:void(0)" data-bind="click: $root.export, clickBubble: false, button: { label: 'export', text: true }">EXPORT</a>
+    <a href="javascript:void(0)" data-bind="click: $root.export, clickBubble: false, button: { label: 'export', showLabel: true }">EXPORT</a>
     <input type="checkbox" data-bind="checked: $root.debug" /> debug
-    <a href="javascript:void(0)" data-bind="click: $root.loadDefaultBlocks, clickBubble: false, button: { icon: 'fa fa-fw fa-upload', label: 'Default', text: true }">LOAD BLOCKS</a>
+    <a href="javascript:void(0)" data-bind="click: $root.loadDefaultBlocks, clickBubble: false, button: { icon: 'fa fa-fw fa-upload', label: 'Default', showLabel: true }">LOAD BLOCKS</a>
     [<a id="subscriptionsCount" href="javascript:viewModel.loopSubscriptionsCount()">subs</a>]
     <!-- /ko -->
 
@@ -75,27 +74,29 @@
 
     <div class="rightButtons">
     <!-- ko if: typeof $root.save !== 'undefined' -->
-    <a title="Save template" href="javascript:void(0)" data-bind="attr: { title: $root.t('Save template') }, click: $root.save.execute, clickBubble: false, button: { disabled: !$root.save.enabled(), icons: { primary: 'fa fa-fw fa-cloud-upload' }, label: $root.t($root.save.name), text: true }">SALVA</a>
+    <a title="Save template" href="javascript:void(0)" data-bind="attr: { title: $root.t('Save template') }, click: $root.save.execute, clickBubble: false, button: { disabled: !$root.save.enabled(), icon: 'fa fa-fw fa-cloud-upload', label: $root.t($root.save.name), showLabel: true }">SALVA</a>
     <!-- /ko -->
     <!-- ko if: typeof $root.test !== 'undefined' -->
-    <a title="Show preview and send test" href="javascript:void(0)" data-bind="attr: { title: $root.t('Show preview and send test') }, click: $root.test.execute, clickBubble: false, button: { disabled: !$root.test.enabled(), icons: { primary: 'fa fa-fw fa-paper-plane' }, label: $root.t($root.test.name), text: true }">TEST</a>
+    <a title="Show preview and send test" href="javascript:void(0)" data-bind="attr: { title: $root.t('Show preview and send test') }, click: $root.test.execute, clickBubble: false, button: { disabled: !$root.test.enabled(), icon: 'fa fa-fw fa-paper-plane', label: $root.t($root.test.name), showLabel: true }">TEST</a>
     <!-- /ko -->
     <!-- ko if: typeof $root.download !== 'undefined' -->
     <form id="downloadForm" action="#" method="POST">
       <input type="hidden" name="action" value="download" />
       <input type="hidden" name="filename" value="email.html" />
       <input type="hidden" name="html" id="downloadHtmlTextarea" />
-      <a href="javascript:void(0)" data-bind="click: $root.download.execute, clickBubble: false, button: { disabled: !$root.download.enabled(), icon: 'fa fa-fw fa-download', label: $root.t($root.download.name), text: true }">DOWNLOAD</a>
+      <!-- ko if: typeof $root.download !== 'undefined' -->
+        <a href="javascript:void(0)" data-bind="click: $root.download.execute, clickBubble: false, button: { disabled: !$root.download.enabled(), icon: 'fa fa-fw fa-download', label: $root.t($root.download.name), showLabel: true }">DOWNLOAD</a>
+      <!-- /ko -->
     </form>
     <!-- /ko -->
     <!-- ko if: $root.developerMode -->
-    <a href="javascript:void(0)" data-bind="click: $root.exportTemplate.execute, clickBubble: false, button: { disabled: !$root.exportTemplate.enabled(), icon: 'fa fa-fw fa-file-archive-o', label: $root.t($root.exportTemplate.name), text: true }">EXPORT TEMPLATE</a>
+    <a title="Export as template" href="javascript:void(0)" data-bind="attr: { title: $root.t('Export as template') }, click: $root.exportTemplate.execute, clickBubble: false, button: { disabled: !$root.exportTemplate.enabled(), icon: 'fa fa-fw fa-file-archive-o', label: $root.t($root.exportTemplate.name), showLabel: true }">EXPORT TEMPLATE</a>
     <!-- /ko -->
     <!-- ko if: typeof $root.continue !== 'undefined' -->
     <div id="saveMenu">
-      <a href="javascript:void(0)" data-bind="click: $root.continue.execute.bind($element, true) , clickBubble: false, button: { disabled: !$root.continue.enabled(), icon: 'fa fa-fw fa-arrow-circle-right', label: $root.t($root.continue.name), text: true }">SAVE AND CONTINUE</a>
+      <a href="javascript:void(0)" data-bind="click: $root.continue.execute.bind($element, true) , clickBubble: false, button: { disabled: !$root.continue.enabled(), icon: 'fa fa-fw fa-arrow-circle-right', label: $root.t($root.continue.name), showLabel: true }">SAVE AND CONTINUE</a>
       <div>
-        <a href="javascript:void(0)" data-bind="click: $root.continue.execute.bind($element, false), clickBubble: false, button: { disabled: !$root.continue.enabled(), icon: 'fa fa-fw fa-floppy-o', label: $root.t($root.continue.name2), text: true }">SAVE</a>
+        <a href="javascript:void(0)" data-bind="click: $root.continue.execute.bind($element, false), clickBubble: false, button: { disabled: !$root.continue.enabled(), icon: 'fa fa-fw fa-floppy-o', label: $root.t($root.continue.name2), showLabel: true }">SAVE</a>
       </div>
     </div>
     <!-- /ko -->
@@ -109,12 +110,9 @@
   <div id="main-preview" class="mo" data-bind="scrollable: true">
     <div id="preview-toolbar">
       <div data-bind="visible: true, css: { hiddenPreview: !$root.showPreviewFrame() }, buttonset: { refreshOn: $root.previewMode }" style="display: inline-block">
-        <input id="previewLarge" type="radio" name="previewMode" value="large" data-bind="checked: $root.previewMode, button: { text: false, label: 'desktop', icon: 'fa fa-fw fa-desktop' }" />
-        <label for="previewLarge">Desktop</label>
-        <input id="previewDesktop" type="radio" name="previewMode" value="desktop" data-bind="checked: $root.previewMode, button: { text: false, label: 'tablet', icon: 'fa fa-fw fa-tablet' }" />
-        <label for="previewDesktop">Tablet</label>
-        <input id="previewMobile" type="radio" name="previewMode" value="mobile" data-bind="checked: $root.previewMode, button: { text: false, label: 'mobile', icon: 'fa fa-fw fa-mobile' }" />
-        <label for="previewMobile">Mobile</label>
+        <label><input id="previewLarge" type="radio" name="previewMode" value="large" data-bind="checked: $root.previewMode, button: { showLabel: false, label: 'desktop', icon: 'fa fa-fw fa-desktop' }" /> Desktop</label>
+        <label><input id="previewDesktop" type="radio" name="previewMode" value="desktop" data-bind="checked: $root.previewMode, button: { showLabel: false, label: 'tablet', icon: 'fa fa-fw fa-tablet' }" /> Tablet</label>
+        <label><input id="previewMobile" type="radio" name="previewMode" value="mobile" data-bind="checked: $root.previewMode, button: { showLabel: false, label: 'mobile', icon: 'fa fa-fw fa-mobile' }" /> Mobile</label>
       </div>
     </div>
 

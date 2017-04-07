@@ -28,8 +28,8 @@ var render = function() {
     // @see FloatPanel.js function repositionPanel(panel)
     // First condition group is for Tinymce 4.0/4.1
     // Second condition group is for Tinymce 4.2/4.3 where "._property" are now available as ".state.get('property')".
-    if ((typeof tinymce.activeEditor.theme.panel._visible !== 'undefined' && tinymce.activeEditor.theme.panel._visible && tinymce.activeEditor.theme.panel._fixed) || 
-        (typeof tinymce.activeEditor.theme.panel.state !== 'undefined' && tinymce.activeEditor.theme.panel.state.get('visible') && tinymce.activeEditor.theme.panel.state.get('fixed'))) {
+    if (typeof tinymce.activeEditor.theme.panel.fixed === 'function' && ((typeof tinymce.activeEditor.theme.panel._visible !== 'undefined' && tinymce.activeEditor.theme.panel._visible && tinymce.activeEditor.theme.panel._fixed) || 
+        (typeof tinymce.activeEditor.theme.panel.state !== 'undefined' && tinymce.activeEditor.theme.panel.state.get('visible') && tinymce.activeEditor.theme.panel.state.get('fixed')))) {
       tinymce.activeEditor.theme.panel.fixed(false);
     }
 
@@ -37,7 +37,7 @@ var render = function() {
     if (element !== null && typeof element.classList !== 'undefined' && element.classList.contains("mce-edit-focus")) {
       tinymce.activeEditor.nodeChanged();
       if (tinymce.activeEditor.theme.panel.visible()) {
-        if (tinymce.activeEditor.theme.panel.layoutRect().y <= pageTop)
+        if (typeof tinymce.activeEditor.theme.panel.moveBy === 'function' && tinymce.activeEditor.theme.panel.layoutRect().y <= pageTop)
           tinymce.activeEditor.theme.panel.moveBy(0, pageTop - tinymce.activeEditor.theme.panel.layoutRect().y);
       }
     }

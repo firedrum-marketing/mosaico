@@ -108,11 +108,11 @@
     <div id="galleryPath" data-bind="text: $root.libraryPath"></div>
 
     <div style="text-align:center">
-      <!-- ko if: $root.galleryLoaded() === false --><a class="loadbutton" title="Load your Image Library" href="javascript:void(0)" data-bind="attr: { title: $root.t('Load your Image Library') }, click: $root.loadGallery, button: { disabled: $root.galleryLoaded, icon: 'fa fa-fw fa-picture-o', label: $root.galleryLoaded() == 'loading' ? $root.t('Loading...') : $root.t('Load Library'), text: true }"># load gallery #</a><!-- /ko -->
+      <!-- ko if: $root.galleryLoaded() === false --><a class="loadbutton" title="Load your Image Library" href="javascript:void(0)" data-bind="attr: { title: $root.t('Load your Image Library') }, click: $root.loadGallery, button: { disabled: $root.galleryLoaded, icon: 'fa fa-fw fa-picture-o', label: $root.galleryLoaded() == 'loading' ? $root.t('Loading...') : $root.t('Load Library'), showLabel: true }"># load gallery #</a><!-- /ko -->
       <!-- ko if: $root.galleryLoaded() === 'loading' --><div class="galleryEmpty" data-bind="text: $root.t('Loading your image library...')">Loading your image library...</div><!-- /ko -->
       <!-- ko if: $root.galleryLoaded() === 0 --><div class="galleryEmpty" data-bind="text: $root.t('The image library is empty.')">Your image library is empty.</div><!-- /ko -->
       <!-- ko if: $root.libraryPath() != $root.libraryFileSystem() -->
-        <a class="loadbutton" title="Up one directory" href="javascript:void(0)" data-bind="attr: { title: $root.t('Up one directory') }, click: $root.libraryPaths()[$root.libraryPath()]().ascend, button: { disabled: $root.libraryPath() == $root.libraryFileSystem(), icon: 'fa fa-fw fa-arrow-up', label: $root.t('Up one directory'), text: true }"># up one directory #</a>
+        <a class="loadbutton" title="Up one directory" href="javascript:void(0)" data-bind="attr: { title: $root.t('Up one directory') }, click: $root.libraryPaths()[$root.libraryPath()]().ascend, button: { disabled: $root.libraryPath() == $root.libraryFileSystem(), icon: 'fa fa-fw fa-arrow-up', label: $root.t('Up one directory'), showLabel: true }"># up one directory #</a>
       <!-- /ko -->
     </div>
 
@@ -249,7 +249,7 @@
     </div>
   
     <div style="text-align: right;padding-right: 8px;">
-      <a class="loadbutton" title="Spam Check" href="javascript:void(0)" data-bind="attr: { title: $root.t('Spam Check') }, click: $root.test.spamassassin.execute, button: { disabled: $root.test.spamassassin.disabled, label: $root.t('Spam Check'), text: true }"># spam check #</a>
+      <a class="loadbutton" title="Spam Check" href="javascript:void(0)" data-bind="attr: { title: $root.t('Spam Check') }, click: $root.test.spamassassin.execute, button: { disabled: $root.test.spamassassin.disabled, label: $root.t('Spam Check'), showLabel: true }"># spam check #</a>
     </div>
 
 
@@ -295,7 +295,7 @@
       <span data-sent="true" class="sendTestStatus hidden"><img class="medium_icon" data-bind="attr: { src: $root.infoSaveIcon }" style="vertical-align: middle;"><span class="inputlabel">Sent</span></span>
     </div>
     <div style="text-align: right;padding-right: 8px;">
-      <a class="loadbutton" title="Send Test Email" href="javascript:void(0)" data-bind="attr: { title: $root.t('Send Test email') }, click: $root.test.send.execute, button: { disabled: $root.test.send.disabled, label: $root.t('Send Test Email'), text: true }"># send test email #</a>
+      <a class="loadbutton" title="Send Test Email" href="javascript:void(0)" data-bind="attr: { title: $root.t('Send Test email') }, click: $root.test.send.execute, button: { disabled: $root.test.send.disabled, label: $root.t('Send Test Email'), showLabel: true }"># send test email #</a>
     </div>
   </div>
 </div>
@@ -308,14 +308,8 @@
     <div class="galleryEmpty" data-bind="text: $root.t('Inbox Preview Assistant')"></div>
 
     <div style="text-align: right;padding-right: 8px;">
-      <a class="loadbutton" title="Run Preview Test" href="javascript:void(0)" data-bind="attr: { title: $root.t('Run Preview Test') }, click: $root.test.inboxPreview.execute, button: { disabled: $root.test.inboxPreview.disabled, label: $root.t('Run Preview Test'), text: true }"># run preview test #</a>
+      <a class="loadbutton" title="Run Preview Test" href="javascript:void(0)" data-bind="attr: { title: $root.t('Run Preview Test') }, click: $root.test.inboxPreview.execute, button: { disabled: $root.test.inboxPreview.disabled, label: $root.t('Run Preview Test'), showLabel: true }"># run preview test #</a>
     </div>
-
-    <form method="GET" action="" data-bind="attr: {action: $root.test.inboxPreview.action}">
-      <input type="hidden" name="subject">
-      <input type="hidden" name="url">
-      <input type="hidden" name="pending">
-    </form>
   </div>
 </div>
 <!-- /ko -->
@@ -330,9 +324,9 @@
     BlockDefs:
     <pre data-bind='text: ko.toJSON(blockDefs, null, 2)' style="overflow: auto; height: 20%"></pre>
     <!-- /ko -->
-    <a href="javascript:void(0)" data-bind="click: $root.exportHTMLtoTextarea.bind($element, '#outputhtml'); clickBubble: false, button: { text: true, label:'Generate' }">Output</a>
-    <a href="javascript:void(0)" data-bind="click: $root.exportJSONtoTextarea.bind($element, '#outputhtml'); clickBubble: false, button: { text: true, label:'Export' }">Export</a>
-    <a href="javascript:void(0)" data-bind="click: $root.importJSONfromTextarea.bind($element, '#outputhtml'); clickBubble: false, button: { text: true, label:'Import' }">Import</a>
+    <a href="javascript:void(0)" data-bind="click: $root.exportHTMLtoTextarea.bind($element, '#outputhtml'); clickBubble: false, button: { showLabel: true, label:'Generate' }">Output</a>
+    <a href="javascript:void(0)" data-bind="click: $root.exportJSONtoTextarea.bind($element, '#outputhtml'); clickBubble: false, button: { showLabel: true, label:'Export' }">Export</a>
+    <a href="javascript:void(0)" data-bind="click: $root.importJSONfromTextarea.bind($element, '#outputhtml'); clickBubble: false, button: { showLabel: true, label:'Import' }">Import</a>
 
     <textarea id="outputhtml" rows="10" style="width: 100%;"></textarea>
   </div>
