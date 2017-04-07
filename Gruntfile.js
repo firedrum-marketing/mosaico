@@ -253,6 +253,7 @@ module.exports = function(grunt) {
                   ' * Bundle package for the following libraries:\n'+
                   ' * jQuery | (c) JS Foundation and other contributors | jquery.org/license\n'+
                   ' * jQuery Migrate v3.0.1 | (c) jQuery Foundation and other contributors | jquery.org/license\n'+
+                  ' * jQuery TextSelection v1.0.2 | GPL-3.0 license\n'+
                   ' * Knockout | (c) The Knockout.js team | License: MIT (http://www.opensource.org/licenses/mit-license.php)\n'+
                   ' * jQuery UI | Copyright 2015 jQuery Foundation and other contributors; Licensed MIT\n'+
                   ' * jQuery UI Touch Punch | Copyright 2011-2014, Dave Furfero | Dual licensed under the MIT or GPL Version 2 licenses.\n'+
@@ -338,6 +339,7 @@ module.exports = function(grunt) {
           'xmldom': 'MIT', // MIT or LGPL (https://github.com/jindw/xmldom/blob/master/LICENSE)
           'spdx-expression-parse': 'MIT', // (MIT AND CC-BY-3.0)
           'spdx-expression-validate': 'MIT', // (MIT AND CC-BY-3.0)
+          'jquery-textselection': 'GPL-3.0',
           /* Optional runtime dependency */
           'tinymce': 'LGPL-2.1', // LGPL-2.1, optional runtime dependency
           /* CC-BY licensed */

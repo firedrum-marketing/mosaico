@@ -22,3 +22,4 @@ require("./bindings/tooltips.js");
 require("./bindings/extender-pagination.js");
 require("./bindings/validated-value.js");
 require("./bindings/scrollintoview.js");
+require("./bindings/emojionearea.js");

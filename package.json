@@ -25,6 +25,7 @@
   "aliasify": {
     "aliases": {
       "console": "console-browserify",
+      "jquery-textselection": "jquery-textselection/dist/jquery.textselection.js",
       "jquery-ui/draggable": "jquery-ui/ui/widgets/draggable.js",
       "jquery-ui/droppable": "jquery-ui/ui/widgets/droppable.js",
       "jquery-ui/sortable": "jquery-ui/ui/widgets/sortable.js",
@@ -74,10 +75,12 @@
     "console-browserify": "^1.1.0",
     "default-passive-events": "^1.0.7",
     "downloadjs": "~1.4.6",
+    "emojionearea": "jhorowitz-firedrum/emojionearea",
     "evol-colorpicker": "^3.3.1",
     "font-awesome": "^4.7.0",
     "jquery": "^3.3.1",
     "jquery-migrate": "^3.0.1",
+    "jquery-textselection": "jhorowitz-firedrum/jquery-textselection",
     "jquery-ui": "jhorowitz-firedrum/jquery-ui",
     "jquery-ui-touch-punch": "^0.2.3",
     "jquery.iframe-transport": "^1.0.0",

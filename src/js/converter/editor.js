@@ -55,6 +55,10 @@ var _propInput = function(model, prop, propAccessor, editType, widgets) {
     onfocusbinding += ', event: { focus: function(ui, event) { $root.currentSystemTagField = $($element); } } ';  
   }
 
+  if ( model !== null && typeof model._emojiOneArea != 'undefined' ) {
+    onfocusbinding += ', emojionearea: {}';
+  }
+
   html += '<label class="data-' + widget + '"' + (widget == 'boolean' ? ' data-bind="event: { mousedown: function(ui, evt) { if (evt.button == 0) { var input = $($element).find(\'input\'); var ch = input.prop(\'checked\'); setTimeout(function() { input.click(); input.prop(\'checked\', !ch); input.trigger(\'change\'); }, 0); } } }, click: function(ui, evt) { evt.preventDefault(); }, clickBubble: false"' : '') + '>';
 
   if (typeof widgets !== 'undefined' && typeof widgets[widget] !== 'undefined') {

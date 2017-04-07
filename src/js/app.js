@@ -8,6 +8,7 @@ var ko = require("knockout");
 var $ = require("jquery");
 require("./ko-bindings.js");
 require('jquery-ui');
+require('jquery-textselection');
 var performanceAwareCaller = require("./timed-call.js").timedCall;
 
 var addUndoStackExtensionMaker = require("./undomanager/undomain.js");
