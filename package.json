@@ -24,6 +24,11 @@
   },
   "aliasify": {
     "aliases": {
+      "blueimp-canvas-to-blob": "blueimp-canvas-to-blob/js/canvas-to-blob.js",
+      "blueimp-file-upload-iframe-transport": "blueimp-file-upload/js/jquery.iframe-transport.js",
+      "blueimp-file-upload-process": "blueimp-file-upload/js/jquery.fileupload-process.js",
+      "blueimp-file-upload-image": "blueimp-file-upload/js/jquery.fileupload-image.js",
+      "blueimp-file-upload-validate": "blueimp-file-upload/js/jquery.fileupload-validate.js",
       "console": "console-browserify",
       "jquery-textselection": "jquery-textselection/dist/jquery.textselection.js",
       "jquery-ui/draggable": "jquery-ui/ui/widgets/draggable.js",
@@ -41,31 +46,34 @@
   },
   "browserify-shim": {
     "jquery": {
-	  "exports": "$",
-	  "depends": ["jsdom-global"]
-	},
+      "exports": "$",
+      "depends": ["jsdom-global"]
+    },
     "jquery-ui": {
-	  "depends": ["jquery:jQuery"]
-	},
+      "depends": ["jquery:jQuery"]
+    },
 	"jquery-ui/draggable": {
 	  "depends": ["jquery:jQuery"]
 	},
 	"jquery-ui/droppable": {
 	  "depends": ["jquery:jQuery"]
 	},
-	"jquery-ui/sortable": {
-	  "depends": ["jquery:jQuery"]
-	},
+    "jquery-ui/sortable": {
+      "depends": ["jquery:jQuery"]
+    },
 	"jquery-ui/spinner": {
-	  "depends": ["jquery:jQuery"]
-	},
+      "depends": ["jquery:jQuery"]
+    },
 	"jquery-ui/tabs": {
 	  "depends": ["jquery:jQuery"]
 	},
     "knockout-jqueryui": {
-		"exports": "kojqui",
-		"depends": ["jquery:jQuery", "knockout:ko" ]
-	},
+      "exports": "kojqui",
+      "depends": ["jquery:jQuery", "knockout:ko" ]
+    },
+    "blueimp-load-image": {
+      "depends": ["blueimp-load-image-orientation"]
+    },
     "tinymce": "global:tinymce"
   },
   "dependencies": {

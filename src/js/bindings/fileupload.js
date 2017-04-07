@@ -1,18 +1,14 @@
 "use strict";
 /* global global: false, Image: false */
 
-// This module depends on those files, but it doesn't have a direct dependency, so we don't require them here.
-
-//require("blueimp-canvas-to-blob");
-//require("jquery-file-upload/js/jquery.iframe-transport.js");
-//require("jquery-file-upload/js/jquery.fileupload.js");
-//require("jquery-file-upload/js/jquery.fileupload-process.js");
-//require("jquery-file-upload/js/jquery.fileupload-image.js");
-//require("jquery-file-upload/js/jquery.fileupload-validate.js");
-
 var $ = require("jquery");
 require('jquery-ui');
+require("blueimp-canvas-to-blob");
 require("blueimp-file-upload");
+require("blueimp-file-upload-iframe-transport");
+require("blueimp-file-upload-process");
+require("blueimp-file-upload-image");
+require("blueimp-file-upload-validate");
 var ko = require("knockout");
 var console = require("console");
 
