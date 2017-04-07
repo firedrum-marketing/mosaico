@@ -278,7 +278,7 @@ var templateCompiler = function(performanceAwareCaller, templateUrlConverter, te
       return p1 + p2 + p3;
     }) + postfix;
 
-    // store this so to restore it on disposale
+    // store this so to restore it on disposal
     var origiFrameTpl = ko.bindingHandlers.bindIframe.tpl;
     ko.bindingHandlers.bindIframe.tpl = iframeTpl;
     var iFramePlugin = {
@@ -307,6 +307,13 @@ var templateCompiler = function(performanceAwareCaller, templateUrlConverter, te
     }
     viewModel.metadata.editorversion = editver;
 
+    // Store templateDef name mapping somewhere accessible to ko templateSystem
+    viewModel.blockNameMap = {};
+    for( var bi = 0; bi < templateDef._blocks.length; bi++ ) {
+      if( templateDef._defs.hasOwnProperty(templateDef._blocks[bi].block) ) {
+        viewModel.blockNameMap[templateDef._blocks[bi].block] = templateDef._defs[templateDef._blocks[bi].block]._name;
+      }
+    }
     if (typeof templateDef.version !== 'undefined') {
       if (typeof viewModel.metadata.templateversion !== 'undefined' && viewModel.metadata.templateversion !== templateDef.version) {
       console.log("The model being loaded has been created with a different template version", viewModel.metadata.templateversion, "runtime:", templateDef.version);

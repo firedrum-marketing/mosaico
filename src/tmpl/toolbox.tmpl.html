@@ -18,7 +18,7 @@
     <div class="block-list" data-bind="foreach: blockDefs" style="text-align: center">
       <div class="draggable-item" data-bind="withProperties: { templateMode: 'show' }">
         <div class="block" data-bind="extdraggable: { connectClass: 'sortable-blocks-edit', data: $data, dropContainer: '#main-wysiwyg-area', dragging: $root.dragging, 'options': { handle: '.handle', distance: 10, 'appendTo': '#page' } }, click: $root.addBlock" style="position: relative;">
-          <div title="Click or drag to add this block to the template" class="handle" data-bind="attr: { title: $root.t('Click or drag to add this block to the template') }, tooltips: {}"></div>
+          <div title="__name__ - Click or drag to add this block to the template" class="handle" data-bind="attr: { title: $root.t('__name__ - Click or drag to add this block to the template', { name: $root.blockNameMap[ko.utils.unwrapObservable(type)] }) }, tooltips: {}"></div>
           <img data-bind="attr: { alt: $root.t('Block __name__', { name: ko.utils.unwrapObservable(type) }), src: $root.templatePath('edres/'+ko.utils.unwrapObservable(type)+'.png') }" alt="Block __name__" />
         </div>
         <a href="javascript:void(0)" class="addblockbutton" data-bind="click: $root.addBlock, button: { label: $root.t('Add') }">Add</a>
@@ -160,7 +160,7 @@
                     <div class="description" data-bind="text: $root.socialSharing().socialSharingDescription() || ''"></div>
                     <div style="bottom: 0;left: 0;position: absolute;right: 0;">
                       <div>
-                        <div class="domainName" data-bind="text: $root.socialShareDomain() || ''"></div>
+                        <div class="domainName" data-bind="text: $root.socialShareDomain() || ''"><span class=\'phs\'>|</span><!-- ko text: $root.socialShareBusinessName() || '' --><!-- /ko --></div>
                         <div style="margin-top: 5px;"></div>
                       </div>
                     </div>
@@ -234,18 +234,21 @@
 <!-- ko if: typeof $root.testMode !== 'undefined' -->
 <div id="toolspamassassin" class="slidebar" data-bind="scrollable: true, css: { hidden: $root.testMode() !== 'spamassassin' }">
   <div class="close" data-bind="click: $root.testMode.bind($element, '');">X</div>
+  <span class="pane-title" data-bind="text: $root.t('Content Spam Checker:')">Content Spam Checker:</span>
+
+  <div class="galleryEmpty">Recommended, to decrease the risk your email being labeled as SPAM</div>
+
+
   <div class="statusContainer" style="float: right;margin-right: 8px;padding: 2.5px;vertical-align: middle;">
     <div class="hidden" data-passed="true"><img class="medium_icon" data-bind="attr: { src: $root.infoSaveIcon }" style="vertical-align: middle;"><span>Passed</span></div>
     <div class="hidden" data-passed="false"><img class="medium_icon" data-bind="attr: { src: $root.cautionIcon }" style="vertical-align: middle;"><span class="inputlabel">Failed</span></div>
     <div class="hidden" data-passed="" style="opacity: 1; display: block;"><img class="medium_icon" data-bind="attr: { src: $root.cautionIcon }" style="vertical-align: middle;"><span class="inputlabel">Not Checked</span></div>
   </div>
-  <span class="pane-title" data-bind="text: $root.t('Content Spam Checker:')">Content Spam Checker:</span>
-
-  <div class="galleryEmpty">Recommended, to decrease the risk your email being labeled as SPAM</div>
-
+  
   <div style="text-align: right;padding-right: 8px;">
     <a class="loadbutton" title="Spam Check" href="javascript:void(0)" data-bind="attr: { title: $root.t('Spam Check') }, click: $root.test.spamassassin.execute, button: { disabled: $root.test.spamassassin.disabled, label: $root.t('Spam Check'), text: true }"># spam check #</a>
   </div>
+
 
   <div class="reportContainer hidden">
     <div class="pane-title">Spam Content Checker Results</div>
@@ -263,10 +266,6 @@
 
 <div id="toolsend" class="slidebar" data-bind="scrollable: true, css: { hidden: $root.testMode() !== 'send' }">
   <div class="close" data-bind="click: $root.testMode.bind($element, '');">X</div>
-  <div class="statusContainer" style="float: right;margin-right: 8px;padding: 2.5px;vertical-align: middle;">
-    <span data-sent="false" class="sendTestStatus hidden" style="opacity: 1; display: block;"><img class="medium_icon" data-bind="attr: { src: $root.cautionIcon }" style="vertical-align: middle;"><span class="inputlabel">Not Sent</span></span>
-    <span data-sent="true" class="sendTestStatus hidden"><img class="medium_icon" data-bind="attr: { src: $root.infoSaveIcon }" style="vertical-align: middle;"><span class="inputlabel">Sent</span></span>
-  </div>
   <span class="pane-title" data-bind="text: $root.t('Send a Test Email:')">Send a Test Email:</span>
 
   <div class="messageContainer clearfix" style="display: none;"></div>
@@ -286,7 +285,10 @@
       <select data-bind="combobox: {removeIfInvalid: false, buttonTooltip: 'Show Previous Email Addresses'}, value: $root.test.send.emailAddress, options: $root.test.send.emailAddresses, focusable: true, event: { focus: function(ui, event) { $($element).click(); } } "></select>
     </div>
   </div>
-
+  <div class="statusContainer" style="float: right;margin-right: 8px;padding: 2.5px;vertical-align: middle;">
+    <span data-sent="false" class="sendTestStatus hidden" style="opacity: 1; display: block;"><img class="medium_icon" data-bind="attr: { src: $root.cautionIcon }" style="vertical-align: middle;"><span class="inputlabel">Not Sent</span></span>
+    <span data-sent="true" class="sendTestStatus hidden"><img class="medium_icon" data-bind="attr: { src: $root.infoSaveIcon }" style="vertical-align: middle;"><span class="inputlabel">Sent</span></span>
+  </div>
   <div style="text-align: right;padding-right: 8px;">
     <a class="loadbutton" title="Send Test Email" href="javascript:void(0)" data-bind="attr: { title: $root.t('Send Test email') }, click: $root.test.send.execute, button: { disabled: $root.test.send.disabled, label: $root.t('Send Test Email'), text: true }"># send test email #</a>
   </div>
@@ -302,9 +304,10 @@
     <a class="loadbutton" title="Run Preview Test" href="javascript:void(0)" data-bind="attr: { title: $root.t('Run Preview Test') }, click: $root.test.inboxPreview.execute, button: { disabled: $root.test.inboxPreview.disabled, label: $root.t('Run Preview Test'), text: true }"># run preview test #</a>
   </div>
 
-  <form target="_blank" method="GET" action="" data-bind="attr: {action: $root.test.inboxPreview.action}">
+  <form method="GET" action="" data-bind="attr: {action: $root.test.inboxPreview.action}">
     <input type="hidden" name="subject">
     <input type="hidden" name="url">
+	<input type="hidden" name="pending">
   </form>
 </div>
 <!-- /ko -->
