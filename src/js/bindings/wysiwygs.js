@@ -59,8 +59,8 @@ ko.bindingHandlers.wysiwygHref = {
       // NOTE this unwrap is needed also in "wysiwyg" mode, otherwise dependency tracking dies.
       var attrValue = ko.utils.unwrapObservable(valueAccessor());
       if (isNotWysiwygMode) {
-        if ((attrValue === false) || (attrValue === null) || (attrValue === undefined))
-          element.removeAttribute('href');
+        if ((attrValue === false) || (attrValue === null) || (attrValue === undefined) || (attrValue === ''))
+          element.setAttribute('href', 'http://www.example.com/');
         else
           element.setAttribute('href', attrValue.toString());
       }
