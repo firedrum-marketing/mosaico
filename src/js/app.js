@@ -9,6 +9,7 @@ var $ = require("jquery");
 require("./ko-bindings.js");
 require('jquery-ui');
 require('jquery-textselection');
+require('jqueryui-touch-punch');
 var performanceAwareCaller = require("./timed-call.js").timedCall;
 
 var addUndoStackExtensionMaker = require("./undomanager/undomain.js");
@@ -57,9 +58,16 @@ var applyBindingOptions = function(options, ko) {
     }
   };
 
-  ko.bindingHandlers.wysiwygSrc.placeholderUrl = function(width, height, text) {
+  ko.bindingHandlers.wysiwygSrc.placeholderUrl = function(width, height, text, overrideText) {
     var imgProcessorBackend = options.imgProcessorBackend ? options.imgProcessorBackend : './upload';
-    return _appendUrlParameters(imgProcessorBackend, { method: 'placeholder', params: width + "," + height });
+    var urlParams = {
+      method: 'placeholder',
+      params: width + ',' + height
+    };
+    if (typeof overrideText !== 'undefined') {
+      urlParams.text = overrideText;
+    }
+    return _appendUrlParameters(imgProcessorBackend, urlParams);
   };
 
   // pushes custom tinymce configurations from options to the binding

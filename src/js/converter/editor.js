@@ -47,11 +47,17 @@ var _propInput = function(model, prop, propAccessor, editType, widgets) {
     throw "Unknown data type for " + prop;
   }
 
+  var eventbinding = {};
+  var isfirstevent = true;
+  var evt;
+  
   // For content editors we deal with focusing (clicking is handled by the container DIV).
   var onfocusbinding = 'focusable: true';
   if (editType == 'edit') {
-    onfocusbinding += ', event: { focus: function(ui, event) { $($element).click(); ' + ( model !== null && typeof model._allowSystemTags != 'undefined' ? '$root.currentSystemTagField = $($element); ' : '' ) + '} } ';
+	eventbinding['focus'] = '$($element).click();' + ( model !== null && typeof model._allowSystemTags != 'undefined' ? ' $root.currentSystemTagField = $($element);' : '' );
+    onfocusbinding += ', event: { focus: function(ui, event) { ' + '} } ';
   } else if ( model !== null && typeof model._allowSystemTags != 'undefined' ) {
+	eventbinding['focus'] = '$root.currentSystemTagField = $($element);';
     onfocusbinding += ', event: { focus: function(ui, event) { $root.currentSystemTagField = $($element); } } ';  
   }
 
@@ -68,16 +74,57 @@ var _propInput = function(model, prop, propAccessor, editType, widgets) {
       for (var p in w.parameters)
         if (w.parameters.hasOwnProperty(p) && typeof model['_'+p] !== 'undefined')
           parameters[p] = model['_'+p];
+    if (Object.keys(eventbinding).length > 0) {
+      onfocusbinding += ', event: { ';
+      for (evt in eventbinding) {
+        if (eventbinding.hasOwnProperty(evt)) {
+          onfocusbinding += (isfirstevent ? '' : ', ') + evt + ': function(ui, event) { ' + eventbinding[evt] + ' }';
+		  isfirstevent = false;
+        }
+      }
+	  onfocusbinding += ' }';
+    }
     html += w.html(propAccessor, onfocusbinding, parameters);
   } else if (widget == 'boolean') {
+    if (Object.keys(eventbinding).length > 0) {
+      onfocusbinding += ', event: { ';
+      for (evt in eventbinding) {
+        if (eventbinding.hasOwnProperty(evt)) {
+          onfocusbinding += (isfirstevent ? '' : ', ') + evt + ': function(ui, event) { ' + eventbinding[evt] + ' }';
+          isfirstevent = false;
+        }
+      }
+     onfocusbinding += ' }';
+    }
     html += '<input type="checkbox" value="nothing" data-bind="checked: ' + propAccessor + ', ' + onfocusbinding + '" />';
     html += '<span class="checkbox-replacer" ></span>'; /* data-bind="css: { checked: '+propAccessor+' }" */
   } else if (widget == 'color') {
+    if (Object.keys(eventbinding).length > 0) {
+      onfocusbinding += ', event: { ';
+      for (evt in eventbinding) {
+        if (eventbinding.hasOwnProperty(evt)) {
+          onfocusbinding += (isfirstevent ? '' : ', ') + evt + ': function(ui, event) { ' + eventbinding[evt] + ' }';
+          isfirstevent = false;
+        }
+      }
+     onfocusbinding += ' }';
+    }
     html += '<input size="7" type="text" data-bind="colorpicker: { color: ' + propAccessor + ', strings: $root.t(\'Theme Colors,Standard Colors,Web Colors,Theme Colors,Back to Palette,History,No history yet.\') }, ' + ', ' + onfocusbinding + '" />';
   } else if (widget == 'select') {
     if (typeof model._options != 'undefined') {
       var opts = _getOptionsObject(model._options);
       // var opts = model._options;
+      eventbinding['change'] = 'if ($data[\'' + propAccessor + 'Label\']) { $data[\'' + propAccessor + 'Label\']($(\'option:selected\', $element).text()) };';
+      if (Object.keys(eventbinding).length > 0) {
+        onfocusbinding += ', event: { ';
+        for (evt in eventbinding) {
+          if (eventbinding.hasOwnProperty(evt)) {
+            onfocusbinding += (isfirstevent ? '' : ', ') + evt + ': function(ui, event) { ' + eventbinding[evt] + ' }';
+            isfirstevent = false;
+          }
+        }
+       onfocusbinding += ' }';
+      }
       html += '<select data-bind="value: ' + propAccessor + ', ' + onfocusbinding + '">';
       for (var opt in opts)
         if (opts.hasOwnProperty(opt)) {
@@ -86,12 +133,52 @@ var _propInput = function(model, prop, propAccessor, editType, widgets) {
       html += '</select>';
     }
   } else if (widget == 'longtext') {
+    if (Object.keys(eventbinding).length > 0) {
+      onfocusbinding += ', event: { ';
+      for (evt in eventbinding) {
+        if (eventbinding.hasOwnProperty(evt)) {
+          onfocusbinding += (isfirstevent ? '' : ', ') + evt + ': function(ui, event) { ' + eventbinding[evt] + ' }';
+          isfirstevent = false;
+        }
+      }
+     onfocusbinding += ' }';
+    }
     html += '<textarea size="7" data-bind="value: ' + propAccessor + ', ' + onfocusbinding + '">nothing</textarea>';
   } else if (widget == 'hidden') {
+    if (Object.keys(eventbinding).length > 0) {
+      onfocusbinding += ', event: { ';
+      for (evt in eventbinding) {
+        if (eventbinding.hasOwnProperty(evt)) {
+          onfocusbinding += (isfirstevent ? '' : ', ') + evt + ': function(ui, event) { ' + eventbinding[evt] + ' }';
+          isfirstevent = false;
+        }
+      }
+     onfocusbinding += ' }';
+    }
     html += '<input type="hidden" value="nothing" data-bind="value: ' + propAccessor + ', ' + onfocusbinding + '" />';
   } else if (widget == 'file') {
+    if (Object.keys(eventbinding).length > 0) {
+      onfocusbinding += ', event: { ';
+      for (evt in eventbinding) {
+        if (eventbinding.hasOwnProperty(evt)) {
+          onfocusbinding += (isfirstevent ? '' : ', ') + evt + ': function(ui, event) { ' + eventbinding[evt] + ' }';
+          isfirstevent = false;
+        }
+      }
+     onfocusbinding += ' }';
+    }
     html += '<input type="hidden" value="nothing" data-bind="value: ' + propAccessor + ', ' + onfocusbinding + '" /><input type="text" data-bind="value: ( ' + propAccessor + '() != null ? ' + propAccessor + '().substr( ' + propAccessor + '().lastIndexOf( \'/\' ) + 1 ) : \'\' )" disabled />';
   } else if (widget == 'font') {
+    if (Object.keys(eventbinding).length > 0) {
+      onfocusbinding += ', event: { ';
+      for (evt in eventbinding) {
+        if (eventbinding.hasOwnProperty(evt)) {
+          onfocusbinding += (isfirstevent ? '' : ', ') + evt + ': function(ui, event) { ' + eventbinding[evt] + ' }';
+          isfirstevent = false;
+        }
+      }
+     onfocusbinding += ' }';
+    }
     html += '<select type="text" data-bind="value: ' + propAccessor + ', ' + onfocusbinding + '">';
     html += '<optgroup label="Sans-Serif Fonts">';
     html += '<option value="Arial,Helvetica,sans-serif">Arial</option>';
@@ -109,6 +196,16 @@ var _propInput = function(model, prop, propAccessor, editType, widgets) {
     html += '</optgroup>';
     html += '</select>';
   } else if (widget == 'url') {
+    if (Object.keys(eventbinding).length > 0) {
+      onfocusbinding += ', event: { ';
+      for (evt in eventbinding) {
+        if (eventbinding.hasOwnProperty(evt)) {
+          onfocusbinding += (isfirstevent ? '' : ', ') + evt + ': function(ui, event) { ' + eventbinding[evt] + ' }';
+          isfirstevent = false;
+        }
+      }
+     onfocusbinding += ' }';
+    }
     html += '<div class="ui-textbutton">';
     // <a class="ui-spinner-button ui-spinner-down ui-corner-br ui-button ui-widget ui-state-default ui-button-text-only" tabindex="-1" role="button"><span class="ui-button-text"><span class="ui-icon fa fa-fw caret-down">▼</span></span></a>
     html += '<input class="ui-textbutton-input" size="7" type="url" pattern="(mailto:.+@.+|https?://.+\\..+|\\[.*\\].*)" value="nothing" data-bind="css: { withButton: typeof $root.linkDialog !== \'undefined\' }, validatedValue: ' + propAccessor + ', ' + onfocusbinding + '" />';
@@ -117,6 +214,16 @@ var _propInput = function(model, prop, propAccessor, editType, widgets) {
   } else if (widget == 'integer') {
     // at this time the "step" depends on max being greater than 100.
     // maybe we should expose "step" as a configuration, too
+    if (Object.keys(eventbinding).length > 0) {
+      onfocusbinding += ', event: { ';
+      for (evt in eventbinding) {
+        if (eventbinding.hasOwnProperty(evt)) {
+          onfocusbinding += (isfirstevent ? '' : ', ') + evt + ': function(ui, event) { ' + eventbinding[evt] + ' }';
+          isfirstevent = false;
+        }
+      }
+     onfocusbinding += ' }';
+    }
     var min = 0;
     var max = 1000;
     if (model !== null && typeof model._max !== 'undefined') max = model._max;
@@ -125,6 +232,16 @@ var _propInput = function(model, prop, propAccessor, editType, widgets) {
     var page = step * 5;
     html += '<input class="number-spinner" size="7" step="' + step + '" type="number" value="-1" data-bind="spinner: { min: ' + min + ', max: ' + max + ', page: ' + page + ', value: ' + propAccessor + ' }, valueUpdate: [\'change\', \'spin\']' + ', ' + onfocusbinding + '" />';
   } else {
+    if (Object.keys(eventbinding).length > 0) {
+      onfocusbinding += ', event: { ';
+      for (evt in eventbinding) {
+        if (eventbinding.hasOwnProperty(evt)) {
+          onfocusbinding += (isfirstevent ? '' : ', ') + evt + ': function(ui, event) { ' + eventbinding[evt] + ' }';
+          isfirstevent = false;
+        }
+      }
+     onfocusbinding += ' }';
+    }
     html += '<input size="7" type="text" value="nothing" data-bind="value: ' + propAccessor + ', ' + onfocusbinding + '" />';
   }
 

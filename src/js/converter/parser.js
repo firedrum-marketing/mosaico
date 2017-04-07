@@ -234,11 +234,18 @@ var processBlock = function(element, defs, themeUpdater, blockPusher, templateUr
 
       currentBindings = domutils.getAttribute(element, 'data-bind');
 
+	  var text = null;
       // TODO this is ugly... maybe a better strategy is to pass this around using "data-" attributes
       var dynHeight = currentBindings && currentBindings.match(/virtualAttr: {[^}]* height: ([^,}]*)[,}]/);
-      if (dynHeight) height = dynHeight[1];
+      if (dynHeight) {
+        height = dynHeight[1];
+        text = dynHeight[1].slice(0, dynHeight[1].lastIndexOf("()")) + 'Label() || null';
+      }
       var dynWidth = currentBindings && currentBindings.match(/virtualAttr: {[^}]* width: ([^,}]*)[,}]/);
-      if (dynWidth) width = dynWidth[1];
+      if (dynWidth) {
+        width = dynWidth[1];
+        text = dynWidth[1].slice(0, dynWidth[1].lastIndexOf("()")) + 'Label() || null';
+      }
 
       var method;
 
@@ -259,18 +266,25 @@ var processBlock = function(element, defs, themeUpdater, blockPusher, templateUr
       } else if (!width) {
         size = "'h'+" + height + "+''";
       }
+
       var placeholdersrc;
       var plheight = height || domutils.getAttribute(element, 'data-ko-placeholder-height');
       var plwidth = width || domutils.getAttribute(element, 'data-ko-placeholder-width');
+
+      var pltext = domutils.getAttribute(element, 'data-ko-placeholder-text');
+      if ( pltext && text === null ) {
+        text = "'" + pltext + "'";
+      }
 
       domutils.removeAttribute(element, 'src');
       domutils.removeAttribute(element, 'data-ko-editable');
       domutils.removeAttribute(element, 'data-ko-placeholder-height');
       domutils.removeAttribute(element, 'data-ko-placeholder-width');
       domutils.removeAttribute(element, 'data-ko-placeholder-src');
+      domutils.removeAttribute(element, 'data-ko-placeholder-text');
 
       if (defaultValue) {
-        placeholdersrc = "{ width: " + plwidth + ", height: " + plheight + ", text: " + size + "}";
+        placeholdersrc = "{ width: " + plwidth + ", height: " + plheight + ", text: " + size + ", overrideText: " + text + "}";
       }
 
       if (!plwidth || !plheight) {

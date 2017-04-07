@@ -70,9 +70,9 @@ ko.bindingHandlers.wysiwygHref = {
 ko.virtualElements.allowedBindings['wysiwygHref'] = true;
 
 ko.bindingHandlers.wysiwygSrc = {
-  convertedUrl: function(src, method, width, height) {
+  convertedUrl: function(src, method, width, height, text) {
     var queryParamSeparator = src.indexOf('?') == -1 ? '?' : '&';
-    var res = src + queryParamSeparator + "method=" + method + "&width=" + width + (height !== null ? "&height=" + height : '');
+    var res = src + queryParamSeparator + "method=" + method + "&width=" + width + (height !== null ? "&height=" + height : '') + (typeof text !== 'undefined' ? "&text=" + text : '');
     return res;
   },
   placeholderUrl: function(plwidth, plheight, pltext) {
@@ -88,12 +88,12 @@ ko.bindingHandlers.wysiwygSrc = {
     var width = ko.utils.unwrapObservable(value.width);
     var height = ko.utils.unwrapObservable(value.height);
     if ((attrValue === false) || (attrValue === null) || (attrValue === undefined) || (attrValue === '')) {
-      if (typeof placeholderValue == 'object' && placeholderValue !== null) element.setAttribute('src', ko.bindingHandlers.wysiwygSrc.placeholderUrl(placeholderValue.width, placeholderValue.height, placeholderValue.text));
+      if (typeof placeholderValue == 'object' && placeholderValue !== null) element.setAttribute('src', ko.bindingHandlers.wysiwygSrc.placeholderUrl(placeholderValue.width, placeholderValue.height, placeholderValue.text, (placeholderValue.overrideText !== null ? placeholderValue.overrideText : undefined)));
       else element.removeAttribute('src');
     } else {
       var method = ko.utils.unwrapObservable(value.method);
       if (!method) method = width > 0 && height > 0 ? 'cover' : 'resize';
-      var src = ko.bindingHandlers.wysiwygSrc.convertedUrl(attrValue.toString(), method, width, height);
+      var src = ko.bindingHandlers.wysiwygSrc.convertedUrl(attrValue.toString(), method, width, height, (typeof placeholderValue == 'object' && placeholderValue !== null && placeholderValue.overrideText !== null ? placeholderValue.overrideText : undefined));
       element.setAttribute('src', src);
     }
     if (typeof width !== 'undefined' && width !== null) element.setAttribute("width", width);
