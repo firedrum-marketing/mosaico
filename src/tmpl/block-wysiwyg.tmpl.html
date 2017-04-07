@@ -1,5 +1,34 @@
 <div class="editable block" data-drop-content="Drop here" data-bind="attr: { 'data-drop-content': $root.t('Drop here') }, click: function(obj, evt) { $root.selectBlock(obj); return true }, clickBubble: false, css: { selected: $root.selectedBlock() === $data }, scrollIntoView: $root.selectedBlock() === $data">
-  <div class="mo-blockselectionhelper"></div>
+  <div class="mo-blockselectionhelper">
+    <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" shape-rendering="crispEdges">
+      <defs>
+        <line x1="0" y1="0" x2="calc(50% - 295)" y2="0" id="upperLeft"/>
+        <line x1="calc(50% + 295)" y1="0" x2="100%" y2="0" id="upperRight"/>
+        <line x1="0" y1="100%" x2="calc(50% - 295)" y2="100%" id="bottomLeft"/>
+        <line x1="calc(50% + 295)" y1="100%" x2="100%" y2="100%" id="bottomRight"/>
+        <line x1="calc(50% - 295)" y1="0" x2="calc(50% + 295)" y2="0" id="centerTop"/>
+        <line x1="calc(50% - 295)" y1="100%" x2="calc(50% + 295)" y2="100%" id="centerBottom"/>
+        <line x1="0" y1="0" x2="0" y2="100%" id="left"/>
+        <line x1="100%" y1="0" x2="100%" y2="100%" id="right"/>
+        <filter id="invert" x="0" y="0" width="100%" height="100%">
+          <feColorMatrix result="base" type="matrix" values="-1 0 0 0 1 0 -1 0 0 1 0 0 -1 0 1 0 0 0 1 0" />
+          <feColorMatrix result="mask" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0" />
+          <feComposite in="base" in2="mask" operator="in" />
+        </filter>
+      </defs>
+      <g stroke-width="2" filter="url(#invert)" data-bind="virtualAttr: { stroke: externalBackgroundColor._defaultComputed() }">
+        <use xlink:href="#upperLeft"/>
+        <use xlink:href="#upperRight"/>
+        <use xlink:href="#bottomRight"/>
+        <use xlink:href="#bottomLeft"/>
+      </g>
+      <g stroke-width="2" filter="url(#invert)"  data-bind="virtualAttr: { stroke: backgroundColor._defaultComputed() }">
+        <use xlink:href="#centerTop"/>
+        <use xlink:href="#centerBottom"/>
+      </g>
+    </svg>
+  </div>
+  <style type="text/css" data-bind="text: ($root.mosaicoConfig.mainElement && $root.mosaicoConfig.mainElement.id ? \'#\' + $root.mosaicoConfig.mainElement.id + \' \' : \'\') + '#main-edit-area #main-wysiwyg-area:not(.isdragging):not(.isdraggingimg) #' + id() + ' .mce-content-body:hover:after { background: url(\\'data:image/svg+xml;utf8,<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; xmlns:xlink=&quot;http://www.w3.org/1999/xlink&quot; shape-rendering=&quot;crispEdges&quot;><defs><line x1=&quot;0&quot; y1=&quot;0&quot; x2=&quot;100%&quot; y2=&quot;0&quot; id=&quot;top&quot;/><line x1=&quot;100%&quot; y1=&quot;0&quot; x2=&quot;100%&quot; y2=&quot;100%&quot; id=&quot;right&quot;/><line x1=&quot;100%&quot; y1=&quot;100%&quot; x2=&quot;0&quot; y2=&quot;100%&quot; id=&quot;bottom&quot;/><line x1=&quot;0&quot; y1=&quot;100%&quot; x2=&quot;0&quot; y2=&quot;0&quot; id=&quot;left&quot;/><filter id=&quot;invert&quot; x=&quot;0&quot; y=&quot;0&quot; width=&quot;100%&quot; height=&quot;100%&quot;><feColorMatrix result=&quot;base&quot; type=&quot;matrix&quot; values=&quot;-1 0 0 0 1 0 -1 0 0 1 0 0 -1 0 1 0 0 0 1 0&quot; /><feColorMatrix result=&quot;mask&quot; type=&quot;matrix&quot; values=&quot;0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0&quot; /><feComposite in=&quot;base&quot; in2=&quot;mask&quot; operator=&quot;in&quot; /></filter></defs><g stroke-width=&quot;2&quot; filter=&quot;url(%23invert)&quot; stroke=&quot;' + ((backgroundColor._defaultComputed() !== '') && (backgroundColor._defaultComputed() !== 'transparent') ? backgroundColor._defaultComputed() : '%23FFFFFF') + '&quot;><use xlink:href=&quot;%23top&quot;/><use xlink:href=&quot;%23right&quot;/><use xlink:href=&quot;%23bottom&quot;/><use xlink:href=&quot;%23left&quot;/></g></svg>\\'); }'"></style>
   <div class="tools" data-bind="">
     <!-- ko if: typeof $index != 'undefined' -->
     <div title="Drag this handle to move the block" data-bind="attr: { title: $root.t('Drag this handle to move the block') }" class="tool handle"><i class="fa fa-fw fa-arrows"></i></div>

@@ -1,6 +1,26 @@
-<table tabfocus="0" cellspacing="0" cellpadding="0" data-drop-content="Drop here" data-bind="style: _stylebind, click: function(obj, evt) { $root.selectItem(_item, _data); return true; }, clickBubble: false, fudroppable: { activeClass: 'ui-state-highlight', hoverClass: 'ui-state-draghover' }, extdroppable: { options: { accept: '.image', activeClass: 'ui-state-highlight', hoverClass: 'ui-state-draghover' }, data: _src, dragged: $root.fileToImage }, css: { selecteditem: $root.isSelectedItem(_item) }, scrollIntoView: $root.isSelectedItem(_item), attr: { 'data-drop-content': $root.t('Drop here'), width: _width, height: _height, align: _align }"
-  class="img-wysiwyg selectable-img" style="display: table;"><tr><td class="uploadzone">
-  <div class="mo-imgselectionhelper"></div>
+<table tabfocus="0" cellspacing="0" cellpadding="0" data-bind="style: _stylebind, click: function(obj, evt) { $root.selectItem(_item, _data); return true; }, clickBubble: false, fudroppable: { activeClass: 'ui-state-highlight', hoverClass: 'ui-state-draghover' }, extdroppable: { options: { accept: '.image', activeClass: 'ui-state-highlight', hoverClass: 'ui-state-draghover' }, data: _src, dragged: $root.fileToImage }, css: { selecteditem: $root.isSelectedItem(_item) }, scrollIntoView: $root.isSelectedItem(_item), attr: { 'data-drop-content': $root.t('Drop here'), width: _width, height: _height, align: _halign }"
+  class="img-wysiwyg selectable-img" style="display: table;"><tr><td class="uploadzone" data-drop-content="Drop here" data-bind="attr: { height: _height, align: _halign, valign: _align }">
+  <div class="mo-imgselectionhelper">
+    <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" shape-rendering="crispEdges">
+      <defs>
+        <line x1="0" y1="0" x2="100%" y2="0" id="top"/>
+        <line x1="100%" y1="0" x2="100%" y2="100%" id="right"/>
+        <line x1="100%" y1="100%" x2="0" y2="100%" id="bottom"/>
+        <line x1="0" y1="100%" x2="0" y2="0" id="left"/>
+        <filter id="invert" x="0" y="0" width="100%" height="100%">
+          <feColorMatrix result="base" type="matrix" values="-1 0 0 0 1 0 -1 0 0 1 0 0 -1 0 1 0 0 0 1 0" />
+          <feColorMatrix result="mask" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0" />
+          <feComposite in="base" in2="mask" operator="in" />
+        </filter>
+      </defs>
+      <g stroke-width="2" filter="url(#invert)" data-bind="virtualAttr: { stroke: backgroundColor._defaultComputed() }">
+        <use xlink:href="#top"/>
+        <use xlink:href="#right"/>
+        <use xlink:href="#bottom"/>
+        <use xlink:href="#left"/>
+      </g>
+    </svg>
+  </div>
   <div class="mo-uploadzone"></div>
   <div class="img-size" data-bind="text: _size">size</div>
   <div class="midtools" data-bind="">

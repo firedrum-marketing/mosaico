@@ -40,7 +40,7 @@
 @rightsidebar-width-desktop: 680px;
 @rightsidebar-width-large: 850px;
 @mainarea-minwidth: 600px;
-@topbar-height: 40px;
+@topbar-height: 41px;
 
 @screen-sm-max: 480px; // TODO Remove me, not used by mosaico (see style_page and style_admin)
 @screen-md-max: 1020px; // TODO Remove me, not used by mosaico (see style_page and style_admin)
@@ -115,8 +115,6 @@
   text-align: center;
   line-height: 24px;
   position: absolute;
-  // animation: pulse .5s ease-out 0s 4 alternate;
-  animation: droppable-pulsate 1s ease-in-out infinite alternate;
   top: -14px;
   left: -10px;
   height: 24px;
@@ -137,13 +135,28 @@
 
   &@{borderElementSelector} {
     content: "";
-    display: block;
+    visibility: hidden;
     position: absolute;
-    // z-index: 0;
-    top: 0; bottom: 0;
-    left: -2px - @size;
-    right: -2px - @size;
-
+    top: -1px; bottom: -1px;
+    left: -1px;
+    right: -1px;
+    border-width: 0px 0px;
+    border-style: solid solid;
+    border-color: @mosaico-outline-color;
+    outline-color: @mosaico-outline-color;
+    svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+      box-sizing: content-box;
+      g[stroke=''], g[stroke='transparent'] {
+        stroke: #FFFFFF;
+      }
+    }
+  }
+  &@{selectedSelector}@{borderElementSelector} {
+    display: block;
+    visibility: visible;
     // Use border for selection
     border: 1px solid transparent;
     border-width: @selectedSize;
@@ -162,13 +175,15 @@
     border: @selectedSize solid @mosaico-selection-color;
     border-left-width: @size;
     border-right-width: @size;
-    animation: border-color-selection-pulsate 4s infinite;
+    animation: border-color-selection-pulsate 2s infinite;
+    left: 0px - @size;
+    right: 0px - @size;
   }
   &:hover@{borderElementSelector} {
-    outline-color: @mosaico-outline-color;
-    border-top-color: transparent !important;
-    border-bottom-color: transparent !important;
-    animation: none;
+    display: block;
+    visibility: visible;
+    border-top-width: 0;
+    border-bottom-width: 0;
   }
 
   &@{selectedSelector} {
@@ -316,18 +331,25 @@ a[disabledhref]:-moz-read-write {
 
 #main-edit-area:before,
 #main-edit-area:after,
+#main-edit-area:after,
 #frame-container:before,
 #frame-container:after {
   content: "";
   display: block;
   position: absolute;
   border: 0;
-  height: @topbar-height;
   box-shadow: 0px 1px 10px @mosaico-shadow-color, 0px 0px 5px @mosaico-shadow-color;
   left: 0;
   right: 0;
   top: 0;
   z-index: 100;
+}
+#main-edit-area:before {
+  height: @topbar-height + 34px;
+}
+#frame-container:before,
+#frame-container:after {
+  height: @topbar-height;
 }
 #main-edit-area:after {
   top: auto;
@@ -340,9 +362,17 @@ a[disabledhref]:-moz-read-write {
   top: auto;
   bottom: -@topbar-height;
 }
-#main-wysiwyg-area {
+#main-tinymce-toolbar {
   position: absolute;
   top: @topbar-height;
+  left: 0;
+  right: 0;
+  height: 34px;
+  z-index: 100;
+}
+#main-wysiwyg-area {
+  position: absolute;
+  top: @topbar-height + 35px;
   left: 0;
   right: 0;
   bottom: 0;
@@ -399,6 +429,7 @@ a[disabledhref]:-moz-read-write {
 .uploadzone .fileuploadtext {
   .resetFont();
   font-weight: bold;
+  line-height: 1.25em;
 }
 .isdragging, .isdraggingimg {
   .uploadzone .fileuploadtext {
@@ -494,6 +525,7 @@ i.mce-i-newsletter-profile:before {
 #carousel-dialog {
   .carousel-buttons {
     position: absolute; right: 5px; bottom: 10px;
+    z-index: 1;
   }
   .carousel-buttons .button {
     font-size: 1.2em;
@@ -501,6 +533,7 @@ i.mce-i-newsletter-profile:before {
   .carousel-remember {
     font-size: 1.2em;
     position: absolute; left: 10px; bottom: 17px;
+    z-index: 1;
   }
   .carousel-remember input {
     vertical-align: middle; margin-right: .2em;
@@ -511,12 +544,23 @@ i.mce-i-newsletter-profile:before {
   .owl-controls {
     position: absolute; left: 0; right: 0; bottom: 7px;
   }
-  .owl-controls .owl-page.active span {
+  .owl-controls .owl-dots {
+    text-align: center;
+  }
+  .owl-controls .owl-dot.active span {
     background-color: @button-background-color;
   }
-  .owl-controls .owl-page span {
+  .owl-controls .owl-dot {
+    display: inline-block;
+  }
+  .owl-controls .owl-dot span {
+    display: block;
+    width: 12px;
+    height: 12px;
+    margin: 5px 7px;
+    opacity: 0.5;
+    border-radius: 20px;
     background-color: @accent-color;
-    /*opacity: 1;*/
   }
   .carousel-help {
     margin-top: 5px;
@@ -543,7 +587,6 @@ i.mce-i-newsletter-profile:before {
   .carousel-help-balloon {
     display: flex; display: -webkit-flex; display: -ms-flexbox;
     align-items: center; -webkit-align-items: center;
-    /*-ms-flex-align: center; -webkit-box-align: center;*/
     justify-content: center;
     text-align: center;
     overflow: auto;

@@ -15,7 +15,7 @@
   margin: 20px 30px;
   border: 2px dashed @mosaico-outline-color;
   border-radius: 20px;
-  animation: border-color-selection-pulsate 4s infinite;
+  animation: border-color-selection-pulsate 2s infinite;
   position: relative;
 }
 
@@ -64,10 +64,9 @@
 #main-edit-area .img-wysiwyg {
   position: relative;
   display: block;
-  width: auto;
 }
 #main-edit-area .isdraggingimg .ui-droppable.img-wysiwyg {
-  &:before {
+  .uploadzone:before {
     .makeDroppable();
     line-height: 45px;
     height: auto;
@@ -80,15 +79,6 @@
     background-color: fade(@mosaico-selection-color, 80%);
     animation: none;
   }
-}
-
-
-#main-edit-area #main-wysiwyg-area:not(.isdragging):not(.isdraggingimg) .editable .mo-blockselectionhelper {
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  z-index: 0;
 }
 
 #main-edit-area .isdragging .sortable-blocks-edit > div:not(.sortable-placeholder) + div:not(.sortable-placeholder):not(.ui-sortable-helper):not(.ui-draggable-dragging):before,
@@ -223,8 +213,10 @@
   visibility: hidden;
   z-index: 30; 
   position: absolute; 
-  bottom: 16px;
+  bottom: -17px;
   text-align: left;
+  white-space: nowrap;
+  overflow: visible;
 }
 #main-edit-area .img-wysiwyg:hover .midtools {
   visibility: visible;
@@ -246,11 +238,13 @@
 #main-edit-area .img-wysiwyg .img-size {
   visibility: hidden;
   position: absolute;
-  top: 16px;
+  top: 10%;
   right: 0;
+  transform: translate3d(50%,0,0);
   padding: 2px;
   font-family: @font-family;
-  font-size: 12px;
+  font-size: 14px;
+  line-height: 14px;
   background-color: rgba(128,128,128,.5);
   color: white;  
 }
@@ -341,23 +335,70 @@
     outline: none;
   }
 
-  // selectable elements
-  #main-wysiwyg-area:not(.isdragging):not(.isdraggingimg) {
-    // blocks
-    .editable {
-      .makeSelectable(10px, ~'.selected', 0, ~' .mo-blockselectionhelper');
+  #main-wysiwyg-area {
+    &.isdragging, &.isdraggingimg {
+      .editable .mo-blockselectionhelper svg,
+      .selectable-img .mo-imgselectionhelper svg {
+        display: none;
+      }
     }
-    // texts
-    .mce-content-body {
-      .makeSelectable(5px, ~'.selecteditem', 0);
-      cursor: text;
-    }
-    span.mce-content-body {
-      display: inline-block;
-    }
-    // images
-    .selectable-img {
-      .makeSelectable(5px, ~'.selecteditem', 0, ~' .mo-imgselectionhelper:after');
+
+    // selectable elements
+    &:not(.isdragging):not(.isdraggingimg) {
+      // blocks
+      .editable {
+        .makeSelectable(10px, ~'.selected', 0, ~' .mo-blockselectionhelper');
+
+        .mo-blockselectionhelper {
+          z-index: 1;
+          left: 0;
+          right: 0;
+        }
+
+        &.selected {
+          z-index: 10;
+
+          .mo-blockselectionhelper {
+            left: 0;
+            right: 0;
+          }
+        }
+
+        &:hover {
+          z-index: 11;
+
+          .mo-blockselectionhelper {
+            display: block;
+            visibility: visible;
+            border-top-width: 0;
+            border-bottom-width: 0;
+          }
+        }
+        &:hover, &.selected {
+          position: relative
+        }
+      }
+
+      // texts
+      .mce-content-body {
+        .makeSelectable(5px, ~'.selecteditem', 0);
+
+        cursor: text;
+        z-index: 1;
+      }
+      span.mce-content-body {
+        display: inline-block;
+        min-width: 1em;
+      }
+      .button.mce-content-body~:after {
+        top: -2px;
+        bottom: -2px;
+      }
+
+      // images
+      .selectable-img {
+        .makeSelectable(5px, ~'.selecteditem', 0, ~' .mo-imgselectionhelper');
+      }
     }
   }
 
@@ -370,6 +411,9 @@
     top: 2px;
     left: 2px;
     right: 2px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
   }
 }
 
@@ -381,17 +425,21 @@
   max-width: 100%;
 }
 
+body > .mce-tinymce.mce-tinymce-inline .mce-container-body.mce-abs-layout {
+  background-color: #DDDDDD;
+  border-radius: 5px;
+  border-style: solid;
+  border-color: #686565;
+  box-shadow: 2px 2px 5px #686565;
+}
+
 .mce-tinymce.mce-tinymce-inline {
-  width: auto !important;
+  &:not(.mce-arrow) {
+    width: auto !important;
+  }
 
   .mce-container-body.mce-abs-layout {
     width: auto !important;
-    background-color: #DDDDDD;
-    border-radius: 5px;
-    border-style: solid;
-    border-color: #686565;
-    box-shadow: 2px 2px 5px #686565;
-    top: -10px;
 
     .mce-toolbar-grp {
       width: auto !important;
@@ -399,6 +447,7 @@
 
       .mce-container-body {
         width: auto !important;
+        text-align: center;
       }
     }
   }

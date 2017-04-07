@@ -17,6 +17,9 @@
 
 @mosaico-selection-color: @link-color;
 
+#main-tinymce-toolbar {
+  background-color: @background-color;
+}
 #main-preview #preview-toolbar {
   padding: 1px 5px 0;
 }
@@ -46,20 +49,21 @@
     box-shadow: none;
     padding-top: 0;
     padding-bottom: 0;
-    line-height: @topbar-height - 2px;
-    margin-top: 2px;
+    line-height: @topbar-height - 3px;
+    margin-top: 3px;
 
     background-color: transparent;
     &:hover, &.pressed {
       margin-top: 0;
-      border-top: 2px solid lighten(#FF5722, 10%);
+      border-top: 3px solid lighten(#FF5722, 10%);
       border-bottom: 0;
       background-color: lighten(@mosaico-ui-background-color, 10%);
     }
     &.selected, &.ui-state-active {
       margin-top: 0px;
-      border-top: 2px solid #FF5722;
+      border-top: 3px solid #FF5722;
       border-bottom: 0;
+      background-color: #E5E5E5;
     }
     &.ui-button-disabled, &.ui-button-disabled .ui-icon, &.ui-button-disabled .ui-button-text {
       color: #A5A5A5;
@@ -110,7 +114,7 @@
 
   li@{activeclass} a {
     & when(@buttonstyle) {
-      background-color: transparent;
+      background-color: #E5E5E5;
       color: @button-text-color;
       border-top: 3px solid #FF5722;
     } 
@@ -239,7 +243,7 @@
   border-top: 2px solid @accent-color;
 }
 
-.mo #toolstyles .objLabel.level1, .mo #tooltheme .objLabel.level1 {
+.mo #toolcontents .objLabel.level1, .mo #toolstyles .objLabel.level1, .mo #tooltheme .objLabel.level1 {
   padding-left: 70px;
 }
 
@@ -281,7 +285,7 @@
       padding-top: 6px;
   }
 
-  .mo #toolstyles, .mo #tooltheme {
+  .mo #toolcontents, .mo #toolstyles, .mo #tooltheme {
     .objEdit.level1 {
       border-top-left-radius: 30px;
     }
@@ -294,7 +298,7 @@
     left: 4px;
   }
 
-  .mo #toolstyles .objLabel.level1, .mo #tooltheme .objLabel.level1 {
+  .mo #toolcontents .objLabel.level1, .mo #toolstyles .objLabel.level1, .mo #tooltheme .objLabel.level1 {
     padding-left: 5px;
     border-radius: 30px 0 0 0;
   }

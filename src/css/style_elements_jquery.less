@@ -21,8 +21,8 @@
 .ui-icon, &.ui-icon {display: block;text-indent: -99999px;overflow: hidden;background-repeat: no-repeat;}
 
 // Overlays
-.ui-widget-overlay, &.ui-widget-overlay {position: fixed;top: 0;left: 0;width: 100%;height: 100%;}
-.ui-widget-overlay, &.ui-widget-overlay {background: #aaaaaa none;opacity: .6;filter: Alpha(Opacity=60);}
+.ui-widget-overlay, &.ui-widget-overlay, &.ui-dialog + .ui-widget-overlay {position: fixed;top: 0;left: 0;width: 100%;height: 100%;}
+.ui-widget-overlay, &.ui-widget-overlay, &.ui-dialog + .ui-widget-overlay {background: #aaaaaa none;opacity: .6;filter: Alpha(Opacity=60);}
 .ui-widget-shadow, &.ui-widget-shadow {margin: -8px 0 0 -8px;padding: 8px;background: #aaaaaa none;opacity: .3;filter: Alpha(Opacity=30);border-radius: 8px;}
 
 .ui-corner-all, &.ui-corner-all { border-radius: @standard-border-radius; }
@@ -35,12 +35,19 @@
     color: @button-text-color;
   }
   &.ui-button-icon-only {
+    position: relative;
     width: 2em;
     box-sizing: border-box;
     text-indent: -9999px;
     white-space: nowrap;
 
-    .ui-icon { margin: 0 .1em; }
+    .ui-icon {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      margin-top: -8px;
+      margin-left: -8px;
+    }
     .ui-button-text { display: none; }
   }
   &.ui-button-disabled {
@@ -330,7 +337,7 @@
     bottom: 0;
     border-top: none;
     border-radius: 0 0 @button-border-radius 0;
-    .ui-button-text:after {s
+    .ui-button-text:after {
       font-family: FontAwesome;
       font-weight: normal;
       content: "\f0d7";
