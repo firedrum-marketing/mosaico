@@ -17,48 +17,50 @@
     <!-- /ko -->
 
     <span>
-    <input id="showGallery" type="checkbox" data-bind="checked: $root.showGallery, button: { refreshOn: $root.showGallery, icon: 'fa fa-fw fa-picture-o', text: true, label: $root.t('Gallery') }"><label for="showGallery">show gallery</label></input>
+      <input id="showGallery" type="checkbox" data-bind="checked: $root.showGallery, button: { refreshOn: $root.showGallery, icon: 'fa fa-fw fa-picture-o', text: true, label: $root.t('Gallery') }"><label for="showGallery">show gallery</label></input>
     </span>
 
-	<span style="position:relative;">
-		<input id="previewFrameToggle" type="checkbox" data-bind="checked: $root.showPreviewFrame, button: { refreshOn: $root.showPreviewFrame, icon: 'fa fa-fw fa-search', text: true, label: $root.t('Preview') }"><label for="previewFrameToggle">PREVIEW</label></input>
-	</span>
-	
-	<span>
-    <input id="showSocialSharing" type="checkbox" data-bind="checked: $root.showSocialSharing, button: { refreshOn: $root.showSocialSharing, icon: 'fa fa-fw fa-share-alt', text: true, label: $root.t('Social Sharing') }"><label for="showSocialSharing">show social sharing</label></input>
+    <span style="position:relative;">
+      <input id="previewFrameToggle" type="checkbox" data-bind="checked: $root.showPreviewFrame, button: { refreshOn: $root.showPreviewFrame, icon: 'fa fa-fw fa-search', text: true, label: $root.t('Preview') }"><label for="previewFrameToggle">PREVIEW</label></input>
     </span>
-	
-	<!-- ko if: typeof $root.test !== 'undefined' -->
-	<div id="testMenu">
-    <a href="javascript:void(0)" data-bind="button: { icon: 'fa fa-fw fa-flask', label: $root.t('Test'), text: true }">TEST</a>
-    <div>
-      <!-- ko if: typeof $root.test.spamassassin != 'undefined' -->
-      <a href="javascript:void(0)" data-bind="click: $root.testMode.bind($root.testMode, 'spamassassin'), clickBubble: false, button: { icon: 'fa fa-fw fa-bolt', label: $root.t('Content Spam Checker'), text: true }">CONTENT SPAM CHECKER</a>
-      <!-- /ko -->
-      <!-- ko if: typeof $root.test.send != 'undefined' -->
-      <a href="javascript:void(0)" data-bind="click: $root.testMode.bind($root.testMode, 'send'), clickBubble: false, button: { icon: 'fa fa-fw fa-paper-plane-o', label: $root.t('Send a Test Email'), text: true }">SEND A TEST EMAIL</a>
-      <!-- /ko -->
-      <!-- ko if: typeof $root.test.inboxPreview != 'undefined' -->
-      <a href="javascript:void(0)" data-bind="click: $root.testMode.bind($root.testMode, 'inboxPreview'), clickBubble: false, button: { icon: 'fa fa-fw fa-search', label: $root.t('Inbox Preview Assistant'), text: true }">INBOX PREVIEW ASSISTANT</a>
-      <!-- /ko -->
-    </div>
-	</div>
+
+    <!-- ko if: typeof $root.showSocialSharing !== 'undefined' -->
+    <span>
+      <input id="showSocialSharing" type="checkbox" data-bind="checked: $root.showSocialSharing, button: { refreshOn: $root.showSocialSharing, icon: 'fa fa-fw fa-share-alt', text: true, label: $root.t('Social Sharing') }"><label for="showSocialSharing">show social sharing</label></input>
+    </span>
     <!-- /ko -->
-	
-	<span id="variation-toolbar-wrapper" style="position:relative;" data-bind="visible: $root.splitTestingEnabled">
-		<label class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-icon-primary" role="label" aria-disabled="false" aria-pressed="false">
-			<span class="ui-button-icon-primary ui-icon fa fa-fw fa-random"></span>
-			<span class="ui-button-text" data-bind="text: $root.t('Variation:')">Variation:</span>
-		</label>
-		<div id="variation-toolbar" style="display: inline-block;">
-			<div data-bind="visible: true, buttonset: { refreshOn: $root.currentVariationIndex }" style="display: inline-block" class="ui-buttonset">
-				<input id="variationA" type="radio" name="variation" value="0" data-bind="checked: $root.currentVariationIndex, button: { text: true, label: 'A' }">
-				<label for="variationA">A</label>
-				<input id="variationB" type="radio" name="variation" value="1" data-bind="checked: $root.currentVariationIndex, button: { text: true, label: 'B' }">
-				<label for="variationB">B</label>
-			</div>
-		</div>
-	</span>
+
+    <!-- ko if: typeof $root.test !== 'undefined' -->
+    <div id="testMenu">
+      <a href="javascript:void(0)" data-bind="button: { icon: 'fa fa-fw fa-flask', label: $root.t('Test'), text: true }">TEST</a>
+      <div>
+        <!-- ko if: typeof $root.test.inboxPreview != 'undefined' -->
+        <a href="javascript:void(0)" data-bind="click: $root.testMode.bind($root.testMode, 'inboxPreview'), clickBubble: false, button: { icon: 'fa fa-fw fa-search', label: $root.t('Inbox Preview Assistant'), text: true }">INBOX PREVIEW ASSISTANT</a>
+        <!-- /ko -->
+        <!-- ko if: typeof $root.test.send != 'undefined' -->
+        <a href="javascript:void(0)" data-bind="click: $root.testMode.bind($root.testMode, 'send'), clickBubble: false, button: { icon: 'fa fa-fw fa-paper-plane-o', label: $root.t('Send a Test Email'), text: true }">SEND A TEST EMAIL</a>
+        <!-- /ko -->
+        <!-- ko if: typeof $root.test.spamassassin != 'undefined' -->
+        <a href="javascript:void(0)" data-bind="click: $root.testMode.bind($root.testMode, 'spamassassin'), clickBubble: false, button: { icon: 'fa fa-fw fa-bolt', label: $root.t('Content Spam Checker'), text: true }">CONTENT SPAM CHECKER</a>
+        <!-- /ko -->
+      </div>
+    </div>
+    <!-- /ko -->
+
+    <span id="variation-toolbar-wrapper" style="position:relative;" data-bind="visible: $root.splitTestingEnabled">
+      <label class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-icon-primary" role="label" aria-disabled="false" aria-pressed="false">
+        <span class="ui-button-icon-primary ui-icon fa fa-fw fa-random"></span>
+        <span class="ui-button-text" data-bind="text: $root.t('Variation:')">Variation:</span>
+      </label>
+      <div id="variation-toolbar" style="display: inline-block;">
+        <div data-bind="visible: true, buttonset: { refreshOn: $root.currentVariationIndex }" style="display: inline-block" class="ui-buttonset">
+          <input id="variationA" type="radio" name="variation" value="0" data-bind="checked: $root.currentVariationIndex, button: { text: true, label: 'A' }">
+          <label for="variationA">A</label>
+          <input id="variationB" type="radio" name="variation" value="1" data-bind="checked: $root.currentVariationIndex, button: { text: true, label: 'B' }">
+          <label for="variationB">B</label>
+        </div>
+      </div>
+    </span>
 
     <!-- ko if: $root.debug -->
     <a href="javascript:void(0)" data-bind="click: $root.export, clickBubble: false, button: { label: 'export', text: true }">EXPORT</a>
@@ -130,7 +132,6 @@
   <div id="fake-image-editor" title="Fake image editor" style="display: none" data-bind="attr: { title: $root.t('Fake image editor') }, html: $root.t('<p>Fake image editor</p>')">
     <p>Fake image editor</p>
   </div>
-
 </div>
 
 <!-- ko if: $root.logoPath -->
