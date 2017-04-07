@@ -1,7 +1,7 @@
 <div id="tooltabs" class="tabs_horizontal button_color" data-bind="tabs: { active: $root.selectedTool }">
   <ul>
     <!-- ko if: typeof $root.envelope !== 'undefined' -->
-    <li><a data-local="true" href="#toolenvelope""><i class="fa fa-fw fa-envelope-o"></i> <span data-bind="html: $root.t('Envelope')">Envelope</span></a></li>
+    <li><a data-local="true" href="#toolenvelope"><i class="fa fa-fw fa-envelope-o"></i> <span data-bind="html: $root.t('Subject')">Subject</span></a></li>
     <!-- /ko -->
     <li><a data-local="true" href="#toolblocks"><i class="fa fa-fw fa-cubes"></i> <span data-bind="html: $root.t('Blocks')">Blocks</span></a></li>
     <li><a href="#toolcontents" data-local="true"><i class="fa fa-fw fa-pencil"></i> <span data-bind="html: $root.t('Content')">Content</span></a></li>
@@ -17,7 +17,7 @@
   <div id="toolblocks" data-bind="scrollable: true">
     <div class="block-list" data-bind="foreach: blockDefs" style="text-align: center">
       <div class="draggable-item" data-bind="withProperties: { templateMode: 'show' }">
-        <div class="block" data-bind="extdraggable: { connectClass: 'sortable-blocks-edit', data: $data, dropContainer: '#main-wysiwyg-area', dragging: $root.dragging, 'options': { handle: '.handle', distance: 10, 'appendTo': '#page' } }, click: $root.addBlock" style="position: relative;">
+        <div class="block" data-bind="extdraggable: { connectClass: 'sortable-blocks-edit', data: $data, dropContainer: '#main-wysiwyg-area', dragging: $root.dragging, 'options': { handle: '.handle', distance: 10, 'appendTo': '#page' } }, click: $root.addBlock, attr: {'data-block-name': $root.blockNameMap[ko.utils.unwrapObservable(type)]}" style="position: relative;">
           <div title="__name__ - Click or drag to add this block to the template" class="handle" data-bind="attr: { title: $root.t('__name__ - Click or drag to add this block to the template', { name: $root.blockNameMap[ko.utils.unwrapObservable(type)] }) }, tooltips: {}"></div>
           <img data-bind="attr: { alt: $root.t('Block __name__', { name: ko.utils.unwrapObservable(type) }), src: $root.templatePath('edres/'+ko.utils.unwrapObservable(type)+'.png') }" alt="Block __name__" />
         </div>
@@ -52,78 +52,80 @@
 </div>
         
 <div id="toolimages" class="slidebar" data-bind="scrollable: true, css: { hidden: $root.showGallery() === false }">
-  <div class="close" data-bind="click: $root.showGallery.bind($element, false);">X</div>
+  <div class="close" data-bind="click: $root.showGallery.bind($element, false);"></div>
   <span class="pane-title" data-bind="text: $root.t('Gallery:')">Gallery:</span>
-
-  <div data-drop-content="Drop here" class="img-dropzone pane uploadzone" data-bind="attr: { 'data-drop-content': $root.t('Drop here') }, fudroppable: { activeClass: 'ui-state-highlight', hoverClass: 'ui-state-draghover' }">
-  <div class="mo-uploadzone" style="position: relative; padding: 2em; border: 2px dotted #808080">
-     <input class="fileupload" type="file" multiple name="files[]" data-bind="fileupload: { onerror: $root.notifier.error, onfile: $root.loadImage }" style="z-index: 10; position: absolute; top: 0; left: 0; right: 0; bottom: 0; min-width: 100%; min-height: 100%; font-zie: 999px; text-align: right; filter: alpha(opacity=0); opacity: 0; outline: none; cursor: inherit; display: block">
-     <span data-bind="text: $root.t('Click or drag files here')">Click or drag files here</span>
-     <div class="workzone" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; overflow: hidden;">
-       <div class="progress" style="opacity: .5; width: 80%; margin-left: 10%; position: absolute; bottom: 30%; height: 20px; border: 2px solid black;">
-         <div class="progress-bar progress-bar-success" style="height: 20px; background-color: black; "></div>
-       </div>
-     </div>
-  </div>
-  </div>
-
-
-  <!-- ko if: $root.showGallery() -->
-  <!-- ko if: typeof $root.libraryPath === 'undefined' -->
-  <div id="toolimagestab" class="tabs_horizontal" data-bind="tabs: { active: $root.selectedImageTab }">
-    <ul>
-      <li data-bind="tooltips: {}"><a title="Session images" data-local="true" href="#toolimagesrecent" data-bind="attr: { title: $root.t('Session images') }, text: $root.t('Recents')">Recents</a></li>
-      <li data-bind="tooltips: {}"><a title="Remote gallery" data-local="true" href="#toolimagesgallery" data-bind="attr: { title: $root.t('Remote gallery') }, text: $root.t('Gallery')">Gallery</a></li>
-    </ul>
-
-    <div id="toolimagesrecent">
-      <!-- ko if: galleryRecent().length == 0 --><div class="galleryEmpty" data-bind="text: $root.t('No images uploaded, yet')">No images uploaded, yet</div><!-- /ko -->
-      <!-- ko template: {name: 'gallery-images', data: { items: galleryRecent } } --># recent gallery #<!-- /ko -->
-    </div>
-
-    <div id="toolimagesgallery" style="text-align: center">
-    <!-- ko if: $root.galleryLoaded() === false --><a class="loadbutton" title="Show images from the gallery" href="javascript:void(0)" data-bind="attr: { title: $root.t('Show images from the gallery') }, click: $root.loadGallery, button: { disabled: $root.galleryLoaded, icons: { primary: 'fa fa-fw fa-picture-o' }, label: $root.galleryLoaded() == 'loading' ? $root.t('Loading...') : $root.t('Load gallery'), text: true }"># load gally #</a><!-- /ko -->
-
-
-    <!-- ko if: $root.galleryLoaded() === 'loading' --><div class="galleryEmpty" data-bind="text: $root.t('Loading gallery...')">Loading gallery...</div><!-- /ko -->
-    <!-- ko if: $root.galleryLoaded() === 0 --><div class="galleryEmpty" data-bind="text: $root.t('The gallery is empty')">The gallery is empty</div><!-- /ko -->
-    <!-- ko template: {name: 'gallery-images', data: { items: galleryRemote } } --># remote gallery #<!-- /ko -->
-    </div>
-  </div>
-  <!-- /ko -->
-  <!-- ko if: typeof $root.libraryPath !== 'undefined' -->
-  <div class="propEditor libraryFileSystem" data-bind="tooltips: {}">
-    <span data-bind="attr: { title: $root.ut('template', 'The currently selected image library filesystem.') }" class="propLabel">
-      <span data-bind="text: $root.ut('template', 'FileSystems')">FileSystems</span>
-    </span>
-
-    <div class="propInput" data-bind="css: { default: libraryFileSystem() === null }">
-      <label class="data-select">
-        <select data-bind="iconselectmenu: {}, value: libraryFileSystem, options: libraryFileSystems, optionsText: 'name', optionsValue: 'path', optionsAfterRender: processLibraryFileSystems, focusable: true, event: { focus: function(ui, event) { $($element).click(); } } "></select>
-      </label>
-    </div>
-  </div>
   
-  <div id="galleryPath" data-bind="text: $root.libraryPath"></div>
-  
-  <div style="text-align:center">
-    <!-- ko if: $root.galleryLoaded() === false --><a class="loadbutton" title="Load your Image Library" href="javascript:void(0)" data-bind="attr: { title: $root.t('Load your Image Library') }, click: $root.loadGallery, button: { disabled: $root.galleryLoaded, icon: 'fa fa-fw fa-picture-o', label: $root.galleryLoaded() == 'loading' ? $root.t('Loading...') : $root.t('Load Library'), text: true }"># load gallery #</a><!-- /ko -->
-    <!-- ko if: $root.galleryLoaded() === 'loading' --><div class="galleryEmpty" data-bind="text: $root.t('Loading your image library...')">Loading your image library...</div><!-- /ko -->
-    <!-- ko if: $root.galleryLoaded() === 0 --><div class="galleryEmpty" data-bind="text: $root.t('The image library is empty.')">Your image library is empty.</div><!-- /ko -->
-    <!-- ko if: $root.libraryPath() != $root.libraryFileSystem() -->
-      <a class="loadbutton" title="Up one directory" href="javascript:void(0)" data-bind="attr: { title: $root.t('Up one directory') }, click: $root.libraryPaths()[$root.libraryPath()]().ascend, button: { disabled: $root.libraryPath() == $root.libraryFileSystem(), icon: 'fa fa-fw fa-arrow-up', label: $root.t('Up one directory'), text: true }"># up one directory #</a>
+  <div class="pane-content">
+    <div data-drop-content="Drop here" class="img-dropzone pane uploadzone" data-bind="attr: { 'data-drop-content': $root.t('Drop here') }, fudroppable: { activeClass: 'ui-state-highlight', hoverClass: 'ui-state-draghover' }">
+      <div class="mo-uploadzone" style="position: relative; padding: 2em; border: 2px dotted #808080">
+        <input class="fileupload" type="file" multiple name="files[]" data-bind="fileupload: { onerror: $root.notifier.error, onfile: $root.loadImage }" style="z-index: 10; position: absolute; top: 0; left: 0; right: 0; bottom: 0; min-width: 100%; min-height: 100%; font-zie: 999px; text-align: right; filter: alpha(opacity=0); opacity: 0; outline: none; cursor: inherit; display: block">
+        <span data-bind="text: $root.t('Click or drag files here')">Click or drag files here</span>
+        <div class="workzone" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; overflow: hidden;">
+          <div class="progress" style="opacity: .5; width: 100%; position: absolute; bottom: 50%; transform: translate3d(0,50%,0); height: 100%;">
+            <div class="progress-bar progress-bar-success" style="height: 100%; background-color: #000000; "></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ko if: $root.showGallery() -->
+    <!-- ko if: typeof $root.libraryPath === 'undefined' -->
+    <div id="toolimagestab" class="tabs_horizontal" data-bind="tabs: { active: $root.selectedImageTab }">
+      <ul>
+        <li data-bind="tooltips: {}"><a title="Session images" data-local="true" href="#toolimagesrecent" data-bind="attr: { title: $root.t('Session images') }, text: $root.t('Recents')">Recents</a></li>
+        <li data-bind="tooltips: {}"><a title="Remote gallery" data-local="true" href="#toolimagesgallery" data-bind="attr: { title: $root.t('Remote gallery') }, text: $root.t('Gallery')">Gallery</a></li>
+      </ul>
+
+      <div id="toolimagesrecent">
+        <!-- ko if: galleryRecent().length == 0 --><div class="galleryEmpty" data-bind="text: $root.t('No images uploaded, yet')">No images uploaded, yet</div><!-- /ko -->
+        <!-- ko template: {name: 'gallery-images', data: { items: galleryRecent } } --># recent gallery #<!-- /ko -->
+      </div>
+
+      <div id="toolimagesgallery" style="text-align: center">
+      <!-- ko if: $root.galleryLoaded() === false --><a class="loadbutton" title="Show images from the gallery" href="javascript:void(0)" data-bind="attr: { title: $root.t('Show images from the gallery') }, click: $root.loadGallery, button: { disabled: $root.galleryLoaded, icons: { primary: 'fa fa-fw fa-picture-o' }, label: $root.galleryLoaded() == 'loading' ? $root.t('Loading...') : $root.t('Load gallery'), text: true }"># load gally #</a><!-- /ko -->
+
+
+      <!-- ko if: $root.galleryLoaded() === 'loading' --><div class="galleryEmpty" data-bind="text: $root.t('Loading gallery...')">Loading gallery...</div><!-- /ko -->
+      <!-- ko if: $root.galleryLoaded() === 0 --><div class="galleryEmpty" data-bind="text: $root.t('The gallery is empty')">The gallery is empty</div><!-- /ko -->
+      <!-- ko template: {name: 'gallery-images', data: { items: galleryRemote } } --># remote gallery #<!-- /ko -->
+      </div>
+    </div>
+    <!-- /ko -->
+    <!-- ko if: typeof $root.libraryPath !== 'undefined' -->
+    <div class="propEditor libraryFileSystem" data-bind="tooltips: {}">
+      <span data-bind="attr: { title: $root.ut('template', 'The currently selected image library filesystem.') }" class="propLabel">
+        <span data-bind="text: $root.ut('template', 'FileSystems')">FileSystems</span>
+      </span>
+
+      <div class="propInput" data-bind="css: { default: libraryFileSystem() === null }">
+        <label class="data-select">
+          <select data-bind="iconselectmenu: {}, value: libraryFileSystem, options: libraryFileSystems, optionsText: 'name', optionsValue: 'path', optionsAfterRender: processLibraryFileSystems, focusable: true, event: { focus: function(ui, event) { $($element).click(); } } "></select>
+        </label>
+      </div>
+    </div>
+
+    <div id="galleryPath" data-bind="text: $root.libraryPath"></div>
+
+    <div style="text-align:center">
+      <!-- ko if: $root.galleryLoaded() === false --><a class="loadbutton" title="Load your Image Library" href="javascript:void(0)" data-bind="attr: { title: $root.t('Load your Image Library') }, click: $root.loadGallery, button: { disabled: $root.galleryLoaded, icon: 'fa fa-fw fa-picture-o', label: $root.galleryLoaded() == 'loading' ? $root.t('Loading...') : $root.t('Load Library'), text: true }"># load gallery #</a><!-- /ko -->
+      <!-- ko if: $root.galleryLoaded() === 'loading' --><div class="galleryEmpty" data-bind="text: $root.t('Loading your image library...')">Loading your image library...</div><!-- /ko -->
+      <!-- ko if: $root.galleryLoaded() === 0 --><div class="galleryEmpty" data-bind="text: $root.t('The image library is empty.')">Your image library is empty.</div><!-- /ko -->
+      <!-- ko if: $root.libraryPath() != $root.libraryFileSystem() -->
+        <a class="loadbutton" title="Up one directory" href="javascript:void(0)" data-bind="attr: { title: $root.t('Up one directory') }, click: $root.libraryPaths()[$root.libraryPath()]().ascend, button: { disabled: $root.libraryPath() == $root.libraryFileSystem(), icon: 'fa fa-fw fa-arrow-up', label: $root.t('Up one directory'), text: true }"># up one directory #</a>
+      <!-- /ko -->
+    </div>
+
+    <div id="toolimagestab" class="ui-corner-all" data-bind="foreach: libraryDirectories">
+      <div id="toolimagesgallery" class="ui-tabs-panel" style="text-align: center" data-bind="visible: path === $root.libraryPath()">
+      <!-- ko if: galleryItemsLoaded() === false --><div class="galleryEmpty" data-bind="text: $root.t('Loading images...')">Loading images...</div><!-- /ko -->
+      <!-- ko if: galleryItems().length === 0 && galleryItemsLoaded() === true --><div class="galleryEmpty" data-bind="text: $root.t('This directory is empty.')">This directory is empty.</div><!-- /ko -->
+      <!-- ko template: {name: 'gallery-images', data: { items: galleryItems } } --># remote gallery #<!-- /ko -->
+      </div>
+    </div>
+    <!-- /ko -->
     <!-- /ko -->
   </div>
-
-  <div id="toolimagestab" class="ui-corner-all" data-bind="foreach: libraryDirectories">
-    <div id="toolimagesgallery" class="ui-tabs-panel" style="text-align: center" data-bind="visible: path === $root.libraryPath()">
-    <!-- ko if: galleryItemsLoaded() === false --><div class="galleryEmpty" data-bind="text: $root.t('Loading images...')">Loading images...</div><!-- /ko -->
-    <!-- ko if: galleryItems().length === 0 && galleryItemsLoaded() === true --><div class="galleryEmpty" data-bind="text: $root.t('This directory is empty.')">This directory is empty.</div><!-- /ko -->
-    <!-- ko template: {name: 'gallery-images', data: { items: galleryItems } } --># remote gallery #<!-- /ko -->
-    </div>
-  </div>
-  <!-- /ko -->
-  <!-- /ko -->
 </div>
 
 <!-- ko if: typeof $root.socialSharing !== 'undefined' -->
@@ -233,107 +235,118 @@
 
 <!-- ko if: typeof $root.testMode !== 'undefined' -->
 <div id="toolspamassassin" class="slidebar" data-bind="scrollable: true, css: { hidden: $root.testMode() !== 'spamassassin' }">
-  <div class="close" data-bind="click: $root.testMode.bind($element, '');">X</div>
+  <div class="close" data-bind="click: $root.testMode.bind($element, '');"></div>
   <span class="pane-title" data-bind="text: $root.t('Content Spam Checker:')">Content Spam Checker:</span>
 
-  <div class="galleryEmpty">Recommended, to decrease the risk your email being labeled as SPAM</div>
+  <div class="pane-content">
+    <div class="galleryEmpty">Recommended, to decrease the risk your email being labeled as SPAM</div>
 
 
-  <div class="statusContainer" style="float: right;margin-right: 8px;padding: 2.5px;vertical-align: middle;">
-    <div class="hidden" data-passed="true"><img class="medium_icon" data-bind="attr: { src: $root.infoSaveIcon }" style="vertical-align: middle;"><span>Passed</span></div>
-    <div class="hidden" data-passed="false"><img class="medium_icon" data-bind="attr: { src: $root.cautionIcon }" style="vertical-align: middle;"><span class="inputlabel">Failed</span></div>
-    <div class="hidden" data-passed="" style="opacity: 1; display: block;"><img class="medium_icon" data-bind="attr: { src: $root.cautionIcon }" style="vertical-align: middle;"><span class="inputlabel">Not Checked</span></div>
-  </div>
+    <div class="statusContainer" style="float: right;margin-right: 8px;padding: 2.5px;vertical-align: middle;">
+      <div class="hidden" data-passed="true"><img class="medium_icon" data-bind="attr: { src: $root.infoSaveIcon }" style="vertical-align: middle;"><span>Passed</span></div>
+      <div class="hidden" data-passed="false"><img class="medium_icon" data-bind="attr: { src: $root.cautionIcon }" style="vertical-align: middle;"><span class="inputlabel">Failed</span></div>
+      <div class="hidden" data-passed="" style="opacity: 1; display: block;"><img class="medium_icon" data-bind="attr: { src: $root.cautionIcon }" style="vertical-align: middle;"><span class="inputlabel">Not Checked</span></div>
+    </div>
   
-  <div style="text-align: right;padding-right: 8px;">
-    <a class="loadbutton" title="Spam Check" href="javascript:void(0)" data-bind="attr: { title: $root.t('Spam Check') }, click: $root.test.spamassassin.execute, button: { disabled: $root.test.spamassassin.disabled, label: $root.t('Spam Check'), text: true }"># spam check #</a>
-  </div>
+    <div style="text-align: right;padding-right: 8px;">
+      <a class="loadbutton" title="Spam Check" href="javascript:void(0)" data-bind="attr: { title: $root.t('Spam Check') }, click: $root.test.spamassassin.execute, button: { disabled: $root.test.spamassassin.disabled, label: $root.t('Spam Check'), text: true }"># spam check #</a>
+    </div>
 
 
-  <div class="reportContainer hidden">
-    <div class="pane-title">Spam Content Checker Results</div>
-    <div data-passed="true" style="background-color: #C4FFCF; margin: 5px 5px 16px 5px;" >
-      <img class="medium_icon" style="vertical-align: middle;" data-bind="attr: { src: $root.infoSaveIcon' }">
-      Your content is spam safe.  Your score is <span class="points"></span>, lower than the required score of <span class="threshold"></span> to be marked as spam.
+    <div class="reportContainer hidden">
+      <div class="pane-title">Spam Content Checker Results</div>
+      <div data-passed="true" style="background-color: #C4FFCF; margin: 5px 5px 16px 5px;" >
+        <img class="medium_icon" style="vertical-align: middle;" data-bind="attr: { src: $root.infoSaveIcon' }">
+        Your content is spam safe.  Your score is <span class="points"></span>, lower than the required score of <span class="threshold"></span> to be marked as spam.
+      </div>
+      <div data-passed="false" style="background-color: #FFC4C4; margin: 5px;">
+        <img class="medium_icon" style="vertical-align: middle;" data-bind="attr: { src: $root.cautionIcon' }">
+        Your content is NOT spam safe. Your score is <span class="points"></span>, higher than the required score of <span class="threshold"></span> to be marked as spam.
+      </div>
+      <pre class="report" style="overflow:scroll;margin-top:16px;"></pre>
     </div>
-    <div data-passed="false" style="background-color: #FFC4C4; margin: 5px;">
-      <img class="medium_icon" style="vertical-align: middle;" data-bind="attr: { src: $root.cautionIcon' }">
-      Your content is NOT spam safe. Your score is <span class="points"></span>, higher than the required score of <span class="threshold"></span> to be marked as spam.
-    </div>
-    <pre class="report" style="overflow:scroll;margin-top:16px;"></pre>
   </div>
 </div>
 
 <div id="toolsend" class="slidebar" data-bind="scrollable: true, css: { hidden: $root.testMode() !== 'send' }">
-  <div class="close" data-bind="click: $root.testMode.bind($element, '');">X</div>
+  <div class="close" data-bind="click: $root.testMode.bind($element, '');"></div>
   <span class="pane-title" data-bind="text: $root.t('Send a Test Email:')">Send a Test Email:</span>
 
-  <div class="messageContainer clearfix" style="display: none;"></div>
+  <div class="pane-content">
+    <div class="messageContainer clearfix" style="display: none;"></div>
 
-  <div class="galleryEmpty recommendationContainer"><img class="medium_icon" data-bind="attr: { src: $root.infoIcon }" style="vertical-align: middle;"><span data-bind="text: $root.test.send.recommendation"># recommended, to ensure your email looks as expected.  click tracking is disabled on test emails. #</span></div>
+    <div class="galleryEmpty recommendationContainer"><img class="medium_icon" data-bind="attr: { src: $root.infoIcon }" style="vertical-align: middle;"><span data-bind="text: $root.test.send.recommendation"># recommended, to ensure your email looks as expected.  click tracking is disabled on test emails. #</span></div>
 
-  <div class="galleryEmpty multipleAddressesTip">
-    <img class="medium_icon" data-bind="attr: { src: $root.infoIcon }" style="vertical-align: middle;"><span data-bind="text: $root.test.send.instructions># Use semicolon to separate multiple email addresses #</span>
-  </div>
-
-  <div class="propEditor testsendemailaddress" data-bind="tooltips: {}">
-    <span data-bind="attr: { title: $root.ut('template', 'The email address to which a test will be sent.') }" class="propLabel">
-      <span data-bind="text: $root.ut('template', 'Send to:')">Send to:</span>
-    </span>
-
-    <div class="propInput" data-bind="css: { default: test.send.emailAddress() === '' }">
-      <select data-bind="combobox: {removeIfInvalid: false, buttonTooltip: 'Show Previous Email Addresses'}, value: $root.test.send.emailAddress, options: $root.test.send.emailAddresses, focusable: true, event: { focus: function(ui, event) { $($element).click(); } } "></select>
+    <div class="galleryEmpty multipleAddressesTip">
+      <img class="medium_icon" data-bind="attr: { src: $root.infoIcon }" style="vertical-align: middle;"><span data-bind="text: $root.test.send.instructions># Use semicolon to separate multiple email addresses #</span>
     </div>
-  </div>
-  <div class="statusContainer" style="float: right;margin-right: 8px;padding: 2.5px;vertical-align: middle;">
-    <span data-sent="false" class="sendTestStatus hidden" style="opacity: 1; display: block;"><img class="medium_icon" data-bind="attr: { src: $root.cautionIcon }" style="vertical-align: middle;"><span class="inputlabel">Not Sent</span></span>
-    <span data-sent="true" class="sendTestStatus hidden"><img class="medium_icon" data-bind="attr: { src: $root.infoSaveIcon }" style="vertical-align: middle;"><span class="inputlabel">Sent</span></span>
-  </div>
-  <div style="text-align: right;padding-right: 8px;">
-    <a class="loadbutton" title="Send Test Email" href="javascript:void(0)" data-bind="attr: { title: $root.t('Send Test email') }, click: $root.test.send.execute, button: { disabled: $root.test.send.disabled, label: $root.t('Send Test Email'), text: true }"># send test email #</a>
+
+    <div class="propEditor testsendemailaddress" data-bind="tooltips: {}">
+      <span data-bind="attr: { title: $root.ut('template', 'The email address to which a test will be sent.') }" class="propLabel">
+        <span data-bind="text: $root.ut('template', 'Send to:')">Send to:</span>
+      </span>
+
+      <div class="propInput" data-bind="css: { default: test.send.emailAddress() === '' }">
+        <select data-bind="combobox: {removeIfInvalid: false, buttonTooltip: 'Show Previous Email Addresses'}, value: $root.test.send.emailAddress, options: $root.test.send.emailAddresses, focusable: true, event: { focus: function(ui, event) { $($element).click(); } } "></select>
+      </div>
+    </div>
+    <div class="statusContainer" style="float: right;margin-right: 8px;padding: 2.5px;vertical-align: middle;">
+      <span data-sent="false" class="sendTestStatus hidden" style="opacity: 1; display: block;"><img class="medium_icon" data-bind="attr: { src: $root.cautionIcon }" style="vertical-align: middle;"><span class="inputlabel">Not Sent</span></span>
+      <span data-sent="true" class="sendTestStatus hidden"><img class="medium_icon" data-bind="attr: { src: $root.infoSaveIcon }" style="vertical-align: middle;"><span class="inputlabel">Sent</span></span>
+    </div>
+    <div style="text-align: right;padding-right: 8px;">
+      <a class="loadbutton" title="Send Test Email" href="javascript:void(0)" data-bind="attr: { title: $root.t('Send Test email') }, click: $root.test.send.execute, button: { disabled: $root.test.send.disabled, label: $root.t('Send Test Email'), text: true }"># send test email #</a>
+    </div>
   </div>
 </div>
 
 <div id="toolinboxpreview" class="slidebar" data-bind="scrollable: true, css: { hidden: $root.testMode() !== 'inboxPreview' }">
-  <div class="close" data-bind="click: $root.testMode.bind($element, '');">X</div>
+  <div class="close" data-bind="click: $root.testMode.bind($element, '');"></div>
   <span class="pane-title" data-bind="text: $root.t('Inbox Preview Assistant:')">Inbox Preview Assistant:</span>
 
-  <div class="galleryEmpty" data-bind="text: $root.t('Inbox Preview Assistant')"></div>
+  <div class="pane-content">
+    <div class="galleryEmpty" data-bind="text: $root.t('Inbox Preview Assistant')"></div>
 
-  <div style="text-align: right;padding-right: 8px;">
-    <a class="loadbutton" title="Run Preview Test" href="javascript:void(0)" data-bind="attr: { title: $root.t('Run Preview Test') }, click: $root.test.inboxPreview.execute, button: { disabled: $root.test.inboxPreview.disabled, label: $root.t('Run Preview Test'), text: true }"># run preview test #</a>
+    <div style="text-align: right;padding-right: 8px;">
+      <a class="loadbutton" title="Run Preview Test" href="javascript:void(0)" data-bind="attr: { title: $root.t('Run Preview Test') }, click: $root.test.inboxPreview.execute, button: { disabled: $root.test.inboxPreview.disabled, label: $root.t('Run Preview Test'), text: true }"># run preview test #</a>
+    </div>
+
+    <form method="GET" action="" data-bind="attr: {action: $root.test.inboxPreview.action}">
+      <input type="hidden" name="subject">
+      <input type="hidden" name="url">
+      <input type="hidden" name="pending">
+    </form>
   </div>
-
-  <form method="GET" action="" data-bind="attr: {action: $root.test.inboxPreview.action}">
-    <input type="hidden" name="subject">
-    <input type="hidden" name="url">
-	<input type="hidden" name="pending">
-  </form>
 </div>
 <!-- /ko -->
 
 <div id="tooldebug" class="slidebar" data-bind="css: { hidden: $root.debug() === false }">
-  <div class="close" data-bind="click: $root.debug.bind($element, false);">X</div>
-  
-  <!-- ko if: $root.debug -->
-  Content:
-  <pre data-bind='text: ko.toJSON(content, null, 2)' style="overflow: auto; height: 20%"></pre>
-  BlockDefs:
-  <pre data-bind='text: ko.toJSON(blockDefs, null, 2)' style="overflow: auto; height: 20%"></pre>
-  <!-- /ko -->
-  <a href="javascript:void(0)" data-bind="click: $root.exportHTMLtoTextarea.bind($element, '#outputhtml'); clickBubble: false, button: { text: true, label:'Generate' }">Output</a>
-  <a href="javascript:void(0)" data-bind="click: $root.exportJSONtoTextarea.bind($element, '#outputhtml'); clickBubble: false, button: { text: true, label:'Export' }">Export</a>
-  <a href="javascript:void(0)" data-bind="click: $root.importJSONfromTextarea.bind($element, '#outputhtml'); clickBubble: false, button: { text: true, label:'Import' }">Import</a>
+  <div class="close" data-bind="click: $root.debug.bind($element, false);"></div>
+  <span class="pane-title" data-bind="text: $root.t('Debug:')">Debug:</span>
+  <div class="pane-content">
+    <!-- ko if: $root.debug -->
+    Content:
+    <pre data-bind='text: ko.toJSON(content, null, 2)' style="overflow: auto; height: 20%"></pre>
+    BlockDefs:
+    <pre data-bind='text: ko.toJSON(blockDefs, null, 2)' style="overflow: auto; height: 20%"></pre>
+    <!-- /ko -->
+    <a href="javascript:void(0)" data-bind="click: $root.exportHTMLtoTextarea.bind($element, '#outputhtml'); clickBubble: false, button: { text: true, label:'Generate' }">Output</a>
+    <a href="javascript:void(0)" data-bind="click: $root.exportJSONtoTextarea.bind($element, '#outputhtml'); clickBubble: false, button: { text: true, label:'Export' }">Export</a>
+    <a href="javascript:void(0)" data-bind="click: $root.importJSONfromTextarea.bind($element, '#outputhtml'); clickBubble: false, button: { text: true, label:'Import' }">Import</a>
 
-  <textarea id="outputhtml" rows="10" style="width: 100%;"></textarea>
+    <textarea id="outputhtml" rows="10" style="width: 100%;"></textarea>
+  </div>
 </div>
 
 <div id="tooltheme" class="ui-widget slidebar" data-bind="css: { hidden: $root.showTheme() === false }">
-  <div class="close" data-bind="click: $root.showTheme.bind($element, false);">X</div>
-  
-  <!-- ko withProperties: { templateMode: 'styler' } -->
-    <!-- ko if: $root.showTheme -->
-      <!-- ko block: $root.content().theme --><!-- /ko -->
+  <div class="close" data-bind="click: $root.showTheme.bind($element, false);"></div>
+  <span class="pane-title" data-bind="text: $root.t('Theme:')">Theme:</span>
+
+  <div class="pane-content">
+    <!-- ko withProperties: { templateMode: 'styler' } -->
+      <!-- ko if: $root.showTheme -->
+        <!-- ko block: $root.content().theme --><!-- /ko -->
+      <!-- /ko -->
     <!-- /ko -->
-  <!-- /ko -->
+  </div>
 </div>
