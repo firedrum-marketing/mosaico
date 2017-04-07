@@ -7,7 +7,7 @@ require('jquery-ui');
 var console = require("console");
 var tinymce = require("tinymce");
 
-var timeout;
+var pageTop = null;
 
 // FOCUSED:
 // TinyMCE 4.0.x - 4.3.9: tinymce.activeEditor.bodyElement.classList.contains('mce-edit-focus');
@@ -20,8 +20,6 @@ var timeout;
 // Fiddle http://fiddle.tinymce.com/Cdgaab/4
 
 var render = function() {
-
-  timeout = undefined;
 
   if (typeof tinymce.activeEditor !== 'undefined' && tinymce.activeEditor !== null &&
       typeof tinymce.activeEditor.theme !== 'undefined' && tinymce.activeEditor.theme !== null && 
@@ -38,9 +36,10 @@ var render = function() {
     var element = typeof tinymce.activeEditor.bodyElement !== 'undefined' ? tinymce.activeEditor.bodyElement : tinymce.activeEditor.dom.settings.root_element;
     if (element !== null && typeof element.classList !== 'undefined' && element.classList.contains("mce-edit-focus")) {
       tinymce.activeEditor.nodeChanged();
-      tinymce.activeEditor.theme.panel.visible(true);
-      if (tinymce.activeEditor.theme.panel.layoutRect().y <= 40)
-        tinymce.activeEditor.theme.panel.moveBy(0, 40 - tinymce.activeEditor.theme.panel.layoutRect().y);
+      if (tinymce.activeEditor.theme.panel.visible()) {
+        if (tinymce.activeEditor.theme.panel.layoutRect().y <= pageTop)
+          tinymce.activeEditor.theme.panel.moveBy(0, pageTop - tinymce.activeEditor.theme.panel.layoutRect().y);
+      }
     }
 
   }
@@ -48,8 +47,15 @@ var render = function() {
 
 ko.bindingHandlers.wysiwygScrollfix = {
   'scroll': function(event) {
-    if (timeout) global.clearTimeout(timeout);
-    timeout = global.setTimeout(render, 50);
+    if ( pageTop === null ) {
+      var page = $('#page');
+      if ( page.length > 0 ) {
+        pageTop = page[0].getBoundingClientRect().top + 50;
+      } else {
+        pageTop = 40;
+      }
+    }
+    render();
   },
   'init': function(element) {
     ko.utils.domNodeDisposal.addDisposeCallback(element, function() {
