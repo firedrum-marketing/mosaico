@@ -6,9 +6,10 @@
 // Also uses a blockDefsUpdater to update definitions while parsing the stylesheet.
 
 var cssParse = require("mensch/lib/parser.js");
+var cssStringify = require("mensch/lib/stringify.js");
 var console = require("console");
 var converterUtils = require("./utils.js");
-var elaborateDeclarations = require("./declarations.js");
+var declarations = require("./declarations.js");
 
 /* Temporary experimental code not used
 var _processStyleSheetRules_processThemes = function (bindingProvider, themeUpdater, rules) {
@@ -100,87 +101,121 @@ var _processStyleSheetRules_processBlockDef = function(blockDefsUpdater, rules) 
   }
 };
 
-var processStylesheetRules = function(style, rules, localWithBindingProvider, blockDefsUpdater, themeUpdater, templateUrlConverter, rootModelName, templateName) {
-  var newStyle = style;
-  var lastStart = null;
-
-  if (typeof rules == 'undefined') {
-    var styleSheet = cssParse(style, {
-      comments: true,
-      position: true
-    });
-    if (styleSheet.type != 'stylesheet' || typeof styleSheet.stylesheet == 'undefined') {
-      console.log("unable to process styleSheet", styleSheet);
-      throw "Unable to parse stylesheet";
-    }
-    rules = styleSheet.stylesheet.rules;
+var processStylesheetRules = function(style, localWithBindingProvider, blockDefsUpdater, themeUpdater, templateUrlConverter, rootModelName, templateName) {
+  var styleSheet = cssParse(style, {
+    comments: true
+  });
+  if (styleSheet.type != 'stylesheet' || typeof styleSheet.stylesheet == 'undefined') {
+    console.log("unable to process styleSheet", styleSheet);
+    throw "Unable to parse stylesheet";
   }
 
-  // WARN currenlty this parses rules in reverse order so that string replacements works using input "positions"
-  // otherwise it should compute new offsets on every replacement.
-  // But this create issues because of definitions being parsed in reverse order, so this is not a good idea.
-  // Sometimes, to work around this issues, you need to create 2 different <style> blocks.
-  var bindingProvider;
+  var foundBlockMatch;
+  var match;
+  for (var i = 0; i < styleSheet.stylesheet.rules.length; i++) {
+    if (styleSheet.stylesheet.rules[i].type == 'supports' && styleSheet.stylesheet.rules[i].name == '-ko-blockdefs') {
+      _processStyleSheetRules_processBlockDef(blockDefsUpdater, styleSheet.stylesheet.rules[i].rules);
+      styleSheet.stylesheet.rules.splice(i--, 1);
+    } else if (styleSheet.stylesheet.rules[i].type == 'supports' && styleSheet.stylesheet.rules[i].name.indexOf('-ko-blockloop') === 0) {
+      var internalStyleSheet = {
+        type: 'stylesheet',
+        stylesheet: {
+          rules: styleSheet.stylesheet.rules[i].rules
+        }
+      };
 
-  for (var i = rules.length - 1; i >= 0; i--) {
-    if (rules[i].type == 'supports' && rules[i].name == '-ko-blockdefs') {
-      _processStyleSheetRules_processBlockDef(blockDefsUpdater, rules[i].rules);
-      newStyle = converterUtils.removeStyle(newStyle, rules[i].position.start, lastStart, 0, 0, 0, '');
-      /* temporary experimental code not used
-      } else if (rules[i].type == 'supports' && rules[i].name == '-ko-themes') {
-        bindingProvider = localWithBindingProvider.bind(this, 'theme', '');
-        _processStyleSheetRules_processThemes(bindingProvider, themeUpdater, rules[i].rules);
-        newStyle = converterUtils.removeStyle(newStyle, rules[i].position.start, lastStart, 0, 0, 0, '');
-      */
-    } else if (rules[i].type == 'media' || rules[i].type == 'supports') {
-      newStyle = processStylesheetRules(newStyle, rules[i].rules, localWithBindingProvider, blockDefsUpdater, themeUpdater, templateUrlConverter, rootModelName, templateName);
-    } else if (rules[i].type == 'comment') {
+      foundBlockMatch = null;
+      match = styleSheet.stylesheet.rules[i].name.match(/\-ko-blockloop-([^ ]*)/);
+      if (match !== null) {
+        foundBlockMatch = match[1];
+      }
+
+      styleSheet.stylesheet.rules.splice(i, 1);
+
+      if (foundBlockMatch) {
+        internalStyleSheet = declarations.elaborateDeclarations(internalStyleSheet, templateUrlConverter, localWithBindingProvider.bind(this, foundBlockMatch, ''), {}, true);
+        var j;
+        for (j = 0; j < internalStyleSheet.stylesheet.rules.length; j++) {
+          for (var k = 0; k < internalStyleSheet.stylesheet.rules[j].selectors.length; k++) {
+           internalStyleSheet.stylesheet.rules[j].selectors[k] = '<!-- ko text: (templateMode ==\'wysiwyg\' ? ($root.mosaicoConfig.mainElement && $root.mosaicoConfig.mainElement.id ? \'#\' + $root.mosaicoConfig.mainElement.id + \' \' : \'\') + \'#main-wysiwyg-area \' : \'\')+\'#\'+id()+\' \' --><!-- /ko -->' + internalStyleSheet.stylesheet.rules[j].selectors[k];
+          }
+        }
+
+        var addedPrefix = false;
+        for (j = 0; j < internalStyleSheet.stylesheet.rules.length; j++) {
+          if (internalStyleSheet.stylesheet.rules[j].type === 'rule' && typeof internalStyleSheet.stylesheet.rules[j].selectors !== 'undefined' && internalStyleSheet.stylesheet.rules[j].selectors.length >= 1) {
+            internalStyleSheet.stylesheet.rules[j].selectors[0] = '<!-- ko foreach: $root.findObjectsOfType($data, \'' + foundBlockMatch + '\') -->' + internalStyleSheet.stylesheet.rules[j].selectors[0];
+            addedPrefix = true;
+            break;
+          }
+        }
+
+        if (addedPrefix) {
+          internalStyleSheet.stylesheet.rules.push({
+            type: 'comment',
+            text: ' */<!-- /ko -->/* '
+          });
+          for (j = internalStyleSheet.stylesheet.rules.length - 1; j >= 0; j--)
+          styleSheet.stylesheet.rules.splice(i, 0, internalStyleSheet.stylesheet.rules[j]);
+
+          i += internalStyleSheet.stylesheet.rules.length;
+        }
+      }
+
+      i--;
+    } else if (styleSheet.stylesheet.rules[i].type == 'media' || styleSheet.stylesheet.rules[i].type == 'supports') {
+      styleSheet.stylesheet.rules[i].rules = cssParse(
+        processStylesheetRules(
+          cssStringify({
+            type: 'stylesheet',
+            stylesheet: {
+              rules: styleSheet.stylesheet.rules[i].rules
+            }
+          }), localWithBindingProvider, blockDefsUpdater, themeUpdater, templateUrlConverter, rootModelName, templateName
+        ), {
+          comments: true
+        }
+      ).stylesheet.rules;
+    } else if (styleSheet.stylesheet.rules[i].type == 'comment') {
       // ignore comments
-    } else if (rules[i].type == 'rule') {
-      var sels = rules[i].selectors;
-      var newSel = "";
-      var foundBlockMatch = null;
-      for (var j = 0; j < sels.length; j++) {
-        if (newSel.length > 0) newSel += ", ";
-        var match = sels[j].match(/\[data-ko-block=([^ ]*)\]/);
+    } else if (styleSheet.stylesheet.rules[i].type == 'rule') {
+      foundBlockMatch = null;
+      var l;
+      for (l = 0; l < styleSheet.stylesheet.rules[i].selectors.length; l++) {
+        match = styleSheet.stylesheet.rules[i].selectors[l].match(/\[data-ko-block=([^ ]*)\]/);
         if (match !== null) {
           if (foundBlockMatch !== null && foundBlockMatch != match[1]) throw "Found multiple block-match attribute selectors: cannot translate it (" + foundBlockMatch + " vs " + match[1] + ")";
           foundBlockMatch = match[1];
         }
-        newSel += '<!-- ko text: templateMode ==\'wysiwyg\' ? \'#main-wysiwyg-area \' : \'\' --><!-- /ko -->' + sels[j];
+        styleSheet.stylesheet.rules[i].selectors[l] = '<!-- ko text: templateMode ==\'wysiwyg\' ? ($root.mosaicoConfig.mainElement && $root.mosaicoConfig.mainElement.id ? \'#\' + $root.mosaicoConfig.mainElement.id + \' \' : \'\') + \'#main-wysiwyg-area \' : \'\' --><!-- /ko -->' + styleSheet.stylesheet.rules[i].selectors[l];
       }
-      if (foundBlockMatch) {
-        var loopPrefix = '<!-- ko foreach: $root.findObjectsOfType($data, \'' + foundBlockMatch + '\') -->';
-        var loopPostfix = '<!-- /ko -->';
-        var end = lastStart;
-        var spacing = " ";
-        if (rules[i].declarations.length > 0) {
-          if (rules[i].declarations[0].position.start.line != rules[i].position.end.line) {
-            spacing = "\n" + (new Array(rules[i].position.start.col)).join(" ");
-          }
-          end = rules[i].declarations[rules[i].declarations.length - 1].position.end;
-        }
-        if (end === null) newStyle += spacing + loopPostfix;
-        else if (end == lastStart) newStyle = converterUtils.removeStyle(newStyle, end, lastStart, 0, 0, 0, spacing + loopPostfix);
-        else newStyle = converterUtils.removeStyle(newStyle, end, lastStart, 0, 0, 0, spacing + '}' + spacing + loopPostfix);
-        newSel = loopPrefix + spacing + newSel.replace(new RegExp('\\[data-ko-block=' + foundBlockMatch + '\\]', 'g'), '<!-- ko text: \'#\'+id() -->' + foundBlockMatch + '<!-- /ko -->');
 
+      if (foundBlockMatch) {
+        var regex = new RegExp('\\[data-ko-block=' + foundBlockMatch + '\\]', 'g');
+        for (l = 0; l < styleSheet.stylesheet.rules[i].selectors.length; l++) {
+          styleSheet.stylesheet.rules[i].selectors[l] = styleSheet.stylesheet.rules[i].selectors[l].replace(regex, '<!-- ko text: \'#\'+id() --><!-- /ko -->');
+        }
+        styleSheet.stylesheet.rules[i].selectors[0] = '<!-- ko foreach: $root.findObjectsOfType($data, \'' + foundBlockMatch + '\') -->' + styleSheet.stylesheet.rules[i].selectors[0];
+        styleSheet.stylesheet.rules.splice(i + 1, 0, {
+          type: 'comment',
+          text: ' */<!-- /ko -->/* '
+        });
         blockDefsUpdater(foundBlockMatch, '', { contextName: 'block' });
       }
-      // TODO mensch update (using original mensch library we needed this line, while the patched one doesn't need this code)
-      // newSel += " {";
-      var localBlockName = foundBlockMatch ? foundBlockMatch : templateName;
-      bindingProvider = localWithBindingProvider.bind(this, localBlockName, '');
-      var elaboratedStyle = elaborateDeclarations(newStyle, rules[i].declarations, templateUrlConverter, bindingProvider);
-      if (elaboratedStyle !== null) newStyle = elaboratedStyle;
 
-      newStyle = converterUtils.removeStyle(newStyle, rules[i].position.start, rules[i].position.end, 0, 0, 0, newSel);
+      styleSheet.stylesheet.rules[i] = declarations.elaborateDeclarations({
+        type: 'stylesheet',
+        stylesheet: {
+          rules: [styleSheet.stylesheet.rules[i]]
+        }
+      }, templateUrlConverter, localWithBindingProvider.bind(this, foundBlockMatch ? foundBlockMatch : templateName, ''), {}, true).stylesheet.rules[0];
     } else {
-      console.log("Unknown rule type", rules[i].type, "while parsing <style> rules");
+      console.log("Unknown rule type", styleSheet.stylesheet.rules[i].type, "while parsing <style> rules");
     }
-    lastStart = rules[i].position.start;
   }
-  return newStyle;
+  return cssStringify(styleSheet, {
+    comments: true
+  }).replace(/\/\* \*\//g, '');
 };
 
 module.exports = processStylesheetRules;

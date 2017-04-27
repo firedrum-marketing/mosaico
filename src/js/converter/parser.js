@@ -3,9 +3,11 @@
 
 var $ = require("jquery");
 require('jquery-ui');
+var cssParse = require("mensch/lib/parser.js");
+var cssStringify = require("mensch/lib/stringify.js");
 var console = require("console");
 var converterUtils = require("./utils.js");
-var elaborateDeclarations = require("./declarations.js");
+var declarations = require("./declarations.js");
 var processStylesheetRules = require("./stylesheet.js");
 var modelDef = require("./model.js");
 var domutils = require("./domutils.js");
@@ -33,16 +35,24 @@ var processStyle = function(element, templateUrlConverter, bindingProvider, addU
   var style = domutils.getAttribute(element, 'replacedstyle');
   var newStyle = null;
   var newBindings;
-  if (addUniqueId) newBindings = {
-    uniqueId: '$data',
-    attr: {
-      id: 'id'
-    }
-  };
+  if (addUniqueId) {
+    newBindings = {
+      uniqueId: '$data',
+      attr: {
+        id: 'id'
+      }
+    };
+  } else {
+    newBindings = {};
+  }
 
   var removeDisplayNone = domutils.getAttribute(element, 'data-ko-display') !== null;
 
-  newStyle = elaborateDeclarations(style, undefined, templateUrlConverter, bindingProvider, element, newBindings, removeDisplayNone);
+  newStyle = cssStringify(declarations.elaborateDeclarations(
+    cssParse('*{'+style+'}', {
+      comments: true
+    }), templateUrlConverter, bindingProvider, newBindings, true, element, removeDisplayNone
+  )).replace(/^\* \{([\s\S]*)\}$/, '$1').replace(/[\n]/g, ' ').trim();
 
   // only when using "replaced"
   if (newStyle === null) {
@@ -122,7 +132,7 @@ var processBlock = function(element, defs, themeUpdater, blockPusher, templateUr
 
     var blockDefsUpdater = modelDef.createOrUpdateBlockDef.bind(undefined, defs);
     var localWithBindingProvider = modelDef.ensurePathAndGetBindValue.bind(undefined, defs, themeUpdater, rootModelName);
-    var newStyle = processStylesheetRules(style, undefined, localWithBindingProvider, blockDefsUpdater, themeUpdater, templateUrlConverter, rootModelName, templateName);
+    var newStyle = processStylesheetRules(style, localWithBindingProvider, blockDefsUpdater, themeUpdater, templateUrlConverter, rootModelName, templateName);
 
     if (newStyle != style) {
       if (newStyle.trim() !== '') {
@@ -192,14 +202,12 @@ var processBlock = function(element, defs, themeUpdater, blockPusher, templateUr
     selectBinding = "wysiwygClick: function(obj, evt) { $root.selectItem(" + itemBindValue + ", $data); return false }, clickBubble: false, wysiwygCss: { selecteditem: $root.isSelectedItem(" + itemBindValue + ") }, scrollIntoView: $root.isSelectedItem(" + itemBindValue + ")";
 
     if (domutils.getLowerTagName(element) != 'img') {
-
-
       defaultValue = domutils.getInnerHtml(element);
       var modelBindValue = bindingProvider(dataEditable, defaultValue, true, 'wysiwyg');
       newBinding = "";
 
       if (!domutils.getAttribute(element, "id")) {
-        newBinding += "wysiwygId: id()+'_" + dataEditable.replace('.', '_') + "', ";
+        newBinding += "wysiwygId: id()+'_" + dataEditable.replace('.', '_') + "_'+(++Mosaico.ko.bindingHandlers.wysiwyg.currentIndex), ";
       }
 
       if (typeof selectBinding !== 'undefined') {
@@ -231,23 +239,38 @@ var processBlock = function(element, defs, themeUpdater, blockPusher, templateUr
       if (height === '') height = null;
 
       var align = domutils.getAttribute(element, 'align');
+      if (align === '') align = null;
 
       currentBindings = domutils.getAttribute(element, 'data-bind');
 
-	  var text = null;
+      var text = null;
       // TODO this is ugly... maybe a better strategy is to pass this around using "data-" attributes
       var dynHeight = currentBindings && currentBindings.match(/virtualAttr: {[^}]* height: ([^,}]*)[,}]/);
       if (dynHeight) {
-        height = dynHeight[1];
-        text = dynHeight[1].slice(0, dynHeight[1].lastIndexOf("()")) + 'Label() || null';
+        height = dynHeight[1].slice(0, dynHeight[1].lastIndexOf("()"));
+        text = '(typeof ' + dynHeight[1].slice(0, dynHeight[1].lastIndexOf("()")) + 'MAGLabel !== \'undefined\' && ' + dynHeight[1].slice(0, dynHeight[1].lastIndexOf("()")) + 'MAGLabel()) || null';
       }
       var dynWidth = currentBindings && currentBindings.match(/virtualAttr: {[^}]* width: ([^,}]*)[,}]/);
       if (dynWidth) {
-        width = dynWidth[1];
-        text = dynWidth[1].slice(0, dynWidth[1].lastIndexOf("()")) + 'Label() || null';
+        width = dynWidth[1].slice(0, dynWidth[1].lastIndexOf("()"));
+        text = '(typeof ' + dynWidth[1].slice(0, dynWidth[1].lastIndexOf("()")) + 'MAGLabel !== \'undefined\' && ' + dynWidth[1].slice(0, dynWidth[1].lastIndexOf("()")) + 'MAGLabel()) || null';
+      }
+      var dynAlign = currentBindings && currentBindings.match(/virtualAttr: {[^}]* align: ([^,}]*)[,}]/);
+      if (dynAlign) {
+        dynAlign = dynAlign[1];
+      }
+      var alt = "";
+      var dynAlt = currentBindings && currentBindings.match(/virtualAttr: {[^}]* alt: ([^,}]*)[,}]/);
+      if (dynAlt) {
+        alt = dynAlt[1];
       }
 
-      var method;
+      var hAlign = domutils.getAttribute(element, 'data-ko-text-align');
+      if (hAlign) {
+        hAlign = converterUtils.conditionBinding(hAlign, bindingProvider);
+      }
+
+      var method = domutils.getAttribute(element, 'data-ko-placeholder-method');
 
       defaultValue = domutils.getAttribute(element, 'data-ko-placeholder-src');
       // TODO make sure this default value is the same as the one checked by img-wysiwyg template.
@@ -260,28 +283,29 @@ var processBlock = function(element, defs, themeUpdater, blockPusher, templateUr
 
       var size;
       if (width && height) {
-        size = width + "+'x'+" + height;
+        size = "ko.utils.unwrapObservable(" + width + ")+'x'+ko.utils.unwrapObservable(" + height + ")";
       } else if (!height) {
-        size = "'w'+" + width + "+''";
+        size = "'w'+ko.utils.unwrapObservable(" + width + ")+''";
       } else if (!width) {
-        size = "'h'+" + height + "+''";
+        size = "'h'+ko.utils.unwrapObservable(" + height + ")+''";
       }
 
       var placeholdersrc;
       var plheight = height || domutils.getAttribute(element, 'data-ko-placeholder-height');
       var plwidth = width || domutils.getAttribute(element, 'data-ko-placeholder-width');
+      var naturalWidth = domutils.getAttribute(element, 'data-ko-natural-width');
+      if (naturalWidth) {
+        naturalWidth = bindingProvider(naturalWidth);
+      }
+      var naturalHeight = domutils.getAttribute(element, 'data-ko-natural-height');
+      if (naturalHeight) {
+        naturalHeight = bindingProvider(naturalHeight);
+      }
 
       var pltext = domutils.getAttribute(element, 'data-ko-placeholder-text');
       if ( pltext && text === null ) {
         text = "'" + pltext + "'";
       }
-
-      domutils.removeAttribute(element, 'src');
-      domutils.removeAttribute(element, 'data-ko-editable');
-      domutils.removeAttribute(element, 'data-ko-placeholder-height');
-      domutils.removeAttribute(element, 'data-ko-placeholder-width');
-      domutils.removeAttribute(element, 'data-ko-placeholder-src');
-      domutils.removeAttribute(element, 'data-ko-placeholder-text');
 
       if (defaultValue) {
         placeholdersrc = "{ width: " + plwidth + ", height: " + plheight + ", text: " + size + ", overrideText: " + text + "}";
@@ -294,23 +318,85 @@ var processBlock = function(element, defs, themeUpdater, blockPusher, templateUr
       }
 
       var bindingValue = bindingProvider(dataEditable, value, false, 'wysiwyg');
-      newBinding = "wysiwygSrc: { width: " + width + ", height: " + height + ", src: " + bindingValue + ", placeholder: " + placeholdersrc + " }";
-      dataBind = (currentBindings !== null ? currentBindings + ", " : "") + newBinding;
-      domutils.setAttribute(element, 'data-bind', dataBind);
+      newBinding = "wysiwygSrc: { width: " + width + ", height: " + height + ", src: " + bindingValue + ", placeholder: " + placeholdersrc + ', naturalWidth: ' + naturalWidth + ', naturalHeight: ' + naturalHeight;
 
-      var tmplName = templateCreator(element);
+      var newElement;
+      if ((method && method === "cover") || (!method && width && height)) {
+        var urlVar = domutils.getAttribute(element, 'data-ko-url');
+        var condBinding = '';
+        var outerTmplName = '';
+        var innerTmplName = '';
+        if (urlVar) {
+          condBinding = converterUtils.conditionBinding(urlVar, bindingProvider);
+          innerTmplName = templateCreator('<!-- cc:bo:v:fill --><cc opacity="0%"></cc><!-- cc:sc -->');
+          outerTmplName = templateCreator('<!-- cc:bo:v:rect --><cc href="" data-bind="wysiwygHref: ' + condBinding + ', virtualAttrStyle: \'width: \'+(ko.utils.unwrapObservable(' + width + ')+\'px\')+\'; \'+\'height: \'+(ko.utils.unwrapObservable(' + height + ')+\'px\')+\'; \'+\'position: absolute; \'+\'top: 0; \'+\'left: 0;\', virtualAttr: { stroke: \'false\' }"><!-- ko template: \'' + innerTmplName + '\' --><!-- /ko --><!-- cc:bc:v:rect --></cc><!-- cc:ac:v:rect -->');
+        }
+        dataBind = (currentBindings !== null ?
+          currentBindings
+            .replace(/, virtualAttr: \{[^\}]*}/g, ', virtualAttr: {width: ' + width + ', height: ' + height + ', valign: \'top\', border: 0, cellspacing: 0, cellpadding: 0 }')
+            .replace(/virtualAttrStyle: ([^,]*?)'width: [^;]+; ?'\+?/g, 'virtualAttrStyle: $1')
+            .replace(/virtualAttrStyle: ([^,]*?)'height: [^;]+; ?'\+?/g, 'virtualAttrStyle: $1')
+            .replace(/virtualAttrStyle: ()/g, 'virtualAttrStyle: \'position: relative; \'+\'background-position: center; \'+\'border-collapse: collapse; \'+') + ", " : "") + newBinding + " }";
+        newElement = domutils.createElement('<table><tbody><tr><td><replacedcc condition="(gte mso 9)|(lte ie 8)" style="display: none;"><!-- cc:bo:v:image --><cc src data-bind="wysiwygSrc: {width: ' + width + ', height: ' + height + ', method: \'mso-cover\', src: ' + bindingValue + ', placeholder: ' + placeholdersrc + ' }"><!-- cc:bc:v:image --></cc><!-- cc:ac:v:image -->' + (urlVar ? '<!-- ko template: (typeof templateMode != \'undefined\' && templateMode == \'wysiwyg\') || ' + condBinding + ' ? \'' + outerTmplName + '\' : \'' + innerTmplName + '\' --><!-- /ko -->' : '' ) + '</replacedcc></td></tr></tbody></table>');
+        if (newElement) {
+          domutils.setAttribute(newElement, 'class', domutils.getAttribute(element, 'class'));
+          domutils.setAttribute(newElement, 'style', domutils.getAttribute(element, 'style'));
+          domutils.setAttribute(newElement, 'data-bind', dataBind);
+          newElement = domutils.getOuterHtml(newElement);
+        } else {
+          console.error("IMG could not generate div for data-ko-editable set to 'cover'", element);
+          throw "ERROR: IMG could not generate div for data-ko-editable set to 'cover'";
+        }
+      } else {
+        domutils.removeAttribute(element, 'src');
+        domutils.removeAttribute(element, 'data-ko-editable');
+        domutils.removeAttribute(element, 'data-ko-placeholder-height');
+        domutils.removeAttribute(element, 'data-ko-placeholder-width');
+        domutils.removeAttribute(element, 'data-ko-placeholder-src');
+        domutils.removeAttribute(element, 'data-ko-placeholder-text');
+        domutils.removeAttribute(element, 'data-ko-placeholder-method');
+        domutils.removeAttribute(element, 'data-ko-text-align');
+        domutils.removeAttribute(element, 'data-ko-natural-width');
+        domutils.removeAttribute(element, 'data-ko-natural-height');
+        dataBind = (currentBindings !== null ? currentBindings + ", " : "") + newBinding + ", method: 'mso-contain' }";
+        domutils.setAttribute(element, 'data-bind', dataBind);
+
+        var conditionalImage = domutils.createElement('<cc></cc>');
+        domutils.cloneAttributes(element, conditionalImage);
+
+        dataBind = (currentBindings !== null ? currentBindings + ", " : "") + newBinding + ", method: 'contain' }";
+        domutils.setAttribute(element, 'data-bind', dataBind);
+
+        newElement = '<!-- fd:remove:whitespace --><replacedcc condition="(gte mso 9)" style="display: none;"><!-- cc:bo:img -->' + domutils.getOuterHtml(conditionalImage) + '<!-- cc:sc --></replacedcc><!-- fd:remove:whitespace --><!-- ccr:start:!mso|(lte ie 8) -->' + domutils.getOuterHtml(element) + '<!-- ccr:end --><!-- fd:remove:whitespace -->';
+      }
+
+      var tmplName = templateCreator(newElement);
 
       var containerBind = '{ width: ' + width;
-      if (align == 'left') containerBind += ', float: \'left\'';
-      else if (align == 'right') containerBind += ', float: \'right\'';
-      else if (align == 'center') if (typeof console.debug == 'function') console.debug('Ignoring align=center on an img tag: we don\'t know how to emulate this alignment in the editor!');
-      else if (align == 'top') containerBind += ', verticalAlign: \'top\'';
-      else if (align == 'middle') containerBind += ', verticalAlign: \'middle\'';
-      else if (align == 'bottom') containerBind += ', verticalAlign: \'bottom\'';
+      if (hAlign) {
+        containerBind += ', textAlign: ' + hAlign;
+      }
+      
+      if (dynAlign) {
+        if (align == 'left' || align == 'right' || align == 'center') {
+          containerBind += ', textAlign: ' + dynAlign;
+          align = dynAlign;
+        } else if (align == 'top' || align == 'middle' || align == 'bottom') {
+          containerBind += ', verticalAlign: ' + dynAlign;
+          align = dynAlign;
+        }
+      } else {
+        if (align == 'left' || align == 'right' || align == 'center') {
+          align = '\'' + align + '\'';
+          containerBind += ', textAlign: ' + align;
+        } else if (align == 'top' || align == 'middle' || align == 'bottom') {
+          align = '\'' + align + '\'';
+          containerBind += ', verticalAlign: ' + align;
+        }
+      }
       containerBind += '}';
 
-      $(element).before('<!-- ko wysiwygImg: { _data: $data, _item: ' + itemBindValue + ', _template: \'' + tmplName + '\', _editTemplate: \'img-wysiwyg\', _src: ' + bindingValue + ', _width: ' + width + ', _height: ' + height + ', _align: ' + (align === null ? undefined : '\'' + align + '\'') + ', _size: ' + size + ', _method: ' + method + ', _placeholdersrc: ' + placeholdersrc + ', _stylebind: ' + containerBind + ' } -->');
-      $(element).after('<!-- /ko -->');
+      domutils.replaceHtml(element, '<!-- ko wysiwygImg: { _data: $data, _item: ' + itemBindValue + ', _template: \'' + tmplName + '\', _editTemplate: \'img-wysiwyg\', _src: ' + bindingValue + ', _width: ' + width + ', _height: ' + height + ', _align: ' + (align === null ? undefined : align) + ', _halign: ' + (hAlign === '' ? undefined : hAlign) + ', _size: ' + size + ', _method: \'' + method + '\', _placeholdersrc: ' + placeholdersrc + ', _stylebind: ' + containerBind + ' } -->' + newElement + '<!-- /ko -->');
     }
 
   });
@@ -383,7 +469,7 @@ var processBlock = function(element, defs, themeUpdater, blockPusher, templateUr
 
   });
 
-  templateCreator(element, templateName, 'show');
+  templateCreator((domutils.getLowerTagName(element) === 'replacedhtml' ? element : '<!-- fd:remove:whitespace -->' + domutils.getOuterHtml(element) + '<!-- fd:remove:whitespace -->'), templateName, 'show');
 
   blockPusher(rootModelName, templateName, contextName, containerName);
 
@@ -397,7 +483,9 @@ var processBlock = function(element, defs, themeUpdater, blockPusher, templateUr
 };
 
 function conditional_replace(html) {
-  return html.replace(/<!--\[if ([^\]]*)\]>((?:(?!--)[\s\S])*?)<!\[endif\]-->/g, function(match, condition, body) {
+  return html.replace(/<!--\[if ([^\]]*)\]><!-->((?:(?!--)[\s\S])*?)<!--<!\[endif\]-->/g, function(match, condition, body) {
+    return '<!-- ccr:start:'+condition+' -->'+body+'<!-- ccr:end -->';
+  }).replace(/<!--\[if ([^\]]*)\]>((?:(?!--)[\s\S])*?)<!\[endif\]-->/g, function(match, condition, body) {
     var dd = '<!-- cc:start -->';
     dd += body.replace(/<([A-Za-z:]+)/g, '<!-- cc:bo:$1 --><cc') // before open tag
            .replace(/<\/([A-Za-z:]+)>/g,'<!-- cc:bc:$1 --></cc><!-- cc:ac:$1 -->') // before/after close tag
@@ -418,8 +506,8 @@ var translateTemplate = function(templateName, html, templateUrlConverter, templ
   var replacedHtml = conditional_replace(html.replace(/(<[^>]+\s)(style|http-equiv)(="[^"]*"[^>]*>)/gi, function(match, p1, p2, p3) {
     return p1 + 'replaced' + p2 + p3;
   }));
-  // Use parseHTML to avoid placing the dom in the docuemnt and prevent resources from being downloaded beforehand
-  // This only works correctly when using jquery3 because previous versions of jQuery will not create a new document when passed a "context = false" argument.
+  // Use parseHTML to avoid placing the dom in the document and prevent resources from being downloaded beforehand
+  // This only works correctly when using jQuery v3+ because previous versions of jQuery will not create a new document when passed a "context = false" argument.
   var content = typeof $.parseHTML == 'function' ? $($.parseHTML(replacedHtml, false)) : $(replacedHtml);
   var element = content[0];
 

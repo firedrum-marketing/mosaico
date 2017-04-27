@@ -4,11 +4,11 @@
   "description": "Mosaico - OpenSource Email Template Editor",
   "main": [
     "./src/js/app.js",
-    "./src/js/template-translation-worker.js"
+	"./src/js/template-translation-worker.js"
   ],
   "repository": {
     "type": "git",
-    "url": "git@github.com:voidlabs/mosaico.git"
+    "url": "git@github.com:jhorowitz-firedrum/mosaico.git"
   },
   "browser": {
     "jquery.ui.widget": "jquery-ui/ui/widget.js",
@@ -46,34 +46,34 @@
   },
   "browserify-shim": {
     "jquery": {
-      "exports": "$",
-      "depends": ["jsdom-global"]
-    },
+	  "exports": "$",
+	  "depends": ["jsdom-global"]
+	},
     "jquery-ui": {
-      "depends": ["jquery:jQuery"]
-    },
+	  "depends": ["jquery:jQuery"]
+	},
 	"jquery-ui/draggable": {
 	  "depends": ["jquery:jQuery"]
 	},
 	"jquery-ui/droppable": {
 	  "depends": ["jquery:jQuery"]
 	},
-    "jquery-ui/sortable": {
-      "depends": ["jquery:jQuery"]
-    },
+	"jquery-ui/sortable": {
+	  "depends": ["jquery:jQuery"]
+	},
 	"jquery-ui/spinner": {
-      "depends": ["jquery:jQuery"]
-    },
+	  "depends": ["jquery:jQuery"]
+	},
 	"jquery-ui/tabs": {
 	  "depends": ["jquery:jQuery"]
 	},
     "knockout-jqueryui": {
-      "exports": "kojqui",
-      "depends": ["jquery:jQuery", "knockout:ko" ]
-    },
-    "blueimp-load-image": {
-      "depends": ["blueimp-load-image-orientation"]
-    },
+		"exports": "kojqui",
+		"depends": ["jquery:jQuery", "knockout:ko" ]
+	},
+	"blueimp-load-image": {
+		"depends": ["blueimp-load-image-orientation"]
+	},
     "tinymce": "global:tinymce"
   },
   "dependencies": {

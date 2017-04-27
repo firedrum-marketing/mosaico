@@ -70,6 +70,172 @@ ko.bindingHandlers.wysiwygHref = {
 ko.virtualElements.allowedBindings['wysiwygHref'] = true;
 
 ko.bindingHandlers.wysiwygSrc = {
+  waitingImages: ko.observable(0),
+  roundHelper: function(val) {
+    if (val >= 0) {
+      return Math.floor(val + 0.5);
+    } else {
+      return Math.ceil(val - 0.5);
+    }
+  },
+  getCoverGeometry: function(width, height, geometry) {
+    var widthRatio = 1;
+    var heightRatio = 1;
+
+    if (typeof width === 'undefined' || width === 0) {
+      heightRatio = geometry.height / height;
+      width  = ko.bindingHandlers.wysiwygSrc.roundHelper(geometry.width / heightRatio);
+      widthRatio = geometry.width / width;
+    } else if (typeof height === 'undefined' || height === 0) {
+      widthRatio = geometry.width / width;
+      height = ko.bindingHandlers.wysiwygSrc.roundHelper(geometry.height / widthRatio);
+      heightRatio = geometry.height / height;
+    } else {
+      widthRatio = geometry.width / width;
+      heightRatio = geometry.height / height;
+    }
+
+    var resizeWidth = width;
+    var resizeHeight = height;
+
+    if ( widthRatio > heightRatio ) {
+      resizeWidth  = ko.bindingHandlers.wysiwygSrc.roundHelper(geometry.width / heightRatio);
+    } else {
+      resizeHeight = ko.bindingHandlers.wysiwygSrc.roundHelper(geometry.height / widthRatio);
+    }
+
+    return {
+      x: (( resizeWidth - width ) / 2) / resizeWidth,
+      y: (( resizeHeight - height ) / 2) / resizeHeight,
+      width: width,
+      height: height
+    };
+  },
+  cover: function(element, width, height, naturalDimensions, boundingDimensions, bindingContext, geometry) {
+    var coverGeometry = ko.bindingHandlers.wysiwygSrc.getCoverGeometry(width, height, geometry);
+    var naturalCoverGeometry = ko.bindingHandlers.wysiwygSrc.getCoverGeometry(boundingDimensions.width, boundingDimensions.height, geometry);
+
+    if (bindingContext._item) {
+      if (bindingContext._item().logoAdjustedWidth) {
+        bindingContext._item().logoAdjustedWidth(coverGeometry.width);
+      }
+      if (bindingContext._item().logoAdjustedHeight) {
+        bindingContext._item().logoAdjustedHeight(coverGeometry.height);
+      }
+    }
+
+    ko.bindingHandlers.wysiwygSrc.setNaturalDimensions(naturalDimensions, {
+      width: naturalCoverGeometry.width,
+      height: naturalCoverGeometry.height
+    });
+
+    element.setAttribute("cropleft", coverGeometry.x);
+    element.setAttribute("cropright", coverGeometry.x);
+    element.setAttribute("croptop", coverGeometry.y);
+    element.setAttribute("cropbottom", coverGeometry.y);
+    $(element).css({
+      'width': coverGeometry.width + 'px',
+      'height': coverGeometry.height + 'px'
+    });
+  },
+  getContainGeometry: function(width, height, geometry) {
+    var widthRatio = 1;
+    var heightRatio = 1;
+
+    if (typeof width === 'undefined' || width === 0) {
+      heightRatio = geometry.height / height;
+      if (heightRatio > 1) {
+        width  = ko.bindingHandlers.wysiwygSrc.roundHelper(geometry.width / heightRatio);
+      } else {
+        width = geometry.width;
+        height = geometry.height;
+      }
+    } else if (typeof height === 'undefined' || height === 0) {
+      widthRatio = geometry.width / width;
+      if (widthRatio > 1) {
+        height = ko.bindingHandlers.wysiwygSrc.roundHelper(geometry.height / widthRatio);
+      } else {
+        height = geometry.height;
+        width = geometry.width;
+      }
+    } else {
+      heightRatio = geometry.height / height;
+      widthRatio = geometry.width / width;
+
+      if (widthRatio > 1 || heightRatio > 1) {
+        if (widthRatio > heightRatio) {
+          height = ko.bindingHandlers.wysiwygSrc.roundHelper(geometry.height / widthRatio);
+        } else {
+          width  = ko.bindingHandlers.wysiwygSrc.roundHelper(geometry.width / heightRatio);
+        }
+      } else {
+        width = geometry.width;
+        height = geometry.height;
+      }
+    }
+
+    return {
+      width: width,
+      height: height
+    };
+  },
+  contain: function(element, width, height, naturalDimensions, boundingDimensions, bindingContext, geometry) {
+    var containGeometry = ko.bindingHandlers.wysiwygSrc.getContainGeometry(width, height, geometry);
+    var naturalContainGeometry = ko.bindingHandlers.wysiwygSrc.getContainGeometry(boundingDimensions.width, boundingDimensions.height, geometry);
+
+    if (bindingContext._item) {
+      if (bindingContext._item().logoAdjustedWidth) {
+        bindingContext._item().logoAdjustedWidth(containGeometry.width);
+      }
+      if (bindingContext._item().logoAdjustedHeight) {
+        bindingContext._item().logoAdjustedHeight(containGeometry.height);
+      }
+    }
+
+    ko.bindingHandlers.wysiwygSrc.setNaturalDimensions(naturalDimensions, {
+      width: naturalContainGeometry.width,
+      height: naturalContainGeometry.height
+    });
+
+    $(element).attr('width', containGeometry.width).attr('height', containGeometry.height);
+  },
+  setNaturalDimensions: function(naturalDimensions, geometry) {
+    if (typeof naturalDimensions.naturalWidth === 'function') {
+      naturalDimensions.naturalWidth(geometry.width - 0);
+    }
+    if (typeof naturalDimensions.naturalHeight === 'function') {
+      naturalDimensions.naturalHeight(geometry.height - 0);
+    }
+  },
+  getNaturalSize: function(element, src, callback, bindingContext, attempt) {
+    var tmpImage = new global.Image();
+    tmpImage.src = src;
+    if ( callback ) {
+      var completeFunc = function() {
+        if (tmpImage.naturalWidth > 0 && tmpImage.naturalHeight > 0) {
+          ko.bindingHandlers.wysiwygSrc.waitingImages(ko.bindingHandlers.wysiwygSrc.waitingImages() - 1);
+          callback({
+            width: tmpImage.naturalWidth,
+            height: tmpImage.naturalHeight
+          });
+        } else {
+          if ( attempt < 3 ) {
+            ko.bindingHandlers.wysiwygSrc.getNaturalSize(element, src, callback, bindingContext, ++attempt);
+          } else {
+            ko.bindingHandlers.wysiwygSrc.waitingImages(ko.bindingHandlers.wysiwygSrc.waitingImages() - 1);
+            if ( bindingContext.$root.notifier && bindingContext.$root.notifier.error ) {
+              bindingContext.$root.notifier.error( '<p>WARNING: Could not fetch dimensions for image:<br><br>' + src + '<br><br>Please remove the image from its container and set it again to retry.<br>Outlook may display your email incorrectly without knowing the dimensions!' );
+            }
+          }
+        }
+      };
+      if (tmpImage.complete) {
+        completeFunc();
+      } else {
+        tmpImage.onerror = tmpImage.onload = completeFunc;
+      }
+    }
+  },
   convertedUrl: function(src, method, width, height, text) {
     var queryParamSeparator = src.indexOf('?') == -1 ? '?' : '&';
     var res = src + queryParamSeparator + "method=" + method + "&width=" + width + (height !== null ? "&height=" + height : '') + (typeof text !== 'undefined' ? "&text=" + text : '');
@@ -87,19 +253,92 @@ ko.bindingHandlers.wysiwygSrc = {
     var placeholderValue = ko.utils.unwrapObservable(value.placeholder);
     var width = ko.utils.unwrapObservable(value.width);
     var height = ko.utils.unwrapObservable(value.height);
+    var method = ko.utils.unwrapObservable(value.method);
+    var src = null;
+    if (!method) method = width > 0 && height > 0 ? 'cover' : 'resize';
     if ((attrValue === false) || (attrValue === null) || (attrValue === undefined) || (attrValue === '')) {
-      if (typeof placeholderValue == 'object' && placeholderValue !== null) element.setAttribute('src', ko.bindingHandlers.wysiwygSrc.placeholderUrl(placeholderValue.width, placeholderValue.height, placeholderValue.text, (placeholderValue.overrideText !== null ? placeholderValue.overrideText : undefined)));
-      else element.removeAttribute('src');
+      if (typeof placeholderValue == 'object' && placeholderValue !== null) {
+        src = ko.bindingHandlers.wysiwygSrc.placeholderUrl(ko.utils.unwrapObservable(placeholderValue.width), ko.utils.unwrapObservable(placeholderValue.height), placeholderValue.text, (placeholderValue.overrideText !== null ? placeholderValue.overrideText : undefined));
+        if (method === 'cover') {
+          $(element).css('background', 'url(\'' + src + '\') no-repeat center / cover');
+          element.setAttribute('replacedstyle', 'background: url(\'' + src + '\') no-repeat center / cover');
+          element.setAttribute('background', src);
+        } else {
+          element.setAttribute('src', src);
+        }
+      } else {
+        if (method === 'cover') {
+          $(element).css('background', null);
+          element.removeAttribute('replacedstyle');
+          element.removeAttribute('background');
+        } else {
+          element.removeAttribute('src');
+        }
+      }
     } else {
-      var method = ko.utils.unwrapObservable(value.method);
-      if (!method) method = width > 0 && height > 0 ? 'cover' : 'resize';
-      var src = ko.bindingHandlers.wysiwygSrc.convertedUrl(attrValue.toString(), method, width, height, (typeof placeholderValue == 'object' && placeholderValue !== null && placeholderValue.overrideText !== null ? placeholderValue.overrideText : undefined));
-      element.setAttribute('src', src);
+      src = ko.bindingHandlers.wysiwygSrc.convertedUrl(attrValue.toString(), method, width, height, (typeof placeholderValue == 'object' && placeholderValue !== null && placeholderValue.overrideText !== null ? placeholderValue.overrideText : undefined));
+      if (method === 'cover') {
+        $(element).css('background', 'url(\'' + src + '\') no-repeat center / cover');
+        element.setAttribute('replacedstyle', 'background: url(\'' + src + '\') no-repeat center / cover');
+        element.setAttribute('background', src);
+      } else {
+        element.setAttribute('src', src);
+      }
     }
-    if (typeof width !== 'undefined' && width !== null) element.setAttribute("width", width);
-    else element.removeAttribute("width");
-    if (typeof height !== 'undefined' && height !== null) element.setAttribute("height", height);
-    else element.removeAttribute("height");
+
+    if (typeof width !== 'undefined' && width !== null) {
+      if (method === 'cover') {
+        $(element).css('width', width + 'px');
+        element.setAttribute("width", width);
+      } else if (method === 'resize' || method === 'mso-contain') {
+        element.setAttribute("width", width);
+      } else if (method === 'contain') {
+        element.removeAttribute("width");
+      }
+    } else {
+      if (method === 'cover') {
+        $(element).css('width', null);
+      } else if (method === 'resize' || method === 'contain' || method === 'mso-contain') {
+        element.removeAttribute("width");
+      }
+    }
+
+    if (typeof height !== 'undefined' && height !== null) {
+      if (method === 'cover') {
+        $(element).css('height', height + 'px');
+        element.setAttribute("height", height);
+      } else if (method === 'resize' || method === 'mso-contain') {
+        element.setAttribute("height", height);
+      } else if (method === 'contain') {
+        element.removeAttribute("height");
+      }
+    } else {
+      if (method === 'cover') {
+        $(element).css('height', '');
+      } else if (method === 'resize' || method === 'contain' || method === 'mso-contain') {
+        element.removeAttribute("height");
+      }
+    }
+
+    ko.ignoreDependencies(function(element, src, width, height, method, value, bindingContext) {
+      var naturalDimensions = {
+        naturalWidth: value.naturalWidth,
+        naturalHeight: value.naturalHeight
+      };
+      var boundingDimensions = {
+        width: ko.isObservable(value.width) ? 0 : width - 0,
+        height: ko.isObservable(value.height) ? 0 : height - 0
+      };
+      if (method === 'mso-cover') {
+        ko.bindingHandlers.wysiwygSrc.waitingImages(ko.bindingHandlers.wysiwygSrc.waitingImages() + 1);
+        ko.bindingHandlers.wysiwygSrc.getNaturalSize(element, src, ko.bindingHandlers.wysiwygSrc.cover.bind(ko.bindingHandlers.wysiwygSrc, element, width, height, naturalDimensions, boundingDimensions, bindingContext), bindingContext, 1);
+      } else if (method == 'mso-contain') {
+        ko.bindingHandlers.wysiwygSrc.waitingImages(ko.bindingHandlers.wysiwygSrc.waitingImages() + 1);
+        ko.bindingHandlers.wysiwygSrc.getNaturalSize(element, src, ko.bindingHandlers.wysiwygSrc.contain.bind(ko.bindingHandlers.wysiwygSrc, element, width, height, naturalDimensions, boundingDimensions, bindingContext), bindingContext, 1);
+      } else if (method == 'resize') {
+        ko.bindingHandlers.wysiwygSrc.setNaturalDimensions(naturalDimensions, boundingDimensions);
+      }
+    }, viewModel, [element, src, typeof width !== 'undefined' ? width - 0 : width, typeof height !== 'undefined' ? height - 0 : height, method, value, bindingContext]);
   }
 };
 
@@ -179,7 +418,7 @@ var _catchingFire = function(event, args) {
 // also, maybe we should use the "raw" only for the "before SetContent" and instead read the "non-raw" content (the raw content sometimes have data- attributes and too many ending <br> in the code)
 ko.bindingHandlers.wysiwyg = {
   debug: false,
-  getContentOptions: { format: 'raw' },
+  getContentOptions: {},
   useTarget: false,
   currentIndex: 0,
   standardOptions: {},
@@ -223,9 +462,7 @@ ko.bindingHandlers.wysiwyg = {
     }
 
     ko.utils.domNodeDisposal.addDisposeCallback(element, function() {
-      if (doDebug) console.debug("Editor for selector", selectorId, "is being removed...");
-      tinymce.remove('#' + element.getAttribute('id'));
-      if (doDebug) console.debug("Editor for selector", selectorId, "has been removed.");
+      tinymce.remove(thisEditor);
     });
 
     var value = valueAccessor();
@@ -244,8 +481,7 @@ ko.bindingHandlers.wysiwyg = {
       hidden_input: false,
       plugins: ["paste"],
       toolbar1: "bold italic",
-      toolbar2: "",
-      // we have to disable preview_styles otherwise tinymce push inline every style he things will be applied and this makes the style menu to inherit color/font-family and more.
+      // we have to disable preview_styles otherwise tinymce push inline every style it thinks will be applied and this makes the style menu to inherit color/font-family and more.
       preview_styles: false,
       paste_as_text: true,
       language: 'en',
@@ -391,7 +627,7 @@ ko.bindingHandlers.wysiwyg = {
           // we failed setting contents in other ways...
           // $(element).html(content);
           if (typeof thisEditor !== 'undefined') {
-            thisEditor.setContent(content, { format: 'raw' });
+            thisEditor.setContent(content, {});
           } else {
             ko.utils.setHtml(element, content);
           }

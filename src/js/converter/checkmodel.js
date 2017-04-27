@@ -16,6 +16,16 @@ var checkModel = function(reference, blockDefs, model, origPrefix, reverse) {
     if (reference.hasOwnProperty(prop)) {
       prefix = typeof origPrefix !== 'undefined' ? origPrefix + "." + prop : prop;
       if (!model.hasOwnProperty(prop)) {
+        var magLabelIndex = prop.lastIndexOf('MAGLabel');
+        var magForConditionalIndex = prop.lastIndexOf('MAGForConditional');
+        if ((magLabelIndex !== -1 && magLabelIndex === (prop.length - 8)) || (magForConditionalIndex !== -1 && magForConditionalIndex === (prop.length - 17))) {
+          // Ignore auto-generated properties that are not defined in the template
+          continue;
+        }
+        if (prop === 'manualImageHeight') {
+          // Ignore this property as it has a special meaning and does not need to be defined in the template to be useful
+          continue;
+        }
         if (reverse) {
           console.warn("WARN Property ", prefix, "found in model is not defined by template: removing it!");
           valid = Math.max(valid, 2);
@@ -102,6 +112,14 @@ var checkModel = function(reference, blockDefs, model, origPrefix, reverse) {
           valid = Math.max(valid, 2);
         }
       } else if (typeof reference[prop] !== 'string' && typeof reference[prop] !== 'boolean' && typeof reference[prop] !== 'number') {
+        if (prop.lastIndexOf('MAGLabel') === (prop.length - 8) || prop.lastIndexOf('MAGForConditional') === (prop.length - 17)) {
+          // Ignore auto-generated properties that are not defined in the template
+          continue;
+        }
+        if (prop === 'manualImageHeight') {
+          // Ignore this property as it has a special meaning and does not need to be defined in the template to be useful
+          continue;
+        }
         console.log("TODO unsupported type", prefix, typeof reference[prop]);
         valid = Math.max(valid, 2);
       }

@@ -7,7 +7,11 @@ var _valueSet = function(defs, model, prop, value) {
   var dotPos = prop.indexOf('.');
   if (dotPos == -1) {
     if (typeof model[prop] == 'undefined') {
-      console.log("Undefined prop " + prop + " while setting value " + value + " in model._valueSet");
+      var magLabelIndex = prop.lastIndexOf('MAGLabel');
+      var magForConditionalIndex = prop.lastIndexOf('MAGForConditional');
+      if ((magLabelIndex === -1 || magLabelIndex !== (prop.length - 8)) && (magForConditionalIndex === -1 || magForConditionalIndex !== (prop.length - 17))) {
+        console.log("Undefined prop " + prop + " while setting value " + value + " in model._valueSet");
+      }
     } else if (model[prop] === null) {
       if (typeof value == 'object' && value !== null && typeof value.push == 'undefined') console.log("nullpropobjectvalue", prop, value);
       model[prop] = value;
@@ -266,11 +270,7 @@ var _getModelDef = function(defs, name, returnClone, readonly) {
             defValue = [];
           }
           if (propDef[3] == '=') {
-            // TODO remove hardcoded "visible" matching (this should be defined in the template definition)
-            if (prop.match(/(^v|V)isible$/)) defValue = String(propDef[4]).toLowerCase() == 'true';
-            else if (prop.match(/^customStyle$/)) {
-              defValue = String(propDef[4]).toLowerCase() == 'true';
-            } else defValue = propDef[4];
+			defValue = typeof propDef[4] !== "string" || !/^(true|false)$/i.test(propDef[4]) ? propDef[4] : propDef[4].toLowerCase() === "true";
           }
         }
         // default values found in "properties" are not being processed by "modelEnsureValue" and by consequence do not call "themeUpdater".
@@ -297,17 +297,18 @@ var _getModelDef = function(defs, name, returnClone, readonly) {
       delete defObj._props;
     }
 
+    var result = defObj;
     if (returnClone) {
       defObj._writeable = false;
       var cloned = objExtend({}, defObj);
-      return cloned;
+      result = cloned;
     } else if (readonly) {
       defObj._writeable = false;
-      return defObj;
     } else {
       if (typeof defObj._writeable == 'undefined' || defObj._writeable === false) throw "Retrieving non writeable object definition: " + name;
-      return defObj;
     }
+
+    return result;
   }
 };
 
@@ -429,6 +430,8 @@ var modelEnsurePathAndGetBindValue = function(readonly, defs, themeUpdater, root
   var childModel = model;
   try {
     _increaseUseCount(readonly, childModel);
+
+    var magLabelIndex, magForConditionalIndex;
     if (propPos != -1) {
       var mypath = path;
       do {
@@ -444,20 +447,34 @@ var modelEnsurePathAndGetBindValue = function(readonly, defs, themeUpdater, root
       } while (propPos != -1);
 
       if (typeof childModel[mypath] == 'undefined' || childModel[mypath] === null) {
-        throw "Found an unexpected path termination " + mypath + " for model " + modelName + " for " + path;
+        magLabelIndex = mypath.lastIndexOf('MAGLabel');
+        magForConditionalIndex = mypath.lastIndexOf('MAGForConditional');
+        if ((magLabelIndex === -1 || magLabelIndex !== (mypath.length - 8)) && (magForConditionalIndex === -1 || magForConditionalIndex !== (mypath.length - 17))) {
+          // Is not one of the auto-generated properties that are not defined in the template
+          throw "Found an unexpected path termination " + mypath + " for model " + modelName + " for " + path;
+        }
+      } else {
+        childModel = childModel[mypath];
       }
-      childModel = childModel[mypath];
     } else {
       childModel = childModel[path];
     }
 
-    if (typeof childModel === 'undefined' || childModel === null) throw "Unexpected null model for " + modelName + "/" + within + "/" + fullPath;
+    if (typeof childModel === 'undefined' || childModel === null) {
+      magLabelIndex = fullPath.lastIndexOf('MAGLabel');
+      magForConditionalIndex = fullPath.lastIndexOf('MAGForConditional');
+      if ((magLabelIndex === -1 || magLabelIndex !== (fullPath.length - 8)) && (magForConditionalIndex === -1 || magForConditionalIndex !== (fullPath.length - 17))) {
+        // Is not one of the auto-generated properties that are not defined in the template
+        throw "Unexpected null model for " + modelName + "/" + within + "/" + fullPath;
+      }
+    } else {
 
-    if (typeof setcategory !== 'undefined') {
-      childModel._category = setcategory;
+      if (typeof setcategory !== 'undefined') {
+        childModel._category = setcategory;
+      }
+
+      _increaseUseCount(readonly, childModel);
     }
-
-    _increaseUseCount(readonly, childModel);
   } catch (e) {
     console.error("TODO ERROR Property lookup exception", e, modelName, path, templateName, fullPath, defs);
     throw e;

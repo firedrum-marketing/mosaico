@@ -16,10 +16,10 @@ var addUndoStackExtensionMaker = function(performanceAwareCaller) {
       redoLabel: ko.computed(function() { return viewModel.t("Redo"); })
     });
     viewModel.undo = undoRedoStack.undoCommand;
-    viewModel.undo.execute = performanceAwareCaller.bind(viewModel, 'undo', viewModel.undo.execute);
+    viewModel.undo.execute = performanceAwareCaller.bind(viewModel, 'undo', viewModel.undo.execute, undefined);
     viewModel.redo = undoRedoStack.redoCommand;
-    viewModel.redo.execute = performanceAwareCaller.bind(viewModel, 'redo', viewModel.redo.execute);
-    viewModel.undoReset = performanceAwareCaller.bind(viewModel, 'undoReset', undoRedoStack.reset);
+    viewModel.redo.execute = performanceAwareCaller.bind(viewModel, 'redo', viewModel.redo.execute, undefined);
+    viewModel.undoReset = performanceAwareCaller.bind(viewModel, 'undoReset', undoRedoStack.reset, undefined);
     viewModel.setUndoModeMerge = undoRedoStack.setModeMerge;
     viewModel.setUndoModeOnce = undoRedoStack.setModeOnce;
     undoRedoStack.setModeIgnore();

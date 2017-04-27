@@ -79,16 +79,51 @@ var replaceHtml = function(element, html) {
   // element.outerHTML = html;
 };
 
+var createElement = function(html) {
+  var newElement = $(html);
+  if (newElement.length === 1) {
+    return newElement[0];
+  } else {
+    return null;
+  }
+};
+
+var setCss = function(element, css) {
+  $(element).css(css);
+};
+
+var getCss = function(element, attr) {
+  return $(element).css(attr);
+};
+
 var removeElements = function($elements, tryDetach) {
   if (tryDetach && typeof $elements.detach !== 'undefined') $elements.detach();
   // NOTE: we don't need an else, as detach is simply an optimization
   $elements.remove();
 };
 
+var appendElements = function(element, $elements) {
+  if ($elements && $elements.length) {
+    var $element = $(element);
+    for(var i = 0; i < $elements.length; i++) {
+      $element.append($elements[i]);
+    }
+  }
+};
+
+var cloneAttributes = function(src, dest) {
+  var $dest = $(dest);
+  var attributes = $(src).prop('attributes');
+  $.each(attributes, function() {
+    $dest.attr(this.name, this.value);
+  });
+};
+
 module.exports = {
   getAttribute: getAttribute,
   setAttribute: setAttribute,
   removeAttribute: removeAttribute,
+  cloneAttributes: cloneAttributes,
   getInnerText: getInnerText,
   getInnerHtml: getInnerHtml,
   getOuterHtml: getOuterHtml,
@@ -96,5 +131,9 @@ module.exports = {
   setContent: setContent,
   replaceHtml: replaceHtml,
   removeElements: removeElements,
+  createElement: createElement,
+  setCss: setCss,
+  getCss: getCss,
+  appendElements: appendElements,
   objExtend: objExtend
 };

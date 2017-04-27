@@ -15,6 +15,20 @@ var addSlashes = function(str) {
   return str.replace(/[\\"'\r\n\t\v\f\b]/g, '\\$&').replace(/\u0000/g, '\\0');
 };
 
+var extractStyle = function(style, startPos, endPos, skipRows, startOffset, endOffset) {
+  var styleRows = style.split("\n");
+  var start = startOffset;
+  var end = endOffset;
+  for (var r = 1 + skipRows; r < startPos.line; r++) start += styleRows[r - 1 - skipRows].length + 1;
+  start += startPos.col;
+  if (endPos !== null) {
+    for (var r2 = 1 + skipRows; r2 < endPos.line; r2++) end += styleRows[r2 - 1 - skipRows].length + 1;
+    end += endPos.col;
+  } else end += style.length + 1;
+  var newStyle = style.substr(start - 1, end - start + 1);
+  return newStyle;
+};
+
 var removeStyle = function(style, startPos, endPos, skipRows, startOffset, endOffset, insert) {
   var styleRows = style.split("\n");
   var start = startOffset;
@@ -95,12 +109,12 @@ var expressionGenerator = function(node, bindingProvider, defVal) {
 var expressionBinding = function(expression, bindingProvider, defaultValue) {
   var matches;
   if (typeof defaultValue !== 'undefined' && defaultValue !== null) {
-    var check = expression.trim().replace(/@\[([^\]]+)\]|@([a-zA-Z0-9\._]+)\b/g, '###var###');
+    var check = expression.trim().replace(/@\[((?:[^"']|"[^"]*"|'[^']*')+?)\]|@([a-zA-Z0-9\._]+)\b/g, '###var###');
     check = check.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
     if (check == '###var###') matches = [null, defaultValue];
     else {
       check = '^' + check.replace(/###var###/g, '(.+)') + '$';
-      matches = defaultValue.trim().match(new RegExp(check));
+      matches = String(defaultValue).trim().match(new RegExp(check));
       if (!matches) {
         // TODO throw error?
         console.log("Cannot find matches", matches, "for", defaultValue, expression, check, expression);
@@ -110,7 +124,7 @@ var expressionBinding = function(expression, bindingProvider, defaultValue) {
   }
   try {
     var vars = 0;
-    var result = "'" + expression.replace(/@\[([^\]]+)\]|@([a-zA-Z0-9\._]+)\b|(')/g, function(match, p1, p2, p3) {
+    var result = "'" + expression.replace(/@\[((?:[^"']|"[^"]*"|'[^']*')+?)\]|@([a-zA-Z0-9\._]+)\b|(')/g, function(match, p1, p2, p3) {
       // escaping..
       if (p3) return "\\" + p3;
       vars++;
@@ -118,7 +132,7 @@ var expressionBinding = function(expression, bindingProvider, defaultValue) {
       var defVal;
       if (matches) {
         if (typeof matches[vars] !== 'undefined') {
-          defVal = matches[vars].trim();
+          defVal = typeof matches[vars] !== "string" ? matches[vars] : !/^(true|false)$/i.test(matches[vars]) ? matches[vars].trim() : matches[vars].toLowerCase() === "true";
         } else {
           console.log("ABZZZ Cannot find default value for", varName, "in", matches, "as", vars);
         }
@@ -151,6 +165,7 @@ var conditionBinding = function(condition, bindingProvider) {
 module.exports = {
   addSlashes: addSlashes,
   removeStyle: removeStyle,
+  extractStyle: extractStyle,
   conditionBinding: conditionBinding,
   expressionBinding: expressionBinding
 };

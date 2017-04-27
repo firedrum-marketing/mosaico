@@ -46,9 +46,8 @@
   }
 }
 
-#toolimages, #toolsocialsharing, #toolspamassassin, #toolsend, #toolinboxpreview, #tooldebug, #tooltheme {
+#toolimages, #toolsocialsharing, #toolspamassassin, #toolsend, #tooleoa, #tooldebug, #tooltheme {
   padding: .7em 0;
-  display: box;
   box-orient: vertical;
   display: flex;
   flex-direction: column;
@@ -291,7 +290,7 @@
        margin-bottom: 0;
      }
 
-    .propEditor.socialSharingUseSubjectAsTitle {
+    .propEditor.fdSocialSharingUseSubjectAsTitle {
       background-color: #e5e5e5;
       border: 1px solid #d4d4d4;
       margin-bottom: 1em;
@@ -320,7 +319,7 @@
 
   #toolenvelope .editor .objEdit.level0 .propEditor {
     &.fdSystemTags .propInput label,
-    &.fdVerifiedFromAddress .propInput label {
+    &.verifiedFromAddress .propInput label {
       width: 67%;
       clear: left;
       margin-bottom: 0;

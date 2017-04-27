@@ -100,7 +100,7 @@
 
       <div class="propInput" data-bind="css: { default: libraryFileSystem() === null }">
         <label class="data-select">
-          <select data-bind="iconselectmenu: {}, value: libraryFileSystem, options: libraryFileSystems, optionsText: 'name', optionsValue: 'path', optionsAfterRender: processLibraryFileSystems, focusable: true, event: { focus: function(ui, event) { $($element).click(); } } "></select>
+          <select data-bind="iconselectmenu: {}, value: libraryFileSystem, options: libraryFileSystems, optionsText: 'name', optionsValue: 'path', optionsAfterRender: processLibraryFileSystems, focusable: true, event: { focus: function(ui, event) { Mosaico.$($element).click(); } } "></select>
         </label>
       </div>
     </div>
@@ -239,28 +239,28 @@
   <span class="pane-title" data-bind="text: $root.t('Content Spam Checker:')">Content Spam Checker:</span>
 
   <div class="pane-content">
-    <div class="galleryEmpty">Recommended, to decrease the risk your email being labeled as SPAM</div>
+    <div class="galleryEmpty" data-bind="text: $root.tests.spamassassin.strings.recommendation"># Recommended, to decrease the risk your email being labeled as SPAM. #</div>
 
 
-    <div class="statusContainer" style="float: right;margin-right: 8px;padding: 2.5px;vertical-align: middle;">
-      <div class="hidden" data-passed="true"><img class="medium_icon" data-bind="attr: { src: $root.infoSaveIcon }" style="vertical-align: middle;"><span>Passed</span></div>
-      <div class="hidden" data-passed="false"><img class="medium_icon" data-bind="attr: { src: $root.cautionIcon }" style="vertical-align: middle;"><span class="inputlabel">Failed</span></div>
-      <div class="hidden" data-passed="" style="opacity: 1; display: block;"><img class="medium_icon" data-bind="attr: { src: $root.cautionIcon }" style="vertical-align: middle;"><span class="inputlabel">Not Checked</span></div>
+    <div class="statusContainer" style="float: left;margin: 10px 7px 10px 0;padding: 2.5px;vertical-align: middle;">
+      <div class="hidden" data-passed="true"><img class="medium_icon" data-bind="attr: { src: $root.infoSaveIcon() }" style="vertical-align: middle;"> <span>Passed</span></div>
+      <div class="hidden" data-passed="false"><img class="medium_icon" data-bind="attr: { src: $root.cautionIcon() }" style="vertical-align: middle;"> <span class="inputlabel">Failed</span></div>
+      <div class="hidden" data-passed="" style="opacity: 1; display: block;"><img class="medium_icon" data-bind="attr: { src: $root.cautionIcon() }" style="vertical-align: middle;"> <span class="inputlabel">Not Checked</span></div>
     </div>
   
     <div style="text-align: right;padding-right: 8px;">
-      <a class="loadbutton" title="Spam Check" href="javascript:void(0)" data-bind="attr: { title: $root.t('Spam Check') }, click: $root.test.spamassassin.execute, button: { disabled: $root.test.spamassassin.disabled, label: $root.t('Spam Check'), showLabel: true }"># spam check #</a>
+      <a class="loadbutton" title="Spam Check" href="javascript:void(0)" data-bind="attr: { title: $root.t('Spam Check') }, click: $root.tests.spamassassin.execute, button: { disabled: $root.tests.spamassassin.disabled, label: $root.t('Spam Check'), showLabel: true }"># spam check #</a>
     </div>
 
 
     <div class="reportContainer hidden">
       <div class="pane-title">Spam Content Checker Results</div>
       <div data-passed="true" style="background-color: #C4FFCF; margin: 5px 5px 16px 5px;" >
-        <img class="medium_icon" style="vertical-align: middle;" data-bind="attr: { src: $root.infoSaveIcon' }">
+        <img class="medium_icon" style="vertical-align: middle;" data-bind="attr: { src: $root.infoSaveIcon() }">
         Your content is spam safe.  Your score is <span class="points"></span>, lower than the required score of <span class="threshold"></span> to be marked as spam.
       </div>
       <div data-passed="false" style="background-color: #FFC4C4; margin: 5px;">
-        <img class="medium_icon" style="vertical-align: middle;" data-bind="attr: { src: $root.cautionIcon' }">
+        <img class="medium_icon" style="vertical-align: middle;" data-bind="attr: { src: $root.cautionIcon() }">
         Your content is NOT spam safe. Your score is <span class="points"></span>, higher than the required score of <span class="threshold"></span> to be marked as spam.
       </div>
       <pre class="report" style="overflow:scroll;margin-top:16px;"></pre>
@@ -275,10 +275,10 @@
   <div class="pane-content">
     <div class="messageContainer clearfix" style="display: none;"></div>
 
-    <div class="galleryEmpty recommendationContainer"><img class="medium_icon" data-bind="attr: { src: $root.infoIcon }" style="vertical-align: middle;"><span data-bind="text: $root.test.send.recommendation"># recommended, to ensure your email looks as expected.  click tracking is disabled on test emails. #</span></div>
+    <div class="galleryEmpty recommendationContainer"><img class="medium_icon" data-bind="attr: { src: $root.infoIcon() }" style="vertical-align: middle;"> <span data-bind="text: $root.tests.send.strings.recommendation"># Recommended, to ensure your email looks as expected.  Click tracking is disabled on test emails. #</span></div>
 
     <div class="galleryEmpty multipleAddressesTip">
-      <img class="medium_icon" data-bind="attr: { src: $root.infoIcon }" style="vertical-align: middle;"><span data-bind="text: $root.test.send.instructions># Use semicolon to separate multiple email addresses #</span>
+      <img class="medium_icon" data-bind="attr: { src: $root.infoIcon() }" style="vertical-align: middle;"> <span data-bind="text: $root.tests.send.strings.instructions"># Use semicolon to separate multiple email addresses. #</span>
     </div>
 
     <div class="propEditor testsendemailaddress" data-bind="tooltips: {}">
@@ -286,16 +286,16 @@
         <span data-bind="text: $root.ut('template', 'Send to:')">Send to:</span>
       </span>
 
-      <div class="propInput" data-bind="css: { default: test.send.emailAddress() === '' }">
-        <select data-bind="combobox: {removeIfInvalid: false, buttonTooltip: 'Show Previous Email Addresses'}, value: $root.test.send.emailAddress, options: $root.test.send.emailAddresses, focusable: true, event: { focus: function(ui, event) { $($element).click(); } } "></select>
+      <div class="propInput" data-bind="css: { default: tests.send.emailAddress() === '' }">
+        <select data-bind="combobox: {removeIfInvalid: false, buttonTooltip: 'Show Previous Email Addresses'}, value: $root.tests.send.emailAddress, options: $root.tests.send.emailAddresses, focusable: true, event: { focus: function(ui, event) { Mosaico.$($element).click(); } } "></select>
       </div>
     </div>
-    <div class="statusContainer" style="float: right;margin-right: 8px;padding: 2.5px;vertical-align: middle;">
-      <span data-sent="false" class="sendTestStatus hidden" style="opacity: 1; display: block;"><img class="medium_icon" data-bind="attr: { src: $root.cautionIcon }" style="vertical-align: middle;"><span class="inputlabel">Not Sent</span></span>
-      <span data-sent="true" class="sendTestStatus hidden"><img class="medium_icon" data-bind="attr: { src: $root.infoSaveIcon }" style="vertical-align: middle;"><span class="inputlabel">Sent</span></span>
+    <div class="statusContainer" style="float: left;margin: 10px 7px 10px 0;padding: 2.5px;vertical-align: middle;">
+      <span data-sent="false" class="sendTestStatus hidden" style="opacity: 1; display: block;"><img class="medium_icon" data-bind="attr: { src: $root.cautionIcon() }" style="vertical-align: middle;"> <span class="inputlabel">Not Sent</span></span>
+      <span data-sent="true" class="sendTestStatus hidden"><img class="medium_icon" data-bind="attr: { src: $root.infoSaveIcon() }" style="vertical-align: middle;"> <span class="inputlabel">Sent</span></span>
     </div>
     <div style="text-align: right;padding-right: 8px;">
-      <a class="loadbutton" title="Send Test Email" href="javascript:void(0)" data-bind="attr: { title: $root.t('Send Test email') }, click: $root.test.send.execute, button: { disabled: $root.test.send.disabled, label: $root.t('Send Test Email'), showLabel: true }"># send test email #</a>
+      <a class="loadbutton" title="Send Test Email" href="javascript:void(0)" data-bind="attr: { title: $root.t('Send Test email') }, click: $root.tests.send.execute, button: { disabled: $root.tests.send.disabled, label: $root.t('Send Test Email'), showLabel: true }"># send test email #</a>
     </div>
   </div>
 </div>
@@ -305,10 +305,10 @@
   <span class="pane-title" data-bind="text: $root.t('Inbox Preview Assistant:')">Inbox Preview Assistant:</span>
 
   <div class="pane-content">
-    <div class="galleryEmpty" data-bind="text: $root.t('Inbox Preview Assistant')"></div>
+    <div class="galleryEmpty" data-bind="text: $root.tests.inboxPreview.strings.recommendation"># Inbox preview assistant #</div>
 
     <div style="text-align: right;padding-right: 8px;">
-      <a class="loadbutton" title="Run Preview Test" href="javascript:void(0)" data-bind="attr: { title: $root.t('Run Preview Test') }, click: $root.test.inboxPreview.execute, button: { disabled: $root.test.inboxPreview.disabled, label: $root.t('Run Preview Test'), showLabel: true }"># run preview test #</a>
+      <a class="loadbutton" title="Run Preview Test" href="javascript:void(0)" data-bind="attr: { title: $root.t('Run Preview Test') }, click: $root.tests.inboxPreview.execute, button: { disabled: $root.tests.inboxPreview.disabled, label: $root.t('Run Preview Test'), showLabel: true }"># run preview test #</a>
     </div>
   </div>
 </div>

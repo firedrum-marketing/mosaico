@@ -38,6 +38,7 @@ var listFiles = function (req, options, callback) {
             var stats = fs.statSync(options.uploadDir + '/' + name);
             if (stats.isFile()) {
                 var file = {
+                    attributes: '-rwxrwxrwx',
                     name: name,
                     url: uploadHost + options.uploadUrl + '/' + name,
                     size: stats.size
@@ -51,7 +52,7 @@ var listFiles = function (req, options, callback) {
                     });
                 });
                 files.push(file);
-            }
+            } 
         }, this);
         finish();
     }, this));

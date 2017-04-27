@@ -49,14 +49,22 @@ function wrap(v) {
 
 // TODO the "select widget" uses its own _getOptionsObject to read and parse the "option" string
 //      we should merge the logic.
-var _getOptionsObjectKeys = function(options) {
+var _getOptionsObject = function(options) {
+  var result = {
+    opts: {},
+    order: []
+  };
   var optionsCouples = options.split('|');
-  var opts = [];
   for (var i = 0; i < optionsCouples.length; i++) {
     var opt = optionsCouples[i].split('=');
-    opts.push(opt[0].trim());
+    var existingItemIndex = result.order.indexOf( opt[0] );
+    if ( existingItemIndex > -1 ) {
+        result.order.splice( existingItemIndex, 1 );
+    }
+    result.order.push( opt[0] );
+    result.opts[opt[0]] = opt.length > 1 ? opt[1] : opt[0];
   }
-  return opts;
+  return result;
 };
 
 // generate a computed variable handling the fallback to theme variable
@@ -118,6 +126,48 @@ var _nextVariantFunction = function(ko, prop, variants) {
   prop(nextValue);
 };
 
+var _generateConditionalCommentData = function(def, defs, ko, type, t) {
+  for (var prop in def)
+    if (def.hasOwnProperty(prop)) {
+      var val = def[prop];
+      var newType = type + ' ' + prop;
+      if ((defs.hasOwnProperty(prop) || defs.hasOwnProperty(newType)) && typeof val == 'object' && val !== null) {
+        if (typeof val._widget != 'undefined' && (val._widget === 'text' || val._widget === 'longtext')) {
+          // Handle conditional comment versions of text and longtext widgets
+          t[prop + 'MAGForConditional'] = ko.pureComputed( function(textObservable) {
+            var textObservableValue = textObservable();
+            return typeof textObservableValue === 'string' ? textObservableValue.replace(/<([A-Za-z:]+)/g, '<!-- cc:bo:$1 --><cc') // before open tag
+              .replace(/<\/([A-Za-z:]+)>/g,'<!-- cc:bc:$1 --></cc><!-- cc:ac:$1 -->') // before/after close tag
+              .replace(/\/>/g,'/><!-- cc:sc -->') : textObservableValue;
+          }.bind(undefined, t[prop]) );
+        } else if (typeof t[prop] === 'function') {
+          _generateConditionalCommentData(defs[newType] || defs[prop], defs, ko, newType, t[prop]());
+        }
+      }
+    }
+};
+
+var _generateSelectDefinitionLabels = function(def, defs, ko, type, t) {
+  for (var prop in def)
+    if (def.hasOwnProperty(prop)) {
+      var val = def[prop];
+      var newType = type + ' ' + prop;
+      if ((defs.hasOwnProperty(prop) || defs.hasOwnProperty(newType)) && typeof val == 'object' && val !== null) {
+        if (typeof val._widget != 'undefined' && val._widget === 'select' && typeof val._options != 'undefined') {
+
+          // Handle select label subscriptions/observables
+          var opts = _getOptionsObject(val._options);
+          t[prop + 'MAGLabel'] = ko.observable(opts.opts[t[prop]()]);
+          t[prop].subscribe( function(labelObservable, selectOptions, newValue) {
+            labelObservable(selectOptions.opts[newValue]);
+          }.bind(undefined, t[prop + 'MAGLabel'], opts) );
+        } else if (typeof t[prop] === 'function') {
+          _generateSelectDefinitionLabels(defs[newType] || defs[prop], defs, ko, newType, t[prop]());
+        }
+      }
+    }
+};
+
 var _getVariants = function(def) {
   var variantProp = def._variant;
   var variantOptions;
@@ -125,12 +175,51 @@ var _getVariants = function(def) {
     console.error("Unexpected variant declaration", variantProp, def[variantProp]);
     throw "Unexpected variant declaration: cannot find property " + variantProp + " or its _options string and it is not a boolean";
   }
+
   if (typeof def[variantProp]._options == 'string') {
-    variantOptions = _getOptionsObjectKeys(def[variantProp]._options);
+    variantOptions = _getOptionsObject(def[variantProp]._options).order;
   } else {
     variantOptions = [true, false];
   }
   return variantOptions;
+};
+
+var _getImageHeights = function(t, def) {
+  if (typeof def._imageHeights !== 'string') {
+    console.error("Unexpected images declaration", def._imageHeights);
+    throw "Unexpected images declaration";
+  }
+
+  var imageHeights = [];
+  var imageHeightProps = _getOptionsObject(def._imageHeights).order;
+  for (var h1 = 0; h1 < imageHeightProps.length; h1++) {
+    var hpParts = imageHeightProps[h1].split('.');
+    var hpTarget = t;
+    for (var h2 = 0; h2 < hpParts.length; h2++) {
+      hpTarget = ko.utils.unwrapObservable(hpTarget)[hpParts[h2]];
+    }
+    imageHeights.push(hpTarget);
+  }
+  return imageHeights;
+};
+
+var _getImageWidths = function(t, def) {
+  if (typeof def._imageWidths !== 'string') {
+    console.error("Unexpected image widths declaration", def._imageWidths);
+    throw "Unexpected image widths declaration";
+  }
+
+  var imageWidths = [];
+  var imageWidthProps = _getOptionsObject(def._imageWidths).order;
+  for (var w1 = 0; w1 < imageWidthProps.length; w1++) {
+    var wpParts = imageWidthProps[w1].split('.');
+    var wpTarget = t;
+    for (var w2 = 0; w2 < wpParts.length; w2++) {
+      wpTarget = ko.utils.unwrapObservable(wpTarget)[wpParts[w2]];
+    }
+    imageWidths.push(wpTarget);
+  }
+  return imageWidths;
 };
 
 var _makeComputedFunction = function(def, defs, thms, ko, contentModel, isContent, t) {
@@ -222,32 +311,73 @@ var _makeComputedFunction = function(def, defs, thms, ko, contentModel, isConten
     pParent._nextVariant = _nextVariantFunction.bind(pTarget, ko, pTarget, _getVariants(def));
   }
 
+  if (typeof def._automaticImageHeight != 'undefined') {
+    var hParts = def._automaticImageHeight.split('.');
+    // looks in t and not contentModel because variants are declared on single blocks.
+    var hTarget = t;
+    var hParent = ko.utils.unwrapObservable(t);
+    for (var i5 = 0; i5 < hParts.length; i5++) {
+      hTarget = ko.utils.unwrapObservable(hTarget)[hParts[i5]];
+    }
+    if (typeof hTarget._defaultComputed != 'undefined') {
+      console.log("Found automatic image height on a style property: beware automatic image heights should be only used on content properties because they don't match the theme fallback behaviour", def._automaticImageHeight);
+      hTarget = hTarget._defaultComputed;
+    }
+    if (typeof hTarget == 'undefined') {
+      console.log("ERROR looking for automatic image height target", def._automaticImageHeight, t);
+      throw "ERROR looking for automatic image height target " + def._automaticImageHeight;
+    }
+    hParent._setAutomaticImageHeight = ko.computed(function(automaticImageHeight, imageHeights, manualImageHeight) {
+      var heights = [];
+      for (var i6 = 0; i6 < imageHeights.length; i6++) {
+        heights.push(imageHeights[i6]());
+      }
+      ko.ignoreDependencies(function(automaticImageHeights, imageHeights, manualImageHeight) {
+        if (!manualImageHeight()) {
+          var largestHeight = Math.max.apply(null, imageHeights);
+          if (largestHeight > 0) {
+            automaticImageHeight(largestHeight);
+          }
+        }
+      }, this, [automaticImageHeight, heights, manualImageHeight]);
+    }.bind(hParent, hTarget, _getImageHeights(t, def), typeof hParent['manualImageHeight'] === 'function' ? hParent['manualImageHeight'] : function() {return false;}));
+  }
+
   for (var prop2 in def)
     if (def.hasOwnProperty(prop2)) {
       var val = def[prop2];
-      if (typeof val == 'object' && val !== null && typeof val._context != 'undefined' && val._context == 'block') {
-        var propVm = contentModel[prop2]();
-        var newVm = _makeComputedFunction(defs[prop2], defs, thms, ko, contentModel, isContent, propVm);
-        t[prop2](newVm);
-      } else if (typeof val == 'object' && val !== null && val.type == 'blocks') {
-        var mainVm = contentModel[prop2]();
-        var blocksVm = mainVm.blocks();
-        var oldBlock, blockType, newBlock;
-        for (var ib = 0; ib < blocksVm.length; ib++) {
-          oldBlock = ko.utils.unwrapObservable(blocksVm[ib]);
-          blockType = ko.utils.unwrapObservable(oldBlock.type);
-          newBlock = _makeComputedFunction(defs[blockType], defs, thms, ko, contentModel, isContent, oldBlock);
-          blocksVm[ib](newBlock);
+      if (typeof val == 'object' && val !== null) {
+        if (typeof val._context != 'undefined' && val._context == 'block') {
+          var propVm = contentModel[prop2]();
+          var newVm = _makeComputedFunction(defs[prop2], defs, thms, ko, contentModel, isContent, propVm);
+          t[prop2](newVm);
+          _generateSelectDefinitionLabels(defs[prop2], defs, ko, val.type, newVm);
+          _generateConditionalCommentData(defs[prop2], defs, ko, val.type, newVm);
+        } else if (val.type == 'blocks') {
+          var mainVm = contentModel[prop2]();
+          var blocksVm = mainVm.blocks();
+          var oldBlock, blockType, newBlock;
+          for (var ib = 0; ib < blocksVm.length; ib++) {
+            oldBlock = ko.utils.unwrapObservable(blocksVm[ib]);
+            blockType = ko.utils.unwrapObservable(oldBlock.type);
+            newBlock = _makeComputedFunction(defs[blockType], defs, thms, ko, contentModel, isContent, oldBlock);
+            blocksVm[ib](newBlock);
+          }
+
+          var blocksObs = mainVm.blocks;
+
+          _augmentBlocksObservable(blocksObs, _blockInstrumentFunction.bind(mainVm, undefined, defs, thms, ko, undefined, contentModel, isContent));
+
+          contentModel[prop2]._wrap = _makeBlocksWrap.bind(contentModel[prop2], blocksObs._instrumentBlock);
+          contentModel[prop2]._unwrap = _unwrap.bind(contentModel[prop2]);
         }
-
-        var blocksObs = mainVm.blocks;
-
-        _augmentBlocksObservable(blocksObs, _blockInstrumentFunction.bind(mainVm, undefined, defs, thms, ko, undefined, contentModel, isContent));
-
-        contentModel[prop2]._wrap = _makeBlocksWrap.bind(contentModel[prop2], blocksObs._instrumentBlock);
-        contentModel[prop2]._unwrap = _unwrap.bind(contentModel[prop2]);
       }
     }
+
+  if (typeof def._context != 'undefined' && def._context == 'block') {
+    _generateSelectDefinitionLabels(def, defs, ko, def.type, t);
+    _generateConditionalCommentData(def, defs, ko, def.type, t);
+  }
 
   return t;
 };

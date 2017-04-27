@@ -44,9 +44,9 @@
     <!-- ko if: $index() >= $parent.blocks().length - 1 -->
     <div class="tool nomovedown"></div>
     <!-- /ko -->
-      <!-- ko if: typeof $data._nextVariant != 'undefined' --><div title="Switch block variant" class="tool variant" data-bind="attr: { title: $root.t('Switch block variant') }, click: $data._nextVariant"><i class="fa fa-fw fa-magic"></i></div><!-- /ko -->
-      <!-- ko if: typeof $data._nextVariant === 'undefined' --><div class="tool novariants"></div><!-- /ko -->
-      <div title="Delete block" class="tool delete" data-bind="attr: { title: $root.t('Delete block') }, click: $root.removeBlock.bind($element, $rawData, $parent)"><i class="fa fa-fw fa-trash-o"></i></div>
+	  <!-- ko if: typeof $data._nextVariant != 'undefined' --><div title="Switch block variant" class="tool variant" data-bind="attr: { title: $root.t('Switch block variant') }, click: $data._nextVariant"><i class="fa fa-fw fa-magic"></i></div><!-- /ko -->
+	  <!-- ko if: typeof $data._nextVariant === 'undefined' --><div class="tool novariants"></div><!-- /ko -->
+	  <div title="Delete block" class="tool delete" data-bind="attr: { title: $root.t('Delete block') }, click: $root.removeBlock.bind($element, $rawData, $parent)"><i class="fa fa-fw fa-trash-o"></i></div>
     <div title="Duplicate block" class="tool clone" data-bind="attr: { title: $root.t('Duplicate block') }, click: $root.duplicateBlock.bind($element, $index, $parent)"><i class="fa fa-fw fa-files-o"></i></div>
     <div class="tool dummy"></div>
     <!-- /ko -->

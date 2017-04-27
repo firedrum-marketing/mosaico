@@ -57,15 +57,16 @@ var lsCommandPluginFactory = function(md, emailProcessorBackend) {
         global.alert(viewModel.t('This feature is not supported by your browser'));
         testCmd.enabled(true);
       } else {
-        email = global.prompt(viewModel.t("Test email address"), email);
+      email = global.prompt(viewModel.t("Test email address"), email);
         if (typeof email !== 'undefined' && email !== null && email.match(/@/)) {
-          global.localStorage.setItem("testemail", email);
+        global.localStorage.setItem("testemail", email);
+        viewModel.exportHTML( function(documentElement, url, querystring, callback) {
           var postUrl = emailProcessorBackend ? emailProcessorBackend : '/dl/';
           var post = $.post(postUrl, {
             action: 'email',
             rcpt: email,
             subject: "[test] " + mdkey + " - " + mdname,
-            html: viewModel.exportHTML()
+            html: callback()
           }, null, 'html');
           post.fail(function() {
             console.log("fail", arguments);
@@ -78,20 +79,22 @@ var lsCommandPluginFactory = function(md, emailProcessorBackend) {
           post.always(function() {
             testCmd.enabled(true);
           });
-        } else {
-          global.alert(viewModel.t('Invalid email address'));
-          testCmd.enabled(true);
-        }
+        } );
+      } else {
+        global.alert(viewModel.t('Invalid email address'));
+        testCmd.enabled(true);
+      }
       }
     };
     downloadCmd.execute = function() {
       downloadCmd.enabled(false);
       viewModel.notifier.info(viewModel.t("Downloading..."));
-      viewModel.exportHTMLtoTextarea('#downloadHtmlTextarea');
-      var postUrl = emailProcessorBackend ? emailProcessorBackend : '/dl/';
-      global.document.getElementById('downloadForm').setAttribute("action", postUrl);
-      global.document.getElementById('downloadForm').submit();
-      downloadCmd.enabled(true);
+      viewModel.exportHTMLtoTextarea('#downloadHtmlTextarea', function() {
+        var postUrl = emailProcessorBackend ? emailProcessorBackend : '/dl/';
+        global.document.getElementById('downloadForm').setAttribute("action", postUrl);
+        global.document.getElementById('downloadForm').submit();
+        downloadCmd.enabled(true);
+      });
     };
 
     viewModel.save = saveCmd;

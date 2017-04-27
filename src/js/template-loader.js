@@ -51,7 +51,7 @@ var bindingPluginMaker = function(performanceAwareCaller, options) {
   return {
     viewModel: function(viewModel) {
       try {
-        performanceAwareCaller('applyBindings', ko.applyBindings.bind(undefined, viewModel, options.mainElement));
+        performanceAwareCaller('applyBindings', ko.applyBindings.bind(undefined, viewModel, typeof options.mainElement !== 'undefined' ? options.mainElement : global.document.body));
       } catch (err) {
         console.warn(err, err.stack);
         throw err;
@@ -273,17 +273,21 @@ var templateCompiler = function(performanceAwareCaller, templateUrlConverter, te
       }
     }
 
-    // This build the template for the preview/output, but concatenating prefix, template and content and stripping the "replaced" prefix added to "problematic" tag (html/head/body)
-    var iframeTpl = prefix + templateSystem.getTemplateContent(templateName + '-iframe').replace(/(<\/?)replaced(html|head|body)([^>]*>)/gi, function(match, p1, p2, p3) {
+    // This builds the template for the preview/output by concatenating prefix, template and content and stripping the "replaced" prefix added to "problematic" tags (i.e. html/head/body)
+    var iframeTplDoctype = prefix;
+    var iframeTplDocument = templateSystem.getTemplateContent(templateName + '-iframe').replace(/(<\/?)replaced(html|head|body)([^>]*>)/gi, function(match, p1, p2, p3) {
       return p1 + p2 + p3;
     }) + postfix;
 
     // store this so to restore it on disposal
-    var origiFrameTpl = ko.bindingHandlers.bindIframe.tpl;
-    ko.bindingHandlers.bindIframe.tpl = iframeTpl;
+    var origiFrameTplDoctype = ko.bindingHandlers.bindIframe.tplDoctype;
+    var origiFrameTplDocument = ko.bindingHandlers.bindIframe.tplDocument;
+    ko.bindingHandlers.bindIframe.tplDoctype = iframeTplDoctype;
+    ko.bindingHandlers.bindIframe.tplDocument = iframeTplDocument;
     var iFramePlugin = {
       dispose: function() {
-        ko.bindingHandlers.bindIframe.tpl = origiFrameTpl;
+        ko.bindingHandlers.bindIframe.tplDoctype = origiFrameTplDoctype;
+        ko.bindingHandlers.bindIframe.tplDocument = origiFrameTplDocument;
       }
     };
 
@@ -292,6 +296,7 @@ var templateCompiler = function(performanceAwareCaller, templateUrlConverter, te
 
     // initialize the viewModel object based on the content model.
     var viewModel = performanceAwareCaller('initializeViewmodel', initializeViewmodel.bind(this, content, blockDefs, templateUrlConverter, galleryUrl));
+    viewModel.mosaicoConfig = options;
     if (typeof options.additionalModel === 'string' && typeof templateDef._defs[options.additionalModel] != 'undefined') {
       templateDef._defs[options.additionalModel]._props.split(' ').forEach(function(additionalProp) {
         viewModel[additionalProp] = performanceAwareCaller('generateAdditionalModel', templateConverter.wrappedModel.bind(undefined, templateDef, additionalProp));
@@ -338,9 +343,9 @@ var templateCompiler = function(performanceAwareCaller, templateUrlConverter, te
     pluginsCall(plugins, 'viewModel', [viewModel]);
 
     if (incompatibleTemplate) {
-      $('#incompatible-template').dialog({
+      $('#incompatible-template', typeof options.mainElement !== 'undefined' ? options.mainElement : global.document.body).dialog({
         modal: true,
-        appendTo: '#mo-body',
+        appendTo: typeof options.mainElement !== 'undefined' ? options.mainElement : global.document.body,
         buttons: {
           Ok: function() {
             $(this).dialog("close");
@@ -433,8 +438,10 @@ var isCompatible = function() {
 
 var checkBadBrowserExtensions = function() {
   var id = 'checkbadbrowsersframe';
-  var origTpl = ko.bindingHandlers.bindIframe.tpl;
-  ko.bindingHandlers.bindIframe.tpl = "<!DOCTYPE html>\r\n<html>\r\n<head><title>A</title>\r\n</head>\r\n<body><p style=\"color: blue\" align=\"right\" data-bind=\"style: { color: 'red' }\">B</p><div data-bind=\"text: content\"></div></body>\r\n</html>\r\n";
+  var origTplDoctype = ko.bindingHandlers.bindIframe.tplDoctype;
+  var origTplDocument = ko.bindingHandlers.bindIframe.tplDocument;
+  ko.bindingHandlers.bindIframe.tplDoctype = "<!DOCTYPE html>\r\n";
+  ko.bindingHandlers.bindIframe.tplDocument = "<html>\r\n<head><title>A</title>\r\n</head>\r\n<body><p style=\"color: blue\" align=\"right\" data-bind=\"style: { color: 'red' }\">B</p><div data-bind=\"text: content\"></div></body>\r\n</html>\r\n";
   $('body').append('<iframe id="' + id + '" data-bind="bindIframe: $data"></iframe>');
   var frameEl = global.document.getElementById(id);
   ko.applyBindings({ content: "dummy content" }, frameEl);
@@ -448,7 +455,8 @@ var checkBadBrowserExtensions = function() {
   var content = docType + "\n" + frameEl.contentWindow.document.documentElement.outerHTML;
   ko.cleanNode(frameEl);
   ko.removeNode(frameEl);
-  ko.bindingHandlers.bindIframe.tpl = origTpl;
+  ko.bindingHandlers.bindIframe.tplDoctype = origTplDoctype;
+  ko.bindingHandlers.bindIframe.tplDocument = origTplDocument;
 
   var expected = "<!DOCTYPE html>\n<html><head><title>A</title>\n</head>\n<body><p align=\"right\" style=\"color: red;\" data-bind=\"style: { color: 'red' }\">B</p><div data-bind=\"text: content\">dummy content</div>\n\n</body></html>";
   var expected2 = "<!DOCTYPE html>\n<html><head><title>A</title>\n</head>\n<body><p style=\"color: red;\" data-bind=\"style: { color: 'red' }\" align=\"right\">B</p><div data-bind=\"text: content\">dummy content</div>\n\n</body></html>";

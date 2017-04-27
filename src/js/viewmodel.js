@@ -173,7 +173,7 @@ function initializeEditor(content, blockDefs, thumbPathConverter, galleryUrl) {
 
   // gallery-images.tmpl.html
   viewModel.addImage = function(img) {
-    var selectedImg = $('#main-wysiwyg-area .selectable-img.selecteditem');
+    var selectedImg = $('#main-wysiwyg-area .selectable-img.selecteditem', (this.mosaicoConfig && this.mosaicoConfig.mainElement) || global.document.body);
     if (selectedImg.length == 1 && typeof img == 'object' && typeof img.url !== 'undefined') {
       ko.contextFor(selectedImg[0])._src(img.url);
       return true;
@@ -347,9 +347,11 @@ function initializeEditor(content, blockDefs, thumbPathConverter, galleryUrl) {
     global.setTimeout(viewModel.loopSubscriptionsCount, 1000);
   };
 
-  viewModel.export = function() {
-    var content = performanceAwareCaller("exportHTML", viewModel.exportHTML);
-    return content;
+  viewModel.export = function(callback) {
+    performanceAwareCaller("exportHTML", viewModel.exportHTML, {
+      callbacks: [0],
+      args: [callback]
+    });
   };
 
   function conditional_restore(html) {
@@ -362,6 +364,8 @@ function initializeEditor(content, blockDefs, thumbPathConverter, galleryUrl) {
             .replace(/<!-- cc:end -->.*$/,''); // remove content after end
       dd += '<![endif]-->';
       return dd;
+    }).replace(/<!-- ccr:start:(.*?) -->([\s\S]*?)<!-- ccr:end -->/g, function(match, condition, body) {
+      return '<!--[if '+condition+']><!-->'+body+'<!--<![endif]-->';
     });
   }
 
@@ -379,69 +383,84 @@ function initializeEditor(content, blockDefs, thumbPathConverter, galleryUrl) {
   };
 
   viewModel.exportHTML = function(callback) {
-    var id = 'exportframe';
-    $('body').append('<iframe id="' + id + '" data-bind="bindIframe: $data"></iframe>');
-    var frameEl = global.document.getElementById(id);
-    ko.applyBindings(viewModel, frameEl);
-
-    ko.cleanNode(frameEl);
-
-    if (viewModel.inline) viewModel.inline(frameEl.contentWindow.document);
-    
-    var completeExport = function() {
-      // Obsolete method didn't work on IE11 when using "HTML5 doctype":
-      // var docType = new XMLSerializer().serializeToString(global.document.doctype);
-      var docType = "";
-      var node = frameEl.contentWindow.document.doctype;
-      docType = "<!DOCTYPE " + node.name +
-        (node.publicId ? ' PUBLIC "' + node.publicId + '"' : '') +
-        (!node.publicId && node.systemId ? ' SYSTEM' : '') +
-        (node.systemId ? ' "' + node.systemId + '"' : '') + '>';
-    
-      var content = docType + '\n' + frameEl.contentWindow.document.documentElement.outerHTML;
-      ko.removeNode(frameEl);
-
-      content = content.replace(/<script ([^>]* )?type="text\/html"[^>]*>[\s\S]*?<\/script>/gm, '');
-      // content = content.replace(/<!-- ko .*? -->/g, ''); // sometimes we have expressions like (<!-- ko var > 2 -->)
-      content = content.replace(/<!-- ko ((?!--).)*? -->/g, ''); // this replaces the above with a more formal (but slower) solution
-      content = content.replace(/<!-- \/ko -->/g, '');
-      // Remove data-bind/data-block attributes
-      content = content.replace(/ data-bind="[^"]*"/gm, '');
-      // Remove trash leftover by TinyMCE
-      content = content.replace(/ data-mce-(href|src|style)="[^"]*"/gm, '');
-
-      // Replace "replacedstyle" to "style" attributes (chrome puts replacedstyle after style)
-      content = content.replace(/ style="[^"]*"([^>]*) replaced(style="[^"]*")/gm, '$1 $2');
-      // Replace "replacedstyle" to "style" attributes (ie/ff have reverse order)
-      content = content.replace(/ replaced(style="[^"]*")([^>]*) style="[^"]*"/gm, ' $1$2');
-      content = content.replace(/ replaced(style="[^"]*")/gm, ' $1');
-
-      // same as style, but for http-equiv (some browser break it if we don't replace, but then we find it duplicated)
-      content = content.replace(/ http-equiv="[^"]*"([^>]*) replaced(http-equiv="[^"]*")/gm, '$1 $2');
-      content = content.replace(/ replaced(http-equiv="[^"]*")([^>]*) http-equiv="[^"]*"/gm, ' $1$2');
-      content = content.replace(/ replaced(http-equiv="[^"]*")/gm, ' $1');
-
-      // We already replace style and http-equiv and we don't need this.
-      // content = content.replace(/ replaced([^= ]*=)/gm, ' $1');
-      // Restore conditional comments
-      content = conditional_restore(content);
-      var trash = content.match(/ data-[^ =]+(="[^"]+")? /) || content.match(/ replaced([^= ]*=)/);
-      if (trash) {
-        console.warn("Output HTML contains unexpected data- attributes or replaced attributes", trash);
+    var beginExport = function() {
+      var id = 'exportframe';
+      var frameEl = global.document.getElementById(id);
+      if (frameEl === null) {
+          $('body').append('<iframe id="' + id + '"></iframe>');
+          frameEl = global.document.getElementById(id);
       }
 
-      return content;
-	};
+      // Prevent issue in Chrome (and maybe other WebKit?) where removing an iframe from the DOM that has been bound to the viewmodel blanks out images in the main editor and preview panes
+      frameEl.contentWindow.document.write( ko.bindingHandlers.bindIframe.tplDoctype + $('#main-preview iframe')[0].contentWindow.document.documentElement.outerHTML );
+      frameEl.contentWindow.document.close();
+
+      if (viewModel.inline) viewModel.inline(frameEl.contentWindow.document);
+
+      var completeExport = function() {
+        // Obsolete method didn't work on IE11 when using "HTML5 doctype":
+        // var docType = new XMLSerializer().serializeToString(global.document.doctype);
+        var docType = "";
+        var node = frameEl.contentWindow.document.doctype;
+        docType = "<!DOCTYPE " + node.name +
+          (node.publicId ? ' PUBLIC "' + node.publicId + '"' : '') +
+          (!node.publicId && node.systemId ? ' SYSTEM' : '') +
+          (node.systemId ? ' "' + node.systemId + '"' : '') + '>';
+
+        var content = docType + '\n' + frameEl.contentWindow.document.documentElement.outerHTML;
+
+        content = content.replace(/<script ([^>]* )?type="text\/html"[^>]*>[\s\S]*?<\/script>/gm, '');
+        // content = content.replace(/<!-- ko .*? -->/g, ''); // sometimes we have expressions like (<!-- ko var > 2 -->)
+        content = content.replace(/<!-- ko ((?!--).)*? -->/g, ''); // this replaces the above with a more formal (but slower) solution
+        content = content.replace(/<!-- \/ko -->/g, '');
+        // Remove data-bind/data-block attributes
+        content = content.replace(/ data-bind="[^"]*"/gm, '');
+        // Remove trash leftover by TinyMCE
+        content = content.replace(/ data-mce-(href|src|style)="[^"]*"/gm, '');
+
+        // Replace "replacedstyle" to "style" attributes (chrome puts replacedstyle after style)
+        content = content.replace(/ style="[^"]*"([^>]*) replaced(style="[^"]*")/gm, '$1 $2');
+        // Replace "replacedstyle" to "style" attributes (ie/ff have reverse order)
+        content = content.replace(/ replaced(style="[^"]*")([^>]*) style="[^"]*"/gm, ' $1$2');
+        content = content.replace(/ replaced(style="[^"]*")/gm, ' $1');
+
+        // same as style, but for http-equiv (some browser break it if we don't replace, but then we find it duplicated)
+        content = content.replace(/ http-equiv="[^"]*"([^>]*) replaced(http-equiv="[^"]*")/gm, '$1 $2');
+        content = content.replace(/ replaced(http-equiv="[^"]*")([^>]*) http-equiv="[^"]*"/gm, ' $1$2');
+        content = content.replace(/ replaced(http-equiv="[^"]*")/gm, ' $1');
+
+        // We already replace style and http-equiv and we don't need this.
+        // content = content.replace(/ replaced([^= ]*=)/gm, ' $1');
+        // Restore conditional comments
+        content = conditional_restore(content);
+        var trash = content.match(/ data-[^ =]+(="[^"]+")? /) || content.match(/ replaced([^= ]*=)/);
+        if (trash) {
+          console.warn("Output HTML contains unexpected data- attributes or replaced attributes", trash);
+        }
+
+        return content;
+      };
+      
+      callback(frameEl.contentWindow.document.documentElement, url, querystring, completeExport );
+    };
     
-    if ( typeof callback === 'function' ) {
-        callback(frameEl.contentWindow.document.documentElement, url, querystring, completeExport );
-	} else {
-		return completeExport();
-	}
+    if (ko.bindingHandlers.wysiwygSrc.waitingImages() > 0) {
+      var subscription = ko.bindingHandlers.wysiwygSrc.waitingImages.subscribe(function(newValue) {
+        if (newValue === 0) {
+          beginExport();
+          subscription.dispose();
+        }
+      });
+    } else {
+      beginExport();
+    }
   };
 
-  viewModel.exportHTMLtoTextarea = function(textareaid) {
-    $(textareaid).val(viewModel.exportHTML());
+  viewModel.exportHTMLtoTextarea = function(textareaid, textareaReadyCallback) {
+    viewModel.exportHTML(function(documentElement, url, querystring, callback) {
+      $(textareaid).val(callback());
+      textareaReadyCallback();
+    });
   };
 
   viewModel.exportJSONtoTextarea = function(textareaid) {

@@ -1,4 +1,4 @@
-<div id="page" style="display: none;" data-bind="visible: true, css: { withToolbox: $root.showToolbox, withPreviewFrame: showPreviewFrame, desktop: $root.previewMode() == 'desktop', mobile: $root.previewMode() == 'mobile', large: $root.previewMode() == 'large' }, event: {click: function(data, event) { if ( !$.contains( $( '#testMenu' )[0], event.target ) ) { $root.showTestMenu(false); } return true;}}">
+<div id="page" style="display: none;" data-bind="visible: true, css: { withToolbox: $root.showToolbox, withPreviewFrame: showPreviewFrame, desktop: $root.previewMode() == 'desktop', mobile: $root.previewMode() == 'mobile', large: $root.previewMode() == 'large' }, event: {click: function(data, event) { var testMenu = Mosaico.$( '#testMenu' ); if ( !!testMenu.length && !Mosaico.$.contains( testMenu[0], event.target ) ) { $root.showTestMenu(false); } return true;}}">
   <div id="main-edit-area" data-bind="click: function(obj, evt) { $root.selectBlock(null); return true; }, clickBubble: false">
     <div id="main-tinymce-toolbar"></div>
     <!-- ko withProperties: { templateMode: 'wysiwyg', templateModeFallback: 'show' } -->
@@ -31,17 +31,17 @@
     </span>
     <!-- /ko -->
 
-    <!-- ko if: typeof $root.test !== 'undefined' -->
+    <!-- ko if: typeof $root.tests !== 'undefined' -->
     <div id="testMenu">
       <a href="javascript:void(0)" data-bind="button: { icon: 'fa fa-fw fa-flask', label: $root.t('Test'), showLabel: true }">TEST</a>
       <div>
-        <!-- ko if: typeof $root.test.eoa != 'undefined' -->
-        <a href="javascript:void(0)" data-bind="click: $root.testMode.bind($root.testMode, 'eoa'), clickBubble: false, button: { icon: 'fa fa-fw fa-search', label: $root.t('Inbox Preview Assistant'), showLabel: true }">INBOX PREVIEW ASSISTANT</a>
+        <!-- ko if: typeof $root.tests.inboxPreview != 'undefined' -->
+        <a href="javascript:void(0)" data-bind="click: $root.testMode.bind($root.testMode, 'inboxPreview'), clickBubble: false, button: { icon: 'fa fa-fw fa-search', label: $root.t('Inbox Preview Assistant'), showLabel: true }">INBOX PREVIEW ASSISTANT</a>
         <!-- /ko -->
-        <!-- ko if: typeof $root.test.send != 'undefined' -->
+        <!-- ko if: typeof $root.tests.send != 'undefined' -->
         <a href="javascript:void(0)" data-bind="click: $root.testMode.bind($root.testMode, 'send'), clickBubble: false, button: { icon: 'fa fa-fw fa-paper-plane-o', label: $root.t('Send a Test Email'), showLabel: true }">SEND A TEST EMAIL</a>
         <!-- /ko -->
-        <!-- ko if: typeof $root.test.spamassassin != 'undefined' -->
+        <!-- ko if: typeof $root.tests.spamassassin != 'undefined' -->
         <a href="javascript:void(0)" data-bind="click: $root.testMode.bind($root.testMode, 'spamassassin'), clickBubble: false, button: { icon: 'fa fa-fw fa-bolt', label: $root.t('Content Spam Checker'), showLabel: true }">CONTENT SPAM CHECKER</a>
         <!-- /ko -->
       </div>
@@ -95,9 +95,12 @@
     <!-- ko if: typeof $root.continue !== 'undefined' -->
     <div id="saveMenu">
       <a href="javascript:void(0)" data-bind="click: $root.continue.execute.bind($element, true) , clickBubble: false, button: { disabled: !$root.continue.enabled(), icon: 'fa fa-fw fa-arrow-circle-right', label: $root.t($root.continue.name), showLabel: true }">SAVE AND CONTINUE</a>
+      <!-- ko if: (typeof $root.continue.name2 !== 'undefined' || typeof $root.continue.name3 !== 'undefined') -->
       <div>
-        <a href="javascript:void(0)" data-bind="click: $root.continue.execute.bind($element, false), clickBubble: false, button: { disabled: !$root.continue.enabled(), icon: 'fa fa-fw fa-floppy-o', label: $root.t($root.continue.name2), showLabel: true }">SAVE</a>
+        <!-- ko if: typeof $root.continue.name2 !== 'undefined' --><a href="javascript:void(0)" data-bind="click: $root.continue.execute.bind($element, false), clickBubble: false, button: { disabled: !$root.continue.enabled(), icon: 'fa fa-fw fa-floppy-o', label: $root.t($root.continue.name2), showLabel: true }">SAVE</a><!-- /ko -->
+        <!-- ko if: typeof $root.continue.name3 !== 'undefined' --><a href="javascript:void(0)" data-bind="click: $root.continue.execute.bind($element, false, true), clickBubble: false, button: { disabled: !$root.continue.enabled(), icon: 'fa fa-fw fa-file-text-o', label: $root.t($root.continue.name3), showLabel: true }">SAVE AS TEMPLATE</a><!-- /ko -->
       </div>
+      <!-- /ko -->
     </div>
     <!-- /ko -->
     </div>

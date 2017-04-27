@@ -1,23 +1,31 @@
 "use strict";
 
 var console = require("console");
-var elaborateDeclarations = require("./declarations.js");
+var declarations = require("./declarations.js");
 var utils = require('./utils.js');
 var modelDef = require('./model.js');
 
 var _getOptionsObject = function(options) {
+  var result = {
+    opts: {},
+    order: []
+  };
   var optionsCouples = options.split('|');
-  var opts = {};
   for (var i = 0; i < optionsCouples.length; i++) {
     var opt = optionsCouples[i].split('=');
-    opts[opt[0].trim()] = opt.length > 1 ? opt[1].trim() : opt[0].trim();
+    var existingItemIndex = result.order.indexOf( opt[0].trim() );
+    if ( existingItemIndex > -1 ) {
+        result.order.splice( existingItemIndex, 1 );
+    }
+    result.order.push( opt[0].trim() );
+    result.opts[opt[0].trim()] = opt.length > 1 ? opt[1].trim() : opt[0].trim();
   }
-  return opts;
+  return result;
 };
 
 // TODO this should not have hardcoded rules (we now have a way to declare them in the template definition)
 // Category "style" is used by editType "styler"
-// Cateogry "content" is used by editType "edit"
+// Category "content" is used by editType "edit"
 // TODO maybe we should use a common string here, and rely only on the original category.
 var _filterProps = function(model, editType, level) {
   var res = [];
@@ -49,23 +57,46 @@ var _propInput = function(model, prop, propAccessor, editType, widgets) {
 
   var eventbinding = {};
   var isfirstevent = true;
+  //var isfirstoption = true;
+  var i;
+  var key;
   var evt;
   
   // For content editors we deal with focusing (clicking is handled by the container DIV).
   var onfocusbinding = 'focusable: true';
+
+  if ( model !== null && typeof model._disabledOn !== 'undefined' ) {
+    onfocusbinding += ', disable: ' + model._disabledOn;
+  }
+
   if (editType == 'edit') {
-	eventbinding['focus'] = '$($element).click();' + ( model !== null && typeof model._allowSystemTags != 'undefined' ? ' $root.currentSystemTagField = $($element);' : '' );
-    onfocusbinding += ', event: { focus: function(ui, event) { ' + '} } ';
+    eventbinding['focus'] = (widget !== 'boolean' && model !== null && model._undoMode === 'merge' ? '$root.setUndoModeMerge(); ' : '') + 'Mosaico.$($element).click();' + ( model !== null && typeof model._allowSystemTags != 'undefined' ? ' $root.currentSystemTagField = Mosaico.$($element);' : '' );
   } else if ( model !== null && typeof model._allowSystemTags != 'undefined' ) {
-	eventbinding['focus'] = '$root.currentSystemTagField = $($element);';
-    onfocusbinding += ', event: { focus: function(ui, event) { $root.currentSystemTagField = $($element); } } ';  
+    eventbinding['focus'] = '$root.currentSystemTagField = Mosaico.$($element);';
+  }
+  if ( model !== null && typeof model._clickHandler != 'undefined' ) {
+    eventbinding['click'] = model._clickHandler;
+  }
+  if ( model !== null && typeof model._changeHandler != 'undefined' ) {
+    eventbinding['change'] = model._changeHandler;
   }
 
+  var valuebinding = 'value: ' + propAccessor;
   if ( model !== null && typeof model._emojiOneArea != 'undefined' ) {
-    onfocusbinding += ', emojionearea: {}';
+    valuebinding = 'emojionearea: { value: ' + propAccessor;
+    if ( model._emojiOneArea !== 'true' ) {
+      var emojiOneOpts = _getOptionsObject(model._emojiOneArea);
+      for (i = 0; i < emojiOneOpts.order.length; i++) {
+        key = emojiOneOpts.order[i];
+        if (emojiOneOpts.opts.hasOwnProperty(key)) {
+          valuebinding += ', ' + key + ': \'' + utils.addSlashes(emojiOneOpts.opts[key]) + '\'';
+        }
+      }
+    }
+    valuebinding += ' }';
   }
 
-  html += '<label class="data-' + widget + '"' + (widget == 'boolean' ? ' data-bind="event: { mousedown: function(ui, evt) { if (evt.button == 0) { var input = $($element).find(\'input\'); var ch = input.prop(\'checked\'); setTimeout(function() { input.click(); input.prop(\'checked\', !ch); input.trigger(\'change\'); }, 0); } } }, click: function(ui, evt) { evt.preventDefault(); }, clickBubble: false"' : '') + '>';
+  html += '<label class="data-' + widget + '"' + (widget == 'boolean' ? ' data-bind="event: { mousedown: function(ui, evt) { if (evt.button == 0) { var input = Mosaico.$($element).find(\'input\'); var ch = input.prop(\'checked\'); setTimeout(function() { ' + (model !== null && model._undoMode === 'merge' ? '$root.setUndoModeMerge(); ' : '') + 'input.click(); input.prop(\'checked\', !ch); input.trigger(\'change\'); }, 0); } } }, click: function(ui, evt) { evt.preventDefault(); }, clickBubble: false"' : '') + '>';
 
   if (typeof widgets !== 'undefined' && typeof widgets[widget] !== 'undefined') {
     var w = widgets[widget];
@@ -79,10 +110,10 @@ var _propInput = function(model, prop, propAccessor, editType, widgets) {
       for (evt in eventbinding) {
         if (eventbinding.hasOwnProperty(evt)) {
           onfocusbinding += (isfirstevent ? '' : ', ') + evt + ': function(ui, event) { ' + eventbinding[evt] + ' }';
-		  isfirstevent = false;
+          isfirstevent = false;
         }
       }
-	  onfocusbinding += ' }';
+      onfocusbinding += ' }';
     }
     html += w.html(propAccessor, onfocusbinding, parameters);
   } else if (widget == 'boolean') {
@@ -114,7 +145,7 @@ var _propInput = function(model, prop, propAccessor, editType, widgets) {
     if (typeof model._options != 'undefined') {
       var opts = _getOptionsObject(model._options);
       // var opts = model._options;
-      eventbinding['change'] = 'if ($data[\'' + propAccessor + 'Label\']) { $data[\'' + propAccessor + 'Label\']($(\'option:selected\', $element).text()) };';
+      //eventbinding['change'] = 'if ($data[\'' + propAccessor + 'Label\']) { $data[\'' + propAccessor + 'Label\']($(\'option:selected\', $element).text()) };';
       if (Object.keys(eventbinding).length > 0) {
         onfocusbinding += ', event: { ';
         for (evt in eventbinding) {
@@ -125,11 +156,13 @@ var _propInput = function(model, prop, propAccessor, editType, widgets) {
         }
        onfocusbinding += ' }';
       }
-      html += '<select data-bind="value: ' + propAccessor + ', ' + onfocusbinding + '">';
-      for (var opt in opts)
-        if (opts.hasOwnProperty(opt)) {
-          html += '<option value="' + opt + '" data-bind="text: $root.ut(\'template\', \'' + utils.addSlashes(opts[opt]) + '\')">' + opts[opt] + '</option>';
+      html += '<select data-bind="' + valuebinding + ', ' + onfocusbinding + (typeof model._optionStyle !== 'undefined' ? ', style: { ' + model._optionStyle + ': ' + propAccessor + ' }' : '') + '">';
+      for (i = 0; i < opts.order.length; i++) {
+        key = opts.order[i];
+        if (opts.opts.hasOwnProperty(key)) {
+          html += '<option value="' + key + '" data-bind="text: $root.ut(\'template\', \'' + utils.addSlashes(opts.opts[key]) + '\')' + (typeof model._optionStyle !== 'undefined' ? ', style: { ' + model._optionStyle + ': \'' + key + '\' }' : '') + '">' + opts.opts[key] + '</option>';
         }
+      }
       html += '</select>';
     }
   } else if (widget == 'longtext') {
@@ -143,7 +176,7 @@ var _propInput = function(model, prop, propAccessor, editType, widgets) {
       }
      onfocusbinding += ' }';
     }
-    html += '<textarea size="7" data-bind="value: ' + propAccessor + ', ' + onfocusbinding + '">nothing</textarea>';
+    html += '<textarea size="7" data-bind="' + valuebinding + ', ' + onfocusbinding + '">nothing</textarea>';
   } else if (widget == 'hidden') {
     if (Object.keys(eventbinding).length > 0) {
       onfocusbinding += ', event: { ';
@@ -155,7 +188,7 @@ var _propInput = function(model, prop, propAccessor, editType, widgets) {
       }
      onfocusbinding += ' }';
     }
-    html += '<input type="hidden" value="nothing" data-bind="value: ' + propAccessor + ', ' + onfocusbinding + '" />';
+    html += '<input type="hidden" value="nothing" data-bind="' + valuebinding + ', ' + onfocusbinding + '" />';
   } else if (widget == 'file') {
     if (Object.keys(eventbinding).length > 0) {
       onfocusbinding += ', event: { ';
@@ -167,7 +200,7 @@ var _propInput = function(model, prop, propAccessor, editType, widgets) {
       }
      onfocusbinding += ' }';
     }
-    html += '<input type="hidden" value="nothing" data-bind="value: ' + propAccessor + ', ' + onfocusbinding + '" /><input type="text" data-bind="value: ( ' + propAccessor + '() != null ? ' + propAccessor + '().substr( ' + propAccessor + '().lastIndexOf( \'/\' ) + 1 ) : \'\' )" disabled />';
+    html += '<input type="hidden" value="nothing" data-bind="' + valuebinding + ', ' + onfocusbinding + '" /><input type="text" data-bind="value: ( ' + propAccessor + '() != null ? ' + propAccessor + '().substr( ' + propAccessor + '().lastIndexOf( \'/\' ) + 1 ) : \'\' )" disabled />';
   } else if (widget == 'font') {
     if (Object.keys(eventbinding).length > 0) {
       onfocusbinding += ', event: { ';
@@ -208,12 +241,10 @@ var _propInput = function(model, prop, propAccessor, editType, widgets) {
     }
     html += '<div class="ui-textbutton">';
     // <a class="ui-spinner-button ui-spinner-down ui-corner-br ui-button ui-widget ui-state-default ui-button-text-only" tabindex="-1" role="button"><span class="ui-button-text"><span class="ui-icon fa fa-fw caret-down">▼</span></span></a>
-    html += '<input class="ui-textbutton-input" size="7" type="url" pattern="(mailto:.+@.+|https?://.+\\..+|\\[.*\\].*)" value="nothing" data-bind="css: { withButton: typeof $root.linkDialog !== \'undefined\' }, validatedValue: ' + propAccessor + ', ' + onfocusbinding + '" />';
-    html += '<a class="ui-textbutton-button" data-bind="visible: typeof $root.linkDialog !== \'undefined\', click: typeof $root.linkDialog !== \'undefined\' ? $root.linkDialog.bind($element.previousSibling) : false, button: { icon: \'fa fa-fw fa-ellipsis-h\', label: \'Opzioni\', text: false }">Opzioni</a>';
+    html += '<input class="ui-textbutton-input" size="7" type="url" pattern="((mailto:(.+@.+)|(\\[.*\\].*))|(tel:([0-9]+)|(\\[.*\\].*))|[a-zA-Z]+://.+\\..+|\\[.*\\].*)" value="nothing" data-bind="css: { withButton: typeof $root.linkDialog !== \'undefined\' }, validatedValue: { defaultProtocol: \'http://\', value: ' + propAccessor + ' }, ' + onfocusbinding + '" />';
+    html += '<a href="javascript:void(0)" class="ui-textbutton-button" data-bind="visible: typeof $root.linkDialog === \'function\', click: typeof $root.linkDialog === \'function\' ? $root.linkDialog.bind(undefined, \'' + propAccessor + '\', \'' + (model !== null && typeof model._disabledOn !== 'undefined' ? model._disabledOn : 'false') + '\', {}) : false, button: { icon: \'fa fa-fw fa-ellipsis-h\', label: $root.t(\'Opzioni\'), showLabel: false }"></a>';
     html += '</div>';
   } else if (widget == 'integer') {
-    // at this time the "step" depends on max being greater than 100.
-    // maybe we should expose "step" as a configuration, too
     if (Object.keys(eventbinding).length > 0) {
       onfocusbinding += ', event: { ';
       for (evt in eventbinding) {
@@ -229,8 +260,25 @@ var _propInput = function(model, prop, propAccessor, editType, widgets) {
     if (model !== null && typeof model._max !== 'undefined') max = model._max;
     if (model !== null && typeof model._min !== 'undefined') min = model._min;
     var step = (max - min) >= 100 ? 10 : 1;
+    if (model !== null && typeof model._step !== 'undefined') step = model._step;
     var page = step * 5;
+    if (model !== null && typeof model._page !== 'undefined') page = model._page;
     html += '<input class="number-spinner" size="7" step="' + step + '" type="number" value="-1" data-bind="spinner: { min: ' + min + ', max: ' + max + ', page: ' + page + ', value: ' + propAccessor + ' }, valueUpdate: [\'change\', \'spin\']' + ', ' + onfocusbinding + '" />';
+  } else if (widget == 'src') {
+    if (Object.keys(eventbinding).length > 0) {
+      onfocusbinding += ', event: { ';
+      for (evt in eventbinding) {
+        if (eventbinding.hasOwnProperty(evt)) {
+          onfocusbinding += (isfirstevent ? '' : ', ') + evt + ': function(ui, event) { ' + eventbinding[evt] + ' }';
+          isfirstevent = false;
+        }
+      }
+     onfocusbinding += ' }';
+    }
+    html += '<div class="ui-textbutton">';
+    html += '<input class="ui-textbutton-input" size="7" type="text" value="nothing" data-bind="' + valuebinding + ', ' + onfocusbinding + '" />';
+    html += '<a href="javascript:void(0)" class="ui-textbutton-button" data-bind="visible: typeof $root.linkDialog === \'function\', click: typeof $root.linkDialog === \'function\' ? $root.linkDialog.bind(undefined, \'' + propAccessor + '\', \'' + (model !== null && typeof model._disabledOn !== 'undefined' ? model._disabledOn : 'false') + '\', { extensions: \'bmp,jpg,jpeg,gif,png\' }) : false, button: { icon: \'fa fa-fw fa-ellipsis-h\', label: $root.t(\'Opzioni\'), showLabel: false }"></a>';
+    html += '</div>';
   } else {
     if (Object.keys(eventbinding).length > 0) {
       onfocusbinding += ', event: { ';
@@ -242,7 +290,7 @@ var _propInput = function(model, prop, propAccessor, editType, widgets) {
       }
      onfocusbinding += ' }';
     }
-    html += '<input size="7" type="text" value="nothing" data-bind="value: ' + propAccessor + ', ' + onfocusbinding + '" />';
+    html += '<input size="7" type="text" value="nothing" data-bind="' + valuebinding + ', ' + onfocusbinding + '" />';
   }
 
   html += '</label>';
@@ -363,10 +411,20 @@ var _propEditor = function(withBindingProvider, widgets, templateUrlConverter, m
       /* PREVIEW */
       if (level == 1 && typeof prop != 'undefined') {
         if (typeof model._previewBindings != 'undefined' && typeof withBindingProvider != 'undefined') {
-          if (typeof rootPreviewBinding != 'undefined') html += '<!-- ko with: $root.content() --><div class="objPreview" data-bind="' + rootPreviewBinding + '"></div><!-- /ko -->';
-          if (typeof previewBackground != 'undefined') html += '<!-- ko with: $parent --><div class="objPreview" data-bind="' + previewBackground + '"></div><!-- /ko -->';
-          var previewBindings = elaborateDeclarations(undefined, model._previewBindings, templateUrlConverter, withBindingProvider.bind(this, path + '.'));
-          html += '<div class="objPreview"><div class="objPreviewInner" data-bind="' + previewBindings + '"></div></div>';
+          if (typeof rootPreviewBinding != 'undefined' && typeof model._noPreviewBackground === 'undefined') html += '<!-- ko with: $root.content() --><div class="objPreview" data-bind="' + rootPreviewBinding + '"></div><!-- /ko -->';
+          if (typeof previewBackground != 'undefined' && typeof model._noPreviewBackground === 'undefined') html += '<!-- ko with: $parent --><div class="objPreview" data-bind="' + previewBackground + '"></div><!-- /ko -->';
+          var previewBindings = {};
+          declarations.elaborateDeclarations({
+            type: 'stylesheet',
+            stylesheet: {
+              rules: [{
+                type: 'rule',
+                selectors: ['*'],
+                declarations: model._previewBindings
+              }]
+            }
+          }, templateUrlConverter, withBindingProvider.bind(this, path + '.'), previewBindings, false);
+          html += '<div class="objPreview"><div class="objPreviewInner" data-bind="' + declarations.serializeNewBindings(previewBindings) + '"></div></div>';
         }
       }
     }
@@ -375,7 +433,18 @@ var _propEditor = function(withBindingProvider, widgets, templateUrlConverter, m
     var previewBG;
     if (level === 0) {
       if (typeof model._previewBindings != 'undefined') {
-        previewBG = elaborateDeclarations(undefined, model._previewBindings, templateUrlConverter, withBindingProvider.bind(this, path.length > 0 ? path + '.' : ''));
+        var newBindings = {};
+        declarations.elaborateDeclarations({
+          type: 'stylesheet',
+          stylesheet: {
+            rules: [{
+              type: 'rule',
+              selectors: ['*'],
+              declarations: model._previewBindings
+            }]
+          }
+        }, templateUrlConverter, withBindingProvider.bind(this, path.length > 0 ? path + '.' : ''), newBindings, false);
+        previewBG = declarations.serializeNewBindings(newBindings);
       }
     }
 
@@ -389,6 +458,18 @@ var _propEditor = function(withBindingProvider, widgets, templateUrlConverter, m
     for (i = 0; i < props.length; i++) {
       newPath = path.length > 0 ? path + "." + props[i] : props[i];
       if (typeof model[props[i]] != 'object' || model[props[i]] === null || typeof model[props[i]]._widget != 'undefined') {
+        newGlobalStyleProp = undefined;
+        if (level === 0 && props[i] == 'theme')
+          html += _propEditor(withBindingProvider, widgets, templateUrlConverter, model[props[i]], newThemeModel, newPath, props[i], editType, 0, baseThreshold, undefined, undefined, trackUsage, rootPreviewBinding);
+        else {
+          newGlobalStyleProp = _getGlobalStyleProp(globalStyles, model[props[i]], props[i], newPath);
+          html += _propEditor(withBindingProvider, widgets, templateUrlConverter, model[props[i]], newThemeModel, newPath, props[i], editType, level + 1, baseThreshold, globalStyles, newGlobalStyleProp, trackUsage, rootPreviewBinding, previewBG);
+        }
+      }
+    }
+    for (i = 0; i < props.length; i++) {
+      newPath = path.length > 0 ? path + "." + props[i] : props[i];
+      if (!(typeof model[props[i]] != 'object' || model[props[i]] === null || typeof model[props[i]]._widget != 'undefined')) {
         newGlobalStyleProp = undefined;
         if (level === 0 && props[i] == 'theme')
           html += _propEditor(withBindingProvider, widgets, templateUrlConverter, model[props[i]], newThemeModel, newPath, props[i], editType, 0, baseThreshold, undefined, undefined, trackUsage, rootPreviewBinding);
@@ -439,9 +520,9 @@ var _propEditor = function(withBindingProvider, widgets, templateUrlConverter, m
       html += _propInput(model, prop, propAccessor, editType, widgets);
       for (var j = ''; typeof model['_button' + j] != 'undefined'; j++) {
         var btnOpts = _getOptionsObject(model['_button' + j]);
-        var btnType = ( btnOpts.hasOwnProperty( 'type' ) ? btnOpts.type : '' );
-        var btnLabel = ( btnOpts.hasOwnProperty( 'label' ) ? btnOpts.label : '' );
-        var btnClick = 'function(evt){' + ( btnOpts.hasOwnProperty( 'click' ) ? btnOpts.click : '' ) + '}';
+        var btnType = ( btnOpts.opts.hasOwnProperty( 'type' ) ? btnOpts.opts.type : '' );
+        var btnLabel = ( btnOpts.opts.hasOwnProperty( 'label' ) ? btnOpts.opts.label : '' );
+        var btnClick = 'function(evt){' + ( btnOpts.opts.hasOwnProperty( 'click' ) ? btnOpts.opts.click : '' ) + '}';
         html += '<a href="javascript:void(0)" class="' + btnType + 'button ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" data-bind="click: ' + btnClick + ', button: { label: $root.t(\'' + btnLabel + '\') }" role="button" aria-disabled="false"><span class="ui-button-text">' + btnLabel + '</span></a>';
         if (j === '') {
           j = 1;
@@ -488,13 +569,23 @@ var createBlockEditor = function(defs, widgets, themeUpdater, templateUrlConvert
 
   var rootModel = modelDef.getDef(defs, rootModelName);
   var rootPreviewBindings;
-  if (typeof rootModel._previewBindings != 'undefined' && templateName != 'thaeme' && editType == 'styler') {
-    rootPreviewBindings = elaborateDeclarations(undefined, rootModel._previewBindings, templateUrlConverter, modelDef.getBindValue.bind(undefined, defs, themeUpdater, rootModelName, rootModelName, ''));
+  if (typeof rootModel._previewBindings != 'undefined' && templateName != 'theme' && editType == 'styler') {
+    var newBindings = {};
+    declarations.elaborateDeclarations({
+      type: 'stylesheet',
+      stylesheet: {
+        rules: [{
+          type: 'rule',
+          selectors: ['*'],
+          declarations: rootModel._previewBindings
+        }]
+      }
+    }, templateUrlConverter, modelDef.getBindValue.bind(undefined, defs, themeUpdater, rootModelName, rootModelName, ''), newBindings, false);
+    rootPreviewBindings = declarations.serializeNewBindings(newBindings);
   }
 
   var globalStyles = typeof trackGlobalStyles != 'undefined' && trackGlobalStyles ? defs[templateName]._globalStyles : undefined;
   var globalStyleProp = typeof trackGlobalStyles != 'undefined' && trackGlobalStyles ? defs[templateName]._globalStyle : undefined;
-
 
   var themeModel;
   if (typeof globalStyleProp !== 'undefined') {

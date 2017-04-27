@@ -29,11 +29,11 @@ ko.bindingHandlers.scrollIntoView = {
     if (!selected) return;
     try {
 
-      while (element.nodeType === 8) {
-        // element is a comment, move to the next sibling...
+      while (element.nodeType === 8 || element.nodeType === 3) {
+        // element is a comment or text, move to the next sibling...
         element = element.nextSibling;
       }
-      if (element.nodeType !== 8) {
+      if (element.nodeType !== 8 && element.nodeType !== 3) {
         var scrollParent = $(element).scrollParent();
 
         var parentTop;

@@ -9,18 +9,52 @@
         @supports
             -ko-blockdefs {
 
-            text {
+            headerText {
+                widget: text
+            }
+            bodyText {
+                widget: text
+            }
+            firstItemText {
+                widget: text
+            }
+            secondItemText {
+                widget: text
+            }
+            thirdItemText {
                 widget: text
             }
 
-            listsize {
+            listSize {
+                label: List Size;
                 widget: select;
-                options: 1 | 2 | 3;
+                options: 1|2|3;
             }
 
             color {
                 widget: color;
             }
+            backgroundColor {
+                label: Background Color;
+                extend: color;
+            }
+            externalBackgroundColor {
+                label: Outer Background Color;
+                extend: color;
+            }
+            headerAndTextBlock {
+                label: Header and Text;
+                properties: backgroundColor externalBackgroundColor headerText bodyText;
+            }
+            fixedListBlock {
+                label: Fixed List;
+                properties: backgroundColor externalBackgroundColor listSize headerText firstItemText secondItemText thirdItemText;
+            }
+        }
+    </style>
+    <style type="text/css" data-inline="true">
+        h1, p {
+            Margin: 0;
         }
     </style>
 </head>
@@ -30,31 +64,35 @@
     <h1>This is the Mosaico Tutorial</h1>
 </div>
 
-<div data-ko-container="main" data-ko-wrap="false">
+<div data-ko-container="main" data-ko-wrap="false" style="text-align: center;">
 
-    <div data-ko-block="HeaderAndText">
-        <h1 data-ko-editable="headerText">this is header</h1>
+    <div style="background-color: #FFFFFF; -ko-background-color: @externalBackgroundColor" data-ko-block="headerAndTextBlock">
+        <div style="padding: 8px; margin: auto; max-width: 600px; background-color: #FFFFFF; -ko-background-color: @backgroundColor">
+            <h1 data-ko-editable="headerText">this is header</h1>
 
-        <div data-ko-editable="bodyText">
-            this is text
+            <div data-ko-editable="bodyText">
+                this is text
+            </div>
         </div>
     </div>
 
 
-    <div data-ko-block="fixedlist" style="background-color: #f0f0f0; -ko-background-color: @color;">
-        <h1 data-ko-editable="headerText">fixed size list</h1>
+    <div style="background-color: #FFFFFF; -ko-background-color: @externalBackgroundColor;" data-ko-block="fixedListBlock" >
+        <div style="padding: 8px; margin: auto; max-width: 600px; background-color: #FFFFFF; -ko-background-color: @backgroundColor">
+            <h1 data-ko-editable="headerText">fixed size list</h1>
 
-        <ul>
-            <li>
-                <div data-ko-editable="firstBodyText">item 1</div>
-            </li>
-            <li data-ko-display="listsize gt 1 ">
-                <div data-ko-editable="secondBodyText">item 2</div>
-            </li>
-            <li data-ko-display="listsize gt 2">
-                <div data-ko-editable="thirdBodyText"></div>
-            </li>
-        </ul>
+            <ul>
+                <li>
+                    <div data-ko-editable="firstItemText">item 1</div>
+                </li>
+                <li data-ko-display="listSize gt 1 ">
+                    <div data-ko-editable="secondItemText">item 2</div>
+                </li>
+                <li data-ko-display="listSize gt 2">
+                    <div data-ko-editable="thirdItemText"></div>
+                </li>
+            </ul>
+        </div>
     </div>
 
 </div>

@@ -17,14 +17,15 @@ var addScriptTemplate = function(doc, templateName, templateMarkup) {
 // used for live preview in iframe.
 ko.bindingHandlers.bindIframe = {
   // tpl will be overriden with the structure parsed by the input template.
-  tpl: "<!DOCTYPE html>\r\n<html>\r\n<head>\r\n</head>\r\n<body><div data-bind=\"block: content\"></div></body>\r\n</html>\r\n",
+  tplDoctype: "<!DOCTYPE html>\r\n",
+  tplDocument: "<html>\r\n<head>\r\n</head>\r\n<body><div data-bind=\"block: content\"></div></body>\r\n</html>\r\n",
   init: function(element, valueAccessor) {
     function bindIframe(local) {
         var finishBind = function() {
             try {
                 var iframe = element.contentDocument;
                 iframe.open();
-                iframe.write(ko.bindingHandlers.bindIframe.tpl);
+                iframe.write(ko.bindingHandlers.bindIframe.tplDoctype + ko.bindingHandlers.bindIframe.tplDocument);
 
                 try {
                     var iframeInit = element.contentWindow.initChildFrame;

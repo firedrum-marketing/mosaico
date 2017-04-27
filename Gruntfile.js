@@ -93,8 +93,8 @@ module.exports = function(grunt) {
           'build/mosaico.js': ['./src/js/app.js', './build/templates.js']
         }
       },
-      templateTranslationWorkerMain: {
-        options: {
+	  templateTranslationWorkerMain: {
+		options: {
           browserifyOptions: {
             debug: true,
             fullPaths: false,
@@ -110,9 +110,9 @@ module.exports = function(grunt) {
                   ' */',
         },
         files: {
-          'build/template-translation-loader.js': ['./src/js/template-translation-loader.js']
+		  'build/template-translation-loader.js': ['./src/js/template-translation-loader.js']
         }  
-      }
+        }  
     },
 
     exorcise: {
@@ -124,14 +124,14 @@ module.exports = function(grunt) {
           'dist/rs/mosaico.min.js.map': ['build/mosaico.js'],
         }
       },
-      templateTranslationWorkerMain: {
-        options: {
+	  templateTranslationWorkerMain: {
+		options: {
           bundleDest: 'dist/rs/template-translation-loader.min.js'
         },
         files: {
           'dist/rs/template-translation-loader.min.js.map': ['build/template-translation-loader.js']
         }
-      }
+	  }
     },
 
     watch: {

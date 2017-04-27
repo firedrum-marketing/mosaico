@@ -105,9 +105,14 @@ ko.bindingHandlers['block'] = {
   },
 
   'init': function(element, valueAccessor, allBindings, viewModel, bindingContext) {
-    if (typeof valueAccessor() === 'undefined') console.log("found a null block: check ending commas in arrays defs in IE");
+    if (typeof valueAccessor() === 'undefined') {
+		console.log("found a null block: check ending commas in arrays defs in IE");
+	}
     var newValueAccessor = ko.bindingHandlers['block']._makeTemplateValueAccessor(valueAccessor, bindingContext);
-    return ko.bindingHandlers['template']['init'](element, newValueAccessor);
+	var templateInit = ko.bindingHandlers['template']['init'](element, newValueAccessor);
+	//templateInit.controlsDescendantBindings = true;
+	//global.setTimeout(ko.applyBindingsToDescendants.bind(ko, bindingContext, element), 1);
+    return templateInit;
   },
   'update': function(element, valueAccessor, allBindings, viewModel, bindingContext) {
     var newValueAccessor = ko.bindingHandlers['block']._makeTemplateValueAccessor(valueAccessor, bindingContext);
