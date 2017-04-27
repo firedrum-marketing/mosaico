@@ -10,11 +10,12 @@ ko.bindingHandlers['validatedValue'] = {
 		var newValueAccessor = options.value;
 		if (typeof element.pattern !== 'undefined') {
 			var re = new RegExp('^(?:' + element.pattern + ')$');
+			var schemeRe = /^[^:]+:/;
 			var computed = ko.computed({
 				read: function() {
 					var res = ko.utils.unwrapObservable(options.value);
 					if (typeof options.defaultProtocol !== 'undefined' && options.defaultProtocol !== null) {
-						if (res !== null && res !== '' && !re.test(res)) {
+						if (res !== null && res !== '' && !re.test(res) && !schemeRe.test(res)) {
 							res = options.defaultProtocol + res;
 						}
 					}
@@ -31,7 +32,7 @@ ko.bindingHandlers['validatedValue'] = {
 				},
 				write: ko.isWriteableObservable(options.value) && function(value) {
 					if (typeof options.defaultProtocol !== 'undefined' && options.defaultProtocol !== null) {
-						if (value !== null && value !== '' && !re.test(value)) {
+						if (value !== null && value !== '' && !re.test(value) && !schemeRe.test(value)) {
 							value = options.defaultProtocol + value;
 						}
 					}
