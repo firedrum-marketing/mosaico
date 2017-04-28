@@ -40,7 +40,7 @@ $(function() {
     tinymceConfig: {
       fixed_toolbar_container: '#main-tinymce-toolbar'
     },
-    templateTranslationWorker: new Worker('dist/template-translation-loader.min.js?v=0.16')
+    templateTranslationWorker: !Mosaico.isIE() ? new Worker('dist/template-translation-loader.min.js?v=0.16') : null
   }, plugins);
   if (!ok) {
     console.log("Missing initialization hash, redirecting to main entrypoint");

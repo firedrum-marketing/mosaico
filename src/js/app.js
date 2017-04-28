@@ -186,7 +186,31 @@ var init = function(options, customExtensions) {
 };
 
 var getModelReferences = function() {
-	return templateLoader.getModelReferences();
+  return templateLoader.getModelReferences();
+};
+
+var isIE = function() {
+  var tmp = global.document.documentMode;
+
+  // Try to force this property to be a string. 
+  try {
+    global.document.documentMode = '';
+  } catch(e){}
+
+  // If document.documentMode is a number, then it is a read-only property, and so 
+  // we have IE 8+.
+  // Otherwise, if conditional compilation works, then we have IE < 11.
+  // Otherwise, we have a non-IE browser. 
+  /* jshint ignore:start */
+  var isIE = typeof global.document.documentMode == 'number' || new Function('return/*@cc_on!@*/!1')( );
+  /* jshint ignore:end */
+
+  // Switch back the value to be unobtrusive for non-IE browsers. 
+  try {
+    global.document.documentMode = tmp;
+  } catch(e){}
+  
+  return isIE;
 };
 
 module.exports = {
@@ -197,5 +221,6 @@ module.exports = {
   $: $,
   url: require('url'),
   download: require('downloadjs'),
-  getModelReferences: getModelReferences
+  getModelReferences: getModelReferences,
+  isIE: isIE
 };
