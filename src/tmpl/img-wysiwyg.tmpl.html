@@ -7,13 +7,8 @@
         <line x1="100%" y1="0" x2="100%" y2="100%" id="right"/>
         <line x1="100%" y1="100%" x2="0" y2="100%" id="bottom"/>
         <line x1="0" y1="100%" x2="0" y2="0" id="left"/>
-        <filter id="invert" x="0" y="0" width="100%" height="100%">
-          <feColorMatrix result="base" type="matrix" values="-1 0 0 0 1 0 -1 0 0 1 0 0 -1 0 1 0 0 0 1 0" />
-          <feColorMatrix result="mask" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0" />
-          <feComposite in="base" in2="mask" operator="in" />
-        </filter>
       </defs>
-      <g stroke-width="2" filter="url(#invert)" data-bind="virtualAttr: { stroke: backgroundColor._defaultComputed() }">
+      <g stroke-width="2" data-bind="virtualAttr: { stroke: Color.readability( '#FFFFFF', backgroundColor._defaultComputed() ) &gt;= 5  &amp;&amp; backgroundColor._defaultComputed() != 'transparent' ? '#FFFFFF' : '#000000' }">
         <use xlink:href="#top"/>
         <use xlink:href="#right"/>
         <use xlink:href="#bottom"/>
