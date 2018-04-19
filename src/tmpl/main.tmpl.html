@@ -1,12 +1,23 @@
-<div id="page" style="display: none;" data-bind="visible: true, css: { withToolbox: $root.showToolbox, withPreviewFrame: showPreviewFrame, desktop: $root.previewMode() == 'desktop', mobile: $root.previewMode() == 'mobile', large: $root.previewMode() == 'large' }, event: {click: function(data, event) { var testMenu = Mosaico.$( '#testMenu' ); if ( !!testMenu.length && !Mosaico.$.contains( testMenu[0], event.target ) ) { $root.showTestMenu(false); } return true;}}">
+<div id="page" style="display: none;" data-bind="visible: true, css: { withToolbox: $root.showToolbox, withPreviewFrame: showPreviewFrame, desktop: $root.previewMode() == 'desktop', mobile: $root.previewMode() == 'mobile', large: $root.previewMode() == 'large', withLockDown: $root.lockDownMode() > 0, withLockDown1: $root.lockDownMode() === 1 }, event: {click: function(data, event) { var testMenu = Mosaico.$( '#testMenu' ); if ( !!testMenu.length && !Mosaico.$.contains( testMenu[0], event.target ) ) { $root.showTestMenu(false); } return true;}}">
   <div id="main-edit-area" data-bind="click: function(obj, evt) { $root.selectBlock(null); return true; }, clickBubble: false">
-    <div id="main-tinymce-toolbar"></div>
+    <div id="main-tinymce-toolbar">
+      <!-- ko with: $root.selectedEditable -->
+      <!-- ko if: $root.lockDownMode() === 1 && (_locked._widget === 'text' || _locked._widget === 'longtext') -->
+      <!-- ko if: !_locked() -->
+      <div title="Lock text" class="tool lock" data-bind="attr: { title: $root.t('Lock text') }, click: function(){$root.startMultiple();_locked(true);$root.stopMultiple()}, clickBubble: false, event: { mousedown: function(){} }, mousedownBubble: false"><i class="fa fa-fw fa-unlock-alt"></i></div>
+      <!-- /ko -->
+      <!-- ko if: _locked() -->
+      <div title="Unlock text" class="tool unlock" data-bind="attr: { title: $root.t('Unlock text') }, click: function(){$root.startMultiple();_locked(false);$root.stopMultiple()}, clickBubble: false, event: { mousedown: function(){} }, mousedownBubble: false"><i class="fa fa-fw fa-lock"></i></div>
+      <!-- /ko -->
+      <!-- /ko -->
+      <!-- /ko -->
+    </div>
     <!-- ko withProperties: { templateMode: 'wysiwyg', templateModeFallback: 'show' } -->
     <div id="main-wysiwyg-area" data-bind="wysiwygScrollfix: true, scrollable: true, fudroppable: { active: draggingImage }, css: { isdragging: dragging, isdraggingimg: draggingImage }, block: content"></div>
     <!-- /ko -->
   </div>
 
-  <div id="toolbar" class="mo" data-bind="tooltips: {classes: {'ui-tooltip':'toolbar-tooltip'}}">
+  <div id="toolbar" class="mo ui-front" data-bind="tooltips: {classes: {'ui-tooltip':'toolbar-tooltip'}}">
     <!-- ko if: typeof $root.undo != 'undefined' -->
     <span data-bind="buttonset: { }" class="leftButtons">
     <a title="Undo last operation" href="javascript:void(0)" data-bind="attr: { title: $root.t('Undo last operation') }, click: $root.undo.execute, clickBubble: false, button: { disabled: !$root.undo.enabled(), icon: 'fa fa-reply', label: $root.undo.name, showLabel: true }">UNDO</a>
@@ -106,7 +117,7 @@
     </div>
   </div>
 
-  <div id="main-toolbox" class="mo" data-bind="scrollable: true, withProperties: { templateMode: 'edit' }">
+  <div id="main-toolbox" class="mo ui-front" data-bind="scrollable: true, withProperties: { templateMode: 'edit' }">
     <div data-bind="template: { name: 'toolbox' }"></div>
   </div>
   
@@ -124,7 +135,7 @@
     </div>
   </div>
 
-  <div class="mo" id="mo-body"></div>
+  <div class="mo" id="mo-body" class="ui-front"></div>
 
   <div id="incompatible-template" title="Saved model is obsolete" style="display: none" data-bind="attr: { title: $root.t('Saved model is obsolete') }, html: $root.t('<p>The saved model has been created with a previous, non completely compatible version, of the template</p><p>Some content or style in the model <b>COULD BE LOST</b> if you will <b>save</b></p><p>Contact us for more informations!</p>')">
     Incompatible template

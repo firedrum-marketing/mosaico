@@ -3,10 +3,12 @@
 var objExtend = require("./domutils.js").objExtend;
 var console = require("console");
 
-var _valueSet = function(defs, model, prop, value) {
+var _valueSet = function(defs, model, prop, value, isLock) {
   var dotPos = prop.indexOf('.');
   if (dotPos == -1) {
-    if (typeof model[prop] == 'undefined') {
+    if (isLock) {
+      model[prop] = value;
+    } else if (typeof model[prop] == 'undefined') {
       var magLabelIndex = prop.lastIndexOf('MAGLabel');
       var magForConditionalIndex = prop.lastIndexOf('MAGForConditional');
       if ((magLabelIndex === -1 || magLabelIndex !== (prop.length - 8)) && (magForConditionalIndex === -1 || magForConditionalIndex !== (prop.length - 17))) {
@@ -51,7 +53,10 @@ var _valueSet = function(defs, model, prop, value) {
     }
   } else {
     var propName = prop.substr(0, dotPos);
-    _valueSet(defs, model[propName], prop.substr(dotPos + 1), value);
+    if (isLock && typeof model[propName] === 'undefined') {
+      model[propName] = {};
+    }
+    _valueSet(defs, model[propName], prop.substr(dotPos + 1), value, isLock);
   }
 };
 
@@ -139,7 +144,7 @@ var _removePrefix = function(str) {
 };
 
 // TODO defs is needed only because _valueSet needs it.. we should remove it downstream.
-var _generateModelFromDef = function(modelDef, defs) {
+var _generateModelFromDef = function(modelDef, defs, isLock) {
   var res = {};
 
   for (var prop in modelDef)
@@ -159,11 +164,15 @@ var _generateModelFromDef = function(modelDef, defs) {
       }
     }
 
+  if (!isLock && modelDef.hasOwnProperty('_locks')) {
+    res['_locks'] = _generateModelFromDef(modelDef, defs, true);
+  }
+
   if (typeof modelDef._defaultValues != 'undefined') {
     var defaults = modelDef._defaultValues;
     for (var prop2 in defaults)
       if (defaults.hasOwnProperty(prop2)) {
-        _valueSet(defs, res, prop2, defaults[prop2]);
+        _valueSet(defs, res, (isLock ? prop2.substr(prop2.indexOf('.') + 1) : prop2), defaults[prop2], isLock);
       }
   }
 
@@ -330,6 +339,46 @@ var ensureGlobalStyle = function(defs, readonly, gsBindingProvider, modelName, p
     if (readonly) throw "Cannot find _globalStyle for " + path + " in " + modelName + "!";
     if (path.indexOf('.') != -1 || (typeof defs[modelName][path] == 'object' && typeof defs[modelName][path]._widget !== 'undefined')) {
       defs[modelName]._globalStyles[path] = globalStyleBindingBindValue;
+      // Inject requisite model definitions for theme definition lock down mode support
+      /*
+      var defName = key.substring(1, key.indexOf('.', 1) );
+      var defPath = key.substr(key.indexOf('.', 1) + 1);
+      var defPathParts = defPath.split('.');
+      if (typeof defs[defName]['_locks'] === 'undefined' || defs[defName]['_locks'] === null) {
+        defs[defName]['_locks'] = {};
+      }
+      var curDef = defs[defName]['_locks'];
+      for (var i = 0; i < defPathParts.length - 1; i++) {
+        if (typeof curDef[defPathParts[i]] === 'undefined') {
+          curDef[defPathParts[i]] = {};
+        }
+        curDef = curDef[defPathParts[i]];
+      }
+      if (typeof curDef[defPathParts[defPathParts.length - 1]] === 'undefined') {
+        curDef[defPathParts[defPathParts.length - 1]] = null;
+      }
+      defs['themes'][name]['.' + defName + '._locks.' + defPath] = false;
+      */
+      // Inject requisite model definitions for theme definition lock down mode support
+      /*var pathParts = path.split('.');
+      if (typeof defs[modelName]['_locks'] === 'undefined' || defs[modelName]['_locks'] === null) {
+        defs[modelName]['_locks'] = {
+          '_complex': true
+        };
+      }
+      var curDef = defs[modelName]['_locks'];
+      for (var i = 0; i < pathParts.length - 1; i++) {
+        if (typeof curDef[pathParts[i]] === 'undefined') {
+          curDef[pathParts[i]] = {
+            '_complex': true
+          };
+        }
+        curDef = curDef[pathParts[i]];
+      }
+      if (typeof curDef[pathParts[pathParts.length - 1]] === 'undefined') {
+        curDef[pathParts[pathParts.length - 1]] = null;
+      }*/
+      defs[modelName]._globalStyles['_locks.' + path] = gsBindingProvider(gsFullPath.substr(0, gsFullPath.indexOf('.', 8)) + '._locks' + gsFullPath.substr(gsFullPath.indexOf('.', 8)), null, overrideDefault);
     }
   } else if (defs[modelName]._globalStyles[path] != globalStyleBindingBindValue) throw "Unexpected conflicting globalStyle [2] for " + modelName + "/" + path + ": old=" + defs[modelName]._globalStyles[path] + " new=" + globalStyleBindingBindValue;
 };
@@ -440,8 +489,10 @@ var modelEnsurePathAndGetBindValue = function(readonly, defs, themeUpdater, root
           throw "Found an unexpected prop " + prop + " for model " + modelName + " for " + path;
         }
 
-        childModel = childModel[prop];
-        _increaseUseCount(readonly, childModel);
+        if (prop !== '_locks') {
+          childModel = childModel[prop];
+          _increaseUseCount(readonly, childModel);
+        }
         mypath = mypath.substr(propPos + 1);
         propPos = mypath.indexOf('.');
       } while (propPos != -1);

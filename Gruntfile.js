@@ -80,7 +80,15 @@ module.exports = function(grunt) {
             fullPaths: false,
             standalone: 'Mosaico'
           },
-          transform: [['browserify-shim', {global: true}], ['uglifyify', {global: true}]],
+          transform: [
+            ['browserify-shim', {global: true}],
+            ['uglifyify', {
+              global: true,
+              ignore: [
+                '**/src/js/clear-from-browserify-cache.js'
+              ]
+            }]
+          ],
           cacheFile: 'build/main-incremental.bin',
           banner: '/** \n'+
                   ' * <%= pkg.description %> - v<%= pkg.version %> - <%= grunt.template.today("yyyy-mm-dd") %> \n'+
@@ -93,14 +101,22 @@ module.exports = function(grunt) {
           'build/mosaico.js': ['./src/js/app.js', './build/templates.js']
         }
       },
-	  templateTranslationWorkerMain: {
-		options: {
+      templateTranslationWorkerMain: {
+        options: {
           browserifyOptions: {
             debug: true,
             fullPaths: false,
             standalone: 'Mosaico'
           },
-          transform: [['browserify-shim', {global: true}], ['uglifyify', {global: true}]],
+          transform: [
+            ['browserify-shim', {global: true}],
+            ['uglifyify', {
+              global: true,
+              ignore: [
+                '**/src/js/clear-from-browserify-cache.js'
+              ]
+            }]
+          ],
           cacheFile: 'build/template-translation-loader-main-incremental.bin',
           banner: '/** \n'+
                   ' * <%= pkg.description %> - v<%= pkg.version %> - <%= grunt.template.today("yyyy-mm-dd") %> \n'+
@@ -110,9 +126,9 @@ module.exports = function(grunt) {
                   ' */',
         },
         files: {
-		  'build/template-translation-loader.js': ['./src/js/template-translation-loader.js']
-        }  
-        }  
+          'build/template-translation-loader.js': ['./src/js/template-translation-loader.js']
+        }
+      }
     },
 
     exorcise: {

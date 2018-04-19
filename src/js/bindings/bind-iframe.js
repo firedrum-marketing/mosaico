@@ -39,6 +39,12 @@ ko.bindingHandlers.bindIframe = {
                             }
                         }
 
+						// Only allow our custom base tag
+						var baseTags = iframe.getElementsByTagName("BASE");
+						if ( baseTags.length > 1 ) {
+							baseTags[0].parentNode.removeChild(baseTags[0]);
+						}
+
                         // Prevent default click handlers
                         iframedoc.addEventListener('click', function(evt) {
                             evt.preventDefault();
@@ -52,7 +58,7 @@ ko.bindingHandlers.bindIframe = {
                         var html = iframe.getElementsByTagName("HTML");
 
                         ko.utils.domNodeDisposal.addDisposeCallback(element, function() {
-                        ko.cleanNode(html[0] || iframedoc);
+                          ko.cleanNode(html[0] || iframedoc);
                         });
 
                         ko.applyBindings(valueAccessor(), html[0] || iframedoc);

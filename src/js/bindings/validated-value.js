@@ -16,7 +16,11 @@ ko.bindingHandlers['validatedValue'] = {
 					var res = ko.utils.unwrapObservable(options.value);
 					if (typeof options.defaultProtocol !== 'undefined' && options.defaultProtocol !== null) {
 						if (res !== null && res !== '' && !re.test(res) && !schemeRe.test(res)) {
-							res = options.defaultProtocol + res;
+							if (res.indexOf('@') > 0 && res.indexOf('//') === -1 && res.indexOf('mailto:') === -1) {
+								res = 'mailto:' + res;
+							} else {
+								res = options.defaultProtocol + res;
+							}
 						}
 					}
 					
@@ -33,7 +37,11 @@ ko.bindingHandlers['validatedValue'] = {
 				write: ko.isWriteableObservable(options.value) && function(value) {
 					if (typeof options.defaultProtocol !== 'undefined' && options.defaultProtocol !== null) {
 						if (value !== null && value !== '' && !re.test(value) && !schemeRe.test(value)) {
-							value = options.defaultProtocol + value;
+							if (value.indexOf('@') > 0 && value.indexOf('//') === -1 && value.indexOf('mailto:') === -1) {
+								value = 'mailto:' + value;
+							} else {
+								value = options.defaultProtocol + value;
+							}
 						}
 					}
 					

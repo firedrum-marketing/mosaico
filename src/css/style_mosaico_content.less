@@ -81,9 +81,9 @@
   }
 }
 
-#main-edit-area .isdragging .sortable-blocks-edit > div:not(.sortable-placeholder) + div:not(.sortable-placeholder):not(.ui-sortable-helper):not(.ui-draggable-dragging):before,
-#main-edit-area .isdragging .sortable-blocks-edit > div:not(.sortable-placeholder):not(.ui-sortable-helper):not(.ui-draggable-dragging):first-child:before,
-#main-edit-area .isdragging .sortable-blocks-edit > div:not(.sortable-placeholder):not(.ui-sortable-helper):not(.ui-draggable-dragging):last-child:after {
+#main-edit-area .isdragging .sortable-blocks-edit > div:not(.sortable-placeholder):not(.ui-fixed-below) + div:not(.sortable-placeholder):not(.ui-sortable-helper):not(.ui-draggable-dragging):not(.ui-fixed-above):before,
+#main-edit-area .isdragging .sortable-blocks-edit > div:not(.sortable-placeholder):not(.ui-sortable-helper):not(.ui-draggable-dragging):not(.ui-fixed-above):first-child:before,
+#main-edit-area .isdragging .sortable-blocks-edit > div:not(.sortable-placeholder):not(.ui-sortable-helper):not(.ui-draggable-dragging):not(.ui-fixed-below):last-child:after {
   .makeDroppable();
 }
 
@@ -109,106 +109,108 @@
   opacity: 1;
 }
 
-#main-edit-area .tools .fa, #main-edit-area .midtools .fa {
+#main-tinymce-toolbar {
+  text-align: center;
+  > * {
+    display: inline-block;
+  }
+}
+
+#main-edit-area .tools .fa, #main-edit-area .midtools .fa, #main-tinymce-toolbar .fa {
   font-size: 1em;
 }
 
-#main-edit-area .tool {
-  .button-style();
-
-  border: 2px solid #EEEEEE;
-  color: #EEEEEE;
-  background-color: #5D96CF;
-  display: inline-block;
-  text-align: center;
-  width: 25px;
-  height: 25px;
-  font-size: 20px;
-  padding: 3px;
-  padding-bottom: 2px;
-  margin: 0;
-  min-height: 25px;
-  
-  box-shadow: 0 0 5px @mosaico-button-shadow-color;
-  
-  cursor: pointer;
-
-  input.fileupload {
-    padding-top: 50px;
-  }
-}
-#main-edit-area .tool:hover {
-  background-color: #62B3FF;
-}
-#main-edit-area .tools .tool.handle {
-  margin-left: 0;
-  cursor: move;
-}
-
-#main-edit-area .tools .tool.handle,
-#main-edit-area .tools .tool.moveup, #main-edit-area .tools .tool.nomoveup,
-#main-edit-area .tools .tool.movedown, #main-edit-area .tools .tool.nomovedown {
-  float: left;
-}
-
-#main-edit-area .tools .tool.handle,
-#main-edit-area .tools .tool.moveup,
-#main-edit-area .tools .tool.movedown,
-#main-edit-area .tools .tool.clone {
-  background-color: #0B9444;
-}
-
-#main-edit-area .tools .tool.handle:hover,
-#main-edit-area .tools .tool.moveup:hover,
-#main-edit-area .tools .tool.movedown:hover,
-#main-edit-area .tools .tool.clone:hover {
-  background-color: #10C85D;
-}
-
-#main-edit-area .tools .tool.moveup,
-#main-edit-area .tools .tool.movedown {
-  margin-left: 3px;
-}
-
 #main-edit-area {
-  .tool.novariants, .tool.nomoveup, .tool.nomovedown, .tool.dummy {
-    background-color: transparent;
-    border-color: transparent;
-    box-shadow: none;
-    cursor: auto;
+  .tool {
+    .button-style();
+
+    border: 2px solid #EEEEEE;
+    color: #EEEEEE;
+    background-color: #5D96CF;
+    display: inline-block;
+    text-align: center;
+    width: 25px;
+    height: 25px;
+    font-size: 20px;
+    padding: 3px;
+    padding-bottom: 2px;
+    margin: 0;
+    min-height: 25px;
+
+    box-shadow: 0 0 5px @mosaico-button-shadow-color;
+
+    cursor: pointer;
+
+    input.fileupload {
+      padding-top: 50px;
+    }
+    &:hover {
+      background-color: #62B3FF;
+    }
+    &.novariants, &.nomoveup, &.nomovedown, &.dummy {
+      background-color: transparent;
+      border-color: transparent;
+      box-shadow: none;
+      cursor: auto;
+    }
+
+    &.novariants:hover {
+      background-color: transparent;
+    }
+  }
+  .tools .tool, .tool {
+    &.handle {
+      margin-left: 0;
+      cursor: move;
+    }
+
+    &.locked {
+      cursor: auto;
+    }
+
+    &.handle, &.moveup, &.nomoveup, &.movedown, &.nomovedown {
+      float: left;
+    }
+
+    &.lock, &.unlock, &.locked {
+      background-color: #FF5722;
+    }
+
+    &.lock:hover, &.unlock:hover {
+      background-color: #FE825D;
+    }
+
+    &.handle, &.moveup, &.movedown, &.clone {
+      background-color: #0B9444;
+    }
+
+    &.handle:hover, &.moveup:hover, &.movedown:hover, &.clone:hover {
+      background-color: #10C85D;
+    }
+
+    &.moveup, &.movedown, &.lock, &.unlock, {
+      margin-left: 3px;
+    }
+
+    &.clone {
+      margin-right: 3px;
+    }
+
+    &.delete {
+      margin-right: 0;
+      background-color: #BF2228;
+    }
+
+    &.dummy, &.clone, &.delete {
+      float: right;
+    }
+
+    &.delete:hover {
+      background-color: #F33B2D;
+    }
   }
 }
 
-#main-edit-area .tool.novariants:hover {
-  background-color: transparent;
-}
-
-#main-edit-area .tools .tool.clone {
-  margin-right: 3px;
-}
-
-#main-edit-area .tools .tool.delete {
-  margin-right: 0;
-  background-color: #BF2228;
-}
-#main-edit-area .tools .tool.dummy,
-#main-edit-area .tools .tool.clone,
-#main-edit-area .tools .tool.delete {
-  float: right;
-}
-
-#main-edit-area .tools .tool.delete:hover {
-  background-color: #F33B2D;
-}
-
-#main-edit-area .midtools {
-  .tool.delete {
-    background-color: #BF2228;
-  }
-  .tool.delete:hover {
-    background-color: #F33B2D;
-  }
-}
 #main-edit-area .midtools {
   visibility: hidden;
   z-index: 30; 
@@ -217,7 +219,31 @@
   text-align: left;
   white-space: nowrap;
   overflow: visible;
+
+  .tool {
+    &.locked {
+      cursor: auto;
+    }
+
+    &.delete {
+      float: none;
+      background-color: #BF2228;
+    }
+
+    &.delete:hover {
+      background-color: #F33B2D;
+    }
+
+    &.lock, &.unlock, &.locked {
+      background-color: #FF5722;
+    }
+
+    &.lock:hover, &.unlock:hover {
+      background-color: #FE825D;
+    }
+  }
 }
+
 #main-edit-area .img-wysiwyg:hover .midtools {
   visibility: visible;
 }
@@ -234,7 +260,6 @@
   }
 }
 
-
 #main-edit-area .img-wysiwyg .img-size {
   visibility: hidden;
   position: absolute;
@@ -246,7 +271,8 @@
   font-size: 14px;
   line-height: 14px;
   background-color: rgba(128,128,128,.5);
-  color: white;  
+  color: white;
+  letter-spacing: 0;
 }
 
 #main-edit-area .img-wysiwyg:hover .img-size {
@@ -254,10 +280,12 @@
 }
 
 #main-edit-area .midtools {
-  margin-left: 4px;
+  letter-spacing: 0;
+
   .tool {
-    margin-left: 4px;
-}
+    z-index: 20;
+    margin-left: 8px;
+  }
 }
 
 #main-edit-area .tools {

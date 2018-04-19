@@ -1,20 +1,21 @@
-<div data-bind="foreach: items.currentPageData">
+<div data-bind="foreach: { data: items.currentPageData, includeDestroyed: false }">
   <div class="draggable-item" data-bind="if: typeof thumbnailUrl != 'undefined'">
-    <div class="draggable image" data-bind="click: $root.addImage, extdraggable: { data: $data, dropContainer: '#main-wysiwyg-area', dragging: $root.draggingImage, 'options': { 'appendTo': '#page' } }, style: { backgroundImage: 'url(\\'' + thumbnailUrl + '\\')' }">
-      <img title="Drag this image and drop it on any template image placeholder" style="display: block;" data-bind="tooltips: {}, attr: { src: thumbnailUrl, 'title': $root.t('Drag this image and drop it on any template image placeholder') }"/>
+    <div class="draggable image" data-bind="click: $root.addImage, extdraggable: { data: $data, dropContainer: ($root.mosaicoConfig.mainElement && $root.mosaicoConfig.mainElement.id ? \'#\' + $root.mosaicoConfig.mainElement.id + \' \' : \'\') + '#main-wysiwyg-area', dragging: $root.draggingImage, 'options': { 'appendTo': ($root.mosaicoConfig.mainElement && $root.mosaicoConfig.mainElement.id ? \'#\' + $root.mosaicoConfig.mainElement.id + \' \' : \'\') + '#page' } }, style: { backgroundImage: 'url(\\'' + thumbnailUrl + '\\')' }">
+      <img title="Drag this image and drop it on any template image placeholder" style="display: block;" data-bind="tooltips: { classes: { 'ui-tooltip-content': 'breakall' }, content: function() {return Mosaico.$(this).attr('title')} }, attr: { src: thumbnailUrl, 'title': name + '<br><br>' + $root.t('Drag this image and drop it on any template image placeholder') }"/>
     </div>
+    <!-- ko if: typeof $root.libraryPath !== 'undefined' && typeof $root.libraryPaths()['/Favorites'] !== 'undefined' && typeof $root.addFavoriteImage !== 'undefined' && typeof $root.removeFavoriteImage !== 'undefined' -->
+    <div data-bind="click: function() { if ( favorited() ) { $root.removeFavoriteImage($data) } else { $root.addFavoriteImage($data) } }, attr: { title: $root.t( ( favorited() ? 'Remove from' : 'Add to' ) + ' Favorites' ), class: 'manipulate-favorite-image fa fa-star' + ( favorited() ? '' : '-o' ) }"></div>
+    <!-- /ko -->
   </div>
   <div class="directory-item" data-bind="if: attributes[0] === 'd'">
-	<div class="directory fa fa-folder-open-o" data-bind="click: navigate"><span style="font-size: 12px;display: block;text-align: center;position: absolute;bottom: 0;left: 0;right: 0;line-height: 1em;margin-top: 73px;vertical-align: bottom;" data-bind="text: name"></span></div>
+	<div class="directory fa fa-folder-open" data-bind="click: navigate"><span data-bind="text: name, attr:{ 'title': name }"></span></div>
   </div>
 </div>
 <!-- ko if: items.pageCount() > 1 -->
 <div class="galleryPager" data-bind="buttonset: {}">
   <a href="javascript:void(0)" data-bind="click: items.moveFirst, button: { disabled: items.currentPage() == 1, icon: 'fa fa-fast-backward', showLabel: false }">First</a>
   <a href="javascript:void(0)" data-bind="click: items.movePrevious, button: { disabled: items.currentPage() == 1, icon: 'fa fa-backward', showLabel: false }">Previous</a>
-  <br>
   <span data-bind="button: { disabled: true, text: true, label: ' '+$root.t('__current__ of __total__', { current: items.currentPage(), total: items.pageCount() })+' ' }"> X of Y </span>
-  <br>
   <a href="javascript:void(0)" data-bind="click: items.moveNext, button: { disabled: items.currentPage() == items.pageCount(), icon: 'fa fa-forward', showLabel: false }">Next</a>
   <a href="javascript:void(0)" data-bind="click: items.moveLast, button: { disabled: items.currentPage() == items.pageCount(), icon: 'fa fa-fast-forward', showLabel: false }">Last</a>
 </div>

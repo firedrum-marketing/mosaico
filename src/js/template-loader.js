@@ -82,14 +82,18 @@ var templateCreator = function(templatePlugin, htmlOrElement, optionalName, temp
     var $el = $(htmlOrElement);
     var $head = $('replacedhead', $el);
     var $body = $('replacedbody', $el);
-    templatePlugin.adder(tmpName + '-head', $head.html() || '');
+    var $webFonts = '<!-- ko if: $root.customFonts().length > 0 -->';
+    $webFonts += '<link class="mo-web-font-support" rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="crossorigin">';
+    $webFonts += '<link class="mo-web-font-support" rel="stylesheet" data-bind="attr: { href: Mosaico.ko.pureComputed(function(){var r=\'https://fonts.googleapis.com/css?family=\',i=0,f=this.customFonts();for(;i<f.length;i++)r+=(i>0?\'|\':\'\')+encodeURIComponent(f[i].label)+\':400,400i,700,700i\';return r},$root) }">';
+    $webFonts += '<!-- /ko -->';
+    templatePlugin.adder(tmpName + '-head', $head.append($webFonts).html() || $webFonts);
     templatePlugin.adder(tmpName + '-show', $body.html() || '');
     templatePlugin.adder(tmpName + '-preview', $el.html());
     templatePlugin.adder(tmpName + '-wysiwyg', $el.html());
 
     // $head.attr('data-bind', 'block: content');
     $head.children().detach();
-    $head.html("<!-- ko block: content --><!-- /ko -->");
+    $head.html('<base href="//' + global.location.host + '"><!-- ko block: content --><!-- /ko -->');
     $head.before('<!-- ko withProperties: { templateMode: \'head\' } -->');
     $head.after('<!-- /ko -->');
     $body.html("<!-- ko block: content --><!-- /ko -->");
@@ -236,8 +240,9 @@ var templateCompiler = function(performanceAwareCaller, templateUrlConverter, te
       createdTemplates.push(evt.data.templateSystemData[i].id);
     }
 
+    var vmWrapper = ko.observable(null);
     // second pass: given the templateDef we create a base content model object for this template.
-    var content = performanceAwareCaller('generateModel', templateConverter.wrappedResultModel.bind(undefined, templateDef));
+    var content = performanceAwareCaller('generateModel', templateConverter.wrappedResultModel.bind(undefined, templateDef, vmWrapper));
     modelReferences = content._unwrap();
 
     // third pass: we create "style/content editors" for every block
@@ -299,7 +304,7 @@ var templateCompiler = function(performanceAwareCaller, templateUrlConverter, te
     viewModel.mosaicoConfig = options;
     if (typeof options.additionalModel === 'string' && typeof templateDef._defs[options.additionalModel] != 'undefined') {
       templateDef._defs[options.additionalModel]._props.split(' ').forEach(function(additionalProp) {
-        viewModel[additionalProp] = performanceAwareCaller('generateAdditionalModel', templateConverter.wrappedModel.bind(undefined, templateDef, additionalProp));
+        viewModel[additionalProp] = performanceAwareCaller('generateAdditionalModel', templateConverter.wrappedModel.bind(undefined, templateDef, additionalProp, vmWrapper));
       });
     }
     
@@ -353,6 +358,8 @@ var templateCompiler = function(performanceAwareCaller, templateUrlConverter, te
         }
       });
     }
+
+    vmWrapper(viewModel);
 
     if (typeof finalOptions !== 'undefined') {
       if (finalOptions.init) {

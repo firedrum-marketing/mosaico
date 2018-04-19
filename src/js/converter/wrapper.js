@@ -6,6 +6,7 @@
 
 var ko = require("knockout");
 var console = require("console");
+var $ = require("jquery");
 
 function wrap(v) {
   var typeOfv = typeof v;
@@ -125,13 +126,198 @@ var _nextVariantFunction = function(ko, prop, variants) {
 
   prop(nextValue);
 };
+var _generateBlockHelperFunctions = function(def, defs, ko, type, t, blocks, vmWrapper) {
+  t.getContainerIndex = function(blocks, vmWrapper) {
+    var blocksArray = blocks();
+    var i = blocksArray.length - 1;
+    while( i >= 0 ) {
+      if ( ko.utils.unwrapObservable(ko.utils.unwrapObservable(blocksArray[i]).id) == ko.utils.unwrapObservable(t.id) ) break;
+      i--;
+    }
+    return i;
+  }.bind(t, blocks, vmWrapper);
+  t.getNearestUnlockedIndex = function(blocks, vmWrapper, up, strict, includeSelf) {
+    if (typeof up === 'undefined') {
+      up = false;
+      strict = false;
+      includeSelf = true;
+    } else if (up === false && typeof strict === 'undefined') {
+      strict = true;
+      includeSelf = false;
+    }
+
+    var lockDownMode = 0;
+
+    var tmp = vmWrapper();
+    if (tmp !== null) {
+      lockDownMode = tmp.lockDownMode();
+    }
+
+    var result = -1;
+    if (lockDownMode < 3) {
+      var containerIndex = this.getContainerIndex();
+      var blocksArray = blocks();
+      var curBlock = null;
+
+      result = containerIndex;
+      if (!up) {
+        if (includeSelf) {
+          result--;
+        }
+        while (++result <= blocksArray.length - 1) {
+          curBlock = blocksArray[result];
+          if (lockDownMode < 2 || !curBlock()._lockedBelow()) {
+            break;
+          }
+        }
+        if (result > blocksArray.length - 1) {
+          result = -1;
+        } else if (includeSelf) {
+          result++;
+        }
+      }
+      if (up || (strict === false && result === -1 && (result = containerIndex))) {
+        if (includeSelf) {
+          result++;
+        }
+        while (--result >= 0) {
+          curBlock = blocksArray[result];
+          if (lockDownMode < 2 || !curBlock()._lockedAbove()) {
+            break;
+          }
+        }
+      }
+    }
+    return result;
+  }.bind(t, blocks, vmWrapper);
+};
+var _generateBlockLocks = function(def, defs, ko, type, t, blocks, vmWrapper) {
+  // Handle lock down mode data for block movement
+  var locked = {};
+  if (ko.isObservable(t._locks)) {
+    locked.above = ko.utils.unwrapObservable(t._lockedAbove);
+    locked.below = ko.utils.unwrapObservable(t._lockedBelow);
+  } else {
+    t._locks = ko.observable({});
+    t._locked = ko.observable(false);
+    locked.above = locked.below = false;
+  }
+  t._lockedAbove = ko.computed( {
+    read: function(locked, vmWrapper) {
+      var lockDownMode = 0;
+
+      var tmp = vmWrapper();
+      if (tmp !== null) {
+        lockDownMode = tmp.lockDownMode();
+      }
+      var blocksArray = blocks();
+
+      switch (lockDownMode) {
+        case 0:
+          return false;
+        case 1:
+          var result = false;
+          if ( t._locked() ) {
+            var i = t.getContainerIndex();
+            result = i === -1 ? locked.above : ( i === 0 ) || ko.utils.unwrapObservable(blocksArray[i - 1])._locked();
+          }
+          return (locked.above = result);
+        case 2:
+        case 3:
+          return locked.above;
+      }
+    }.bind(undefined, locked, vmWrapper),
+    write: function(value) { /* no-op, necessary for undo/redo to work! */ }.bind(undefined)
+  } );
+  t._lockedBelow = ko.computed( {
+    read: function(locked, vmWrapper) {
+      var lockDownMode = 0;
+      var tmp = vmWrapper();
+      if (tmp !== null && ko.isObservable(tmp.lockDownMode)) {
+        lockDownMode = tmp.lockDownMode();
+      }
+      var blocksArray = blocks();
+
+      switch (lockDownMode) {
+        case 0:
+          return false;
+        case 1:
+          var result = false;
+          if ( t._locked() ) {
+            var i = t.getContainerIndex();
+            result = i === -1 ? locked.below : ( i === (blocksArray.length - 1) ) || ko.utils.unwrapObservable(blocksArray[i + 1])._locked();
+          }
+          return (locked.below = result);
+        case 2:
+        case 3:
+          return locked.below;
+      }
+    }.bind(undefined, locked, vmWrapper),
+    write: function(value) { /* no-op, necessary for undo/redo to work! */ }.bind(undefined)
+  } );
+};
+
+var _generateLock = function(defs, ko, prop, newType, newTypeProp, val, t, locks) {
+  // Handle lock down mode data
+  var isComplex = typeof val._complex !== 'undefined';
+
+  if (typeof locks[prop] === 'undefined') {
+    locks[prop] = ko.observable(!isComplex ? false : {});
+  }
+  if (!isComplex) {
+    t[prop]._locked = ko.computed( {
+      read: function(locks, prop) {
+        return locks[prop]();
+      }.bind(undefined, locks, prop),
+      write: function(locks, prop, value) {
+        locks[prop](value);
+      }.bind(undefined, locks, prop)
+    } );
+    t[prop]._locked._widget = val._widget;
+  } else if (typeof t[prop] === 'function') {
+    _generateLocks(defs[newTypeProp] || defs[prop], defs, ko, newType, t[prop](), locks[prop]());
+  }
+};
+
+var _generateLocks = function(def, defs, ko, type, t, locks) {
+  for (var prop in def)
+    if (def.hasOwnProperty(prop)) {
+      var val = def[prop];
+      var newType = type + ' ' + prop;
+      var newTypes = newType.split(' ');
+      var newTypeProp = newType;
+      var proceed = false;
+      while (newTypes.length > 0) {
+        proceed = defs.hasOwnProperty(newTypeProp);
+        if (proceed) {
+          break;
+        }
+        newTypes = newTypes.slice(1);
+        newTypeProp = newTypes.join(' ');
+      }
+      if (proceed && typeof val == 'object' && val !== null) {
+        _generateLock(defs, ko, prop, newType, newTypeProp, val, t, locks);
+      }
+    }
+};
 
 var _generateConditionalCommentData = function(def, defs, ko, type, t) {
   for (var prop in def)
     if (def.hasOwnProperty(prop)) {
       var val = def[prop];
       var newType = type + ' ' + prop;
-      if ((defs.hasOwnProperty(prop) || defs.hasOwnProperty(newType)) && typeof val == 'object' && val !== null) {
+      var newTypes = newType.split(' ');
+      var newTypeProp = newType;
+      var proceed = false;
+      while (newTypes.length > 0) {
+        proceed = defs.hasOwnProperty(newTypeProp);
+        if (proceed) {
+          break;
+        }
+        newTypes = newTypes.slice(1);
+        newTypeProp = newTypes.join(' ');
+      }
+      if (proceed && typeof val == 'object' && val !== null) {
         if (typeof val._widget != 'undefined' && (val._widget === 'text' || val._widget === 'longtext')) {
           // Handle conditional comment versions of text and longtext widgets
           t[prop + 'MAGForConditional'] = ko.pureComputed( function(textObservable) {
@@ -141,7 +327,7 @@ var _generateConditionalCommentData = function(def, defs, ko, type, t) {
               .replace(/\/>/g,'/><!-- cc:sc -->') : textObservableValue;
           }.bind(undefined, t[prop]) );
         } else if (typeof t[prop] === 'function') {
-          _generateConditionalCommentData(defs[newType] || defs[prop], defs, ko, newType, t[prop]());
+          _generateConditionalCommentData(defs[newTypeProp] || defs[prop], defs, ko, newType, t[prop]());
         }
       }
     }
@@ -152,7 +338,18 @@ var _generateSelectDefinitionLabels = function(def, defs, ko, type, t) {
     if (def.hasOwnProperty(prop)) {
       var val = def[prop];
       var newType = type + ' ' + prop;
-      if ((defs.hasOwnProperty(prop) || defs.hasOwnProperty(newType)) && typeof val == 'object' && val !== null) {
+      var newTypes = newType.split(' ');
+      var newTypeProp = newType;
+      var proceed = false;
+      while (newTypes.length > 0) {
+        proceed = defs.hasOwnProperty(newTypeProp);
+        if (proceed) {
+          break;
+        }
+        newTypes = newTypes.slice(1);
+        newTypeProp = newTypes.join(' ');
+      }
+      if (proceed && typeof val == 'object' && val !== null) {
         if (typeof val._widget != 'undefined' && val._widget === 'select' && typeof val._options != 'undefined') {
 
           // Handle select label subscriptions/observables
@@ -162,7 +359,7 @@ var _generateSelectDefinitionLabels = function(def, defs, ko, type, t) {
             labelObservable(selectOptions.opts[newValue]);
           }.bind(undefined, t[prop + 'MAGLabel'], opts) );
         } else if (typeof t[prop] === 'function') {
-          _generateSelectDefinitionLabels(defs[newType] || defs[prop], defs, ko, newType, t[prop]());
+          _generateSelectDefinitionLabels(defs[newTypeProp] || defs[prop], defs, ko, newType, t[prop]());
         }
       }
     }
@@ -222,7 +419,7 @@ var _getImageWidths = function(t, def) {
   return imageWidths;
 };
 
-var _makeComputedFunction = function(def, defs, thms, ko, contentModel, isContent, t) {
+var _makeComputedFunction = function(def, defs, thms, vmWrapper, ko, contentModel, isContent, t) {
   if (typeof def == 'undefined') {
     if (typeof ko.utils.unwrapObservable(t).type === 'undefined') {
       console.log("TODO ERROR Found a non-typed def ", def, t);
@@ -242,9 +439,9 @@ var _makeComputedFunction = function(def, defs, thms, ko, contentModel, isConten
   var pp = def._globalStyles;
   if (typeof pp != 'undefined')
     for (var p in pp)
-      if (pp.hasOwnProperty(p)) {
+      if (pp.hasOwnProperty(p) && p.indexOf('_locks.') !== 0) {
         var schemePathOrig = '$root.content().theme().scheme';
-        var schemePath, vm, path;
+        var schemePath, vm, lockVm, path;
 
         if (pp[p].substr(0, selfPath.length) == selfPath) {
           path = pp[p].substr(selfPath.length);
@@ -265,14 +462,29 @@ var _makeComputedFunction = function(def, defs, thms, ko, contentModel, isConten
         var themePath = '';
         var skip = true;
         for (var i = 0; i < pathParts.length; i++) {
-          vm = ko.utils.unwrapObservable(vm)[pathParts[i]];
+          vm = ko.utils.unwrapObservable(vm);
           // ugly thing to find the path to the schema color property (sometimes we have theme.bodyTheme, some other we have content.theme.bodyTheme...)
           if (skip) {
             if (pathParts[i] == 'theme') skip = false;
           } else {
-            if (themePath.length > 0) themePath += '.';
+            if (themePath.length > 0) {
+              if (themePath.indexOf('.') === -1) {
+                if (typeof vm._locks === 'undefined') {
+                  vm._locks = ko.observable({});
+                }
+                lockVm = vm._locks;
+              }
+              lockVm = ko.utils.unwrapObservable(lockVm);
+              if (typeof lockVm[pathParts[i]] === 'undefined') {
+                lockVm[pathParts[i]] = ko.observable(i === (pathParts.length - 1) ? false : {});
+              }
+              lockVm = lockVm[pathParts[i]];
+
+              themePath += '.';
+            }
             themePath += pathParts[i];
           }
+          vm = vm[pathParts[i]];
         }
 
         var schemeParts = schemePath.split('().');
@@ -290,6 +502,10 @@ var _makeComputedFunction = function(def, defs, thms, ko, contentModel, isConten
         if (!ko.isObservable(target)) throw "Unexpected non observable target " + p + "/" + themePath;
 
         target._defaultComputed = _makeComputed(target, vm, nullIfEqual, schemeSelector, themePath, thms);
+        if ( typeof target._locked === 'undefined' ) {
+          target._locked = ko.observable(null);
+        }
+        target._locked._defaultComputed = _makeComputed(target._locked, lockVm, nullIfEqual, schemeSelector, themePath.substr(0, themePath.indexOf('.')) + '._locks' + themePath.substr(themePath.indexOf('.')), thms);
       }
 
   if (typeof def._variant != 'undefined') {
@@ -309,6 +525,8 @@ var _makeComputedFunction = function(def, defs, thms, ko, contentModel, isConten
       throw "ERROR looking for variant target " + def._variant;
     }
     pParent._nextVariant = _nextVariantFunction.bind(pTarget, ko, pTarget, _getVariants(def));
+    pParent._variantTarget = pTarget;
+    pParent._variantText = def._variantText;
   }
 
   if (typeof def._automaticImageHeight != 'undefined') {
@@ -330,7 +548,10 @@ var _makeComputedFunction = function(def, defs, thms, ko, contentModel, isConten
     hParent._setAutomaticImageHeight = ko.computed(function(automaticImageHeight, imageHeights, manualImageHeight) {
       var heights = [];
       for (var i6 = 0; i6 < imageHeights.length; i6++) {
-        heights.push(imageHeights[i6]());
+        var i7 = imageHeights[i6]();
+        if ($.isNumeric(i7)) {
+          heights.push(i7);
+        }
       }
       ko.ignoreDependencies(function(automaticImageHeights, imageHeights, manualImageHeight) {
         if (!manualImageHeight()) {
@@ -348,25 +569,30 @@ var _makeComputedFunction = function(def, defs, thms, ko, contentModel, isConten
       var val = def[prop2];
       if (typeof val == 'object' && val !== null) {
         if (typeof val._context != 'undefined' && val._context == 'block') {
+          // This is a block instantiation!
           var propVm = contentModel[prop2]();
-          var newVm = _makeComputedFunction(defs[prop2], defs, thms, ko, contentModel, isContent, propVm);
+          var newVm = _makeComputedFunction(defs[prop2], defs, thms, vmWrapper, ko, contentModel, isContent, propVm);
           t[prop2](newVm);
           _generateSelectDefinitionLabels(defs[prop2], defs, ko, val.type, newVm);
           _generateConditionalCommentData(defs[prop2], defs, ko, val.type, newVm);
+          _generateBlockHelperFunctions(defs[prop2], defs, ko, val.type, newVm, contentModel.mainBlocks().blocks, vmWrapper);
+          _generateBlockLocks(defs[prop2], defs, ko, val.type, newVm, contentModel.mainBlocks().blocks, vmWrapper);
+          _generateLocks(defs[prop2], defs, ko, val.type, newVm, newVm._locks());
         } else if (val.type == 'blocks') {
+          // This is a block list
           var mainVm = contentModel[prop2]();
           var blocksVm = mainVm.blocks();
           var oldBlock, blockType, newBlock;
           for (var ib = 0; ib < blocksVm.length; ib++) {
             oldBlock = ko.utils.unwrapObservable(blocksVm[ib]);
             blockType = ko.utils.unwrapObservable(oldBlock.type);
-            newBlock = _makeComputedFunction(defs[blockType], defs, thms, ko, contentModel, isContent, oldBlock);
+            newBlock = _makeComputedFunction(defs[blockType], defs, thms, vmWrapper, ko, contentModel, isContent, oldBlock);
             blocksVm[ib](newBlock);
           }
 
           var blocksObs = mainVm.blocks;
 
-          _augmentBlocksObservable(blocksObs, _blockInstrumentFunction.bind(mainVm, undefined, defs, thms, ko, undefined, contentModel, isContent));
+          _augmentBlocksObservable(blocksObs, _blockInstrumentFunction.bind(mainVm, undefined, defs, thms, vmWrapper, ko, undefined, contentModel, isContent));
 
           contentModel[prop2]._wrap = _makeBlocksWrap.bind(contentModel[prop2], blocksObs._instrumentBlock);
           contentModel[prop2]._unwrap = _unwrap.bind(contentModel[prop2]);
@@ -374,9 +600,27 @@ var _makeComputedFunction = function(def, defs, thms, ko, contentModel, isConten
       }
     }
 
+  if (def.type === 'template') {
+    if (!ko.isObservable(contentModel._locks)) {
+      contentModel._locks = ko.observable({});
+    }
+
+    for (var prop3 in def)
+      if (prop3.substr(0,2) !== 'fd' && def.hasOwnProperty(prop3)) {
+        var val2 = def[prop3];
+        if (typeof val2 == 'object' && val2 !== null && typeof val2._complex === 'undefined' && val2._category === 'content') {
+          // This is a content-tab property of the Email itself
+          _generateLock(defs, ko, prop3, val2.type, val2.type, defs[prop3], contentModel, contentModel._locks());
+        }
+      }
+  }
+
   if (typeof def._context != 'undefined' && def._context == 'block') {
     _generateSelectDefinitionLabels(def, defs, ko, def.type, t);
     _generateConditionalCommentData(def, defs, ko, def.type, t);
+    _generateBlockHelperFunctions(def, defs, ko, def.type, t, contentModel.mainBlocks().blocks, vmWrapper);
+    _generateBlockLocks(def, defs, ko, def.type, t, contentModel.mainBlocks().blocks, vmWrapper);
+    _generateLocks(def, defs, ko, def.type, t, t._locks());
   }
 
   return t;
@@ -442,14 +686,14 @@ var _makeSplice = function() {
   }
 };
 
-// def, defs and themes are bound in "_modelInstrument" while the next parameters are exposed by this module
-var _blockInstrumentFunction = function(def, defs, themes, knockout, self, modelContent, isContent, self2) {
+// def, defs, themes and vmWrapper are bound in "_modelInstrument" while the next parameters are exposed by this module
+var _blockInstrumentFunction = function(def, defs, themes, vmWrapper, knockout, self, modelContent, isContent, self2) {
   // ugly: sometimes we have to bind content but not self, so we repeat self at the end as "self2"
   if (typeof self == 'undefined') self = self2;
 
   var res = wrap(self);
   // Augment observables with custom code
-  res(_makeComputedFunction(def, defs, themes, knockout, modelContent, isContent, res()));
+  res(_makeComputedFunction(def, defs, themes, vmWrapper, knockout, modelContent, isContent, res()));
 
   res._unwrap = _unwrap.bind(res);
   return res;
@@ -464,8 +708,8 @@ var _unwrap = function() {
   return ko.toJS(this);
 };
 
-var _modelInstrument = function(model, modelDef, defs) {
-  var _instrument = _blockInstrumentFunction.bind(undefined, modelDef, defs, defs['themes']);
+var _modelInstrument = function(model, modelDef, defs, vmWrapper) {
+  var _instrument = _blockInstrumentFunction.bind(undefined, modelDef, defs, defs['themes'], vmWrapper);
   var res = _instrument(ko, model, undefined, true);
   // res._instrument = _instrument;
   res._wrap = _wrap.bind(res, _instrument);

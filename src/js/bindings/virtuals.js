@@ -3,18 +3,25 @@
 
 var ko = require("knockout");
 var console = require("console");
+var $ = require("jquery");
 
 ko.bindingHandlers['uniqueId'] = {
+  /*base26: function(value) {
+    var result = '';
+    while (value >= 26) {
+        result = String.fromCharCode(value % 26 + 97) + result;
+        value =  Math.floor(value / 26);
+    }
+    return String.fromCharCode(value + 97) + result;
+  },*/
   currentIndex: 0,
   'init': function(element, valueAccessor) {
     var data = ko.utils.unwrapObservable(valueAccessor()) || {};
-    if (data.id() === '') {
-      var id, el, prefix;
-      // TODO we need a better prefix
-      prefix = 'ko_' + (typeof data.type !== 'undefined' ? ko.utils.unwrapObservable(data.type) : 'block');
+    if (data.id() === '' || data.id().indexOf('ko_') === 0) {
+      var id, el, prefix = 'k_';
       // when loading an exising model, IDs could be already assigned.
       do {
-        id = prefix + '_' + (++ko.bindingHandlers['uniqueId'].currentIndex);
+        id = prefix + (++ko.bindingHandlers['uniqueId'].currentIndex).toString(36);
         el = global.document.getElementById(id);
         if (el) {
           // when loading an existing model my "currentIndex" is empty.
@@ -31,9 +38,9 @@ ko.bindingHandlers['uniqueId'] = {
 ko.virtualElements.allowedBindings['uniqueId'] = true;
 
 ko.bindingHandlers['virtualAttr'] = {
-  update: function(element, valueAccessor) {
+  update: function(element) {
     if (element.nodeType !== 8) {
-      ko.bindingHandlers['attr'].update(element, valueAccessor);
+      ko.bindingHandlers['attr'].update.apply(this, arguments);
     }
   }
 };
@@ -69,10 +76,20 @@ ko.bindingHandlers['virtualStyle'] = {
 };
 ko.virtualElements.allowedBindings['virtualStyle'] = true;
 
-
 ko.bindingHandlers['virtualHtml'] = {
+  '_convertEMtoPX': function() {
+    try {
+      var fontSize = parseFloat($(this).css('font-size'));
+      $(this).attr('style', $(this).attr('style').replace(/(([0-9](\.[0-9]*)?)em)/ig, function(match, p1, p2) {
+        return parseFloat(p2) * fontSize + 'px';
+      }));
+    } catch(e) {
+      console.warn('Could not convert em to px in virtualHtml binding.', e);
+    }
+  },
   init: ko.bindingHandlers['html'].init,
   update: function(element, valueAccessor) {
+    var parsedNodes = null;
     if (element.nodeType === 8) {
       var html = ko.utils.unwrapObservable(valueAccessor());
 
@@ -82,15 +99,18 @@ ko.bindingHandlers['virtualHtml'] = {
           html = html.toString();
         }
 
-        var parsedNodes = ko.utils.parseHtmlFragment(html);
+        parsedNodes = ko.utils.parseHtmlFragment(html);
         if (parsedNodes) {
           var endCommentNode = element.nextSibling;
           for (var i = 0, j = parsedNodes.length; i < j; i++)
             endCommentNode.parentNode.insertBefore(parsedNodes[i], endCommentNode);
+          $(parsedNodes).filter('[style*="em"]').each(ko.bindingHandlers['virtualHtml']._convertEMtoPX);
+          $(parsedNodes).find('[style*="em"]').each(ko.bindingHandlers['virtualHtml']._convertEMtoPX);
         }
       }
     } else { // plain node
       ko.bindingHandlers['html'].update(element, valueAccessor);
+      $('[style*="em"]', element).each(ko.bindingHandlers['virtualHtml']._convertEMtoPX);
     }
 
     // Content for virtualHTML must not be parsed by KO, it is simple content.

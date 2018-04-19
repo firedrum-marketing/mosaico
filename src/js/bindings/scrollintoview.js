@@ -25,6 +25,12 @@ var _scrollIntoView = function($element, alignTop, scrollParent, moveBy) {
 
 ko.bindingHandlers.scrollIntoView = {
   update: function(element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
+    // Work around mysterious bug in Chrome where element may be null even though arguments[0] is the element!
+    if (element !== arguments[0]) {
+      console.warn('Working around Chrome bug in scrollIntoView.');
+      element = arguments[0];
+    }
+
     var selected = ko.utils.unwrapObservable(valueAccessor());
     if (!selected) return;
     try {

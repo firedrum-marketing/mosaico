@@ -86,14 +86,22 @@ var expressionGenerator = function(node, bindingProvider, defVal) {
       // return gen(node.object) + '[' + gen(node.property) + ']';
     } else if (node.type == 'MemberExpression' && !node.computed) {
       var me = gen(node.object, bindingProvider, false) + '.' + gen(node.property, bindingProvider, false);
-      if (lookupmember && node.object.name !== 'Math' && node.object.name !== 'Color' && node.object.name !== 'Util') return bindingProvider(me, defVal) + '()';
+      if (lookupmember && node.object.name !== 'Math' && node.object.name !== 'Color' && node.object.name !== 'Util' && node.object.name !== '$root' && node.object.name !== '$parent' && node.object.name !== 'Mosaico' && (!node.object.callee || node.object.callee.object.name !== 'Mosaico')) return bindingProvider(me, defVal) + '()';
       return me;
     } else if (node.type === "Literal") {
       return node.raw;
     } else if (node.type === 'Identifier') {
       var id = node.name;
-      if (lookupmember) return bindingProvider(id, defVal) + '()';
-      else return id;
+      switch ( id ) {
+        case 'Array':
+          return id;
+        default:
+          if (lookupmember) {
+            return bindingProvider(id, defVal) + '()';
+          } else {
+            return id;
+          }
+      }
     } else if (node.type === 'ConditionalExpression') {
       return '(' + gen(node.test, bindingProvider, lookupmember) + ' ? ' + gen(node.consequent, bindingProvider, lookupmember) + ' : ' + gen(node.alternate, bindingProvider, lookupmember) + ')';
     } else if (node.type === 'Compound') {

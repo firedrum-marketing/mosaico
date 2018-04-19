@@ -46,7 +46,7 @@ var _filterProps = function(model, editType, level) {
   return res;
 };
 
-var _propInput = function(model, prop, propAccessor, editType, widgets) {
+var _propInput = function(model, prop, propAccessor, editType, widgets, isGlobal) {
   var html = "";
   var widget;
   if (model !== null && typeof model._widget != 'undefined') widget = model._widget;
@@ -67,6 +67,10 @@ var _propInput = function(model, prop, propAccessor, editType, widgets) {
 
   if ( model !== null && typeof model._disabledOn !== 'undefined' ) {
     onfocusbinding += ', disable: ' + model._disabledOn;
+  }
+
+  if ( model !== null && typeof model._placeholder !== 'undefined' ) {
+    onfocusbinding += ', attr: { placeholder: \'' + model._placeholder + '\' }';
   }
 
   if (editType == 'edit') {
@@ -212,22 +216,7 @@ var _propInput = function(model, prop, propAccessor, editType, widgets) {
       }
      onfocusbinding += ' }';
     }
-    html += '<select type="text" data-bind="value: ' + propAccessor + ', ' + onfocusbinding + '">';
-    html += '<optgroup label="Sans-Serif Fonts">';
-    html += '<option value="Arial,Helvetica,sans-serif">Arial</option>';
-    html += '<option value="\'Comic Sans MS\',cursive,sans-serif">Comic Sans MS</option>';
-    html += '<option value="Impact,Charcoal,sans-serif">Impact</option>';
-    html += '<option value="\'Trebuchet MS\',Helvetica,sans-serif">Trebuchet MS</option>';
-    html += '<option value="Verdana,Geneva,sans-serif">Verdana</option>';
-    html += '</optgroup>';
-    html += '<optgroup label="Serif Fonts">';
-    html += '<option value="Georgia,serif">Georgia</option>';
-    html += '<option value="\'Times New Roman\',Times,serif">Times New Roman</option>';
-    html += '</optgroup>';
-    html += '<optgroup label="Monospace Fonts">';
-    html += '<option value="\'Courier New\',Courier,monospace">Courier New</option>';
-    html += '</optgroup>';
-    html += '</select>';
+    html += '<select data-bind="' + valuebinding + ', ' + onfocusbinding + ', style: { fontFamily: ' + propAccessor + ' }, options: $root.allFonts, optionsText: \'label\', optionsValue: \'value\', optionsAfterRender: $root.allFontsOptionsAfterRender"></select>';
   } else if (widget == 'url') {
     if (Object.keys(eventbinding).length > 0) {
       onfocusbinding += ', event: { ';
@@ -253,7 +242,7 @@ var _propInput = function(model, prop, propAccessor, editType, widgets) {
           isfirstevent = false;
         }
       }
-     onfocusbinding += ' }';
+      onfocusbinding += ' }';
     }
     var min = 0;
     var max = 1000;
@@ -263,6 +252,11 @@ var _propInput = function(model, prop, propAccessor, editType, widgets) {
     if (model !== null && typeof model._step !== 'undefined') step = model._step;
     var page = step * 5;
     if (model !== null && typeof model._page !== 'undefined') page = model._page;
+    if ( isGlobal ) {
+      if (model !== null && typeof model._globalMax !== 'undefined') max = model._globalMax;
+    } else {
+      if (model !== null && typeof model._localMax !== 'undefined') max = model._localMax;
+    }
     html += '<input class="number-spinner" size="7" step="' + step + '" type="number" value="-1" data-bind="spinner: { min: ' + min + ', max: ' + max + ', page: ' + page + ', value: ' + propAccessor + ' }, valueUpdate: [\'change\', \'spin\']' + ', ' + onfocusbinding + '" />';
   } else if (widget == 'src') {
     if (Object.keys(eventbinding).length > 0) {
@@ -277,7 +271,7 @@ var _propInput = function(model, prop, propAccessor, editType, widgets) {
     }
     html += '<div class="ui-textbutton">';
     html += '<input class="ui-textbutton-input" size="7" type="text" value="nothing" data-bind="' + valuebinding + ', ' + onfocusbinding + '" />';
-    html += '<a href="javascript:void(0)" class="ui-textbutton-button" data-bind="visible: typeof $root.linkDialog === \'function\', click: typeof $root.linkDialog === \'function\' ? $root.linkDialog.bind(undefined, \'' + propAccessor + '\', \'' + (model !== null && typeof model._disabledOn !== 'undefined' ? model._disabledOn : 'false') + '\', { extensions: \'bmp,jpg,jpeg,gif,png\' }) : false, button: { icon: \'fa fa-fw fa-ellipsis-h\', label: $root.t(\'Opzioni\'), showLabel: false }"></a>';
+    html += '<a href="javascript:void(0)" class="ui-textbutton-button" data-bind="visible: typeof $root.linkDialog === \'function\', click: typeof $root.linkDialog === \'function\' ? $root.linkDialog.bind(undefined, \'' + propAccessor + '\', \'' + (model !== null && typeof model._disabledOn !== 'undefined' ? model._disabledOn : 'false') + '\', { extensions: \'bmp,jpg,jpeg,gif,png\', path: \'/Backgrounds\' }) : false, button: { icon: \'fa fa-fw fa-ellipsis-h\', label: $root.t(\'Opzioni\'), showLabel: false }"></a>';
     html += '</div>';
   } else {
     if (Object.keys(eventbinding).length > 0) {
@@ -502,22 +496,23 @@ var _propEditor = function(withBindingProvider, widgets, templateUrlConverter, m
     if (typeof globalStyles == 'undefined') checkboxes = false;
 
     if (model === null || typeof model != 'object' || typeof model._widget != 'undefined') {
-      var bindings = [];
-      if (model !== null && typeof model._hideif != 'undefined') {
-        bindings.push('css: {hidden: ' + model._hideif + '}');
+      var globalStyleLockProp = null;
+      if (typeof globalStyles != 'undefined') {
+        globalStyleLockProp = globalStyles['_locks.' + path];
       }
 
-      if (typeof globalStyleProp != 'undefined') bindings.push('css: { notnull: ' + prop + '() !== null }');
+      var bindings = ['css: { localLocked: $root.lockDownMode() > 2 || ($root.lockDownMode() === 2 && typeof ' + prop + '._locked !== \'undefined\' && ' + prop + '._locked())' + (globalStyleLockProp !== null ? ', globalLocked: $root.lockDownMode() > 2 || ($root.lockDownMode() === 2 && typeof ' + prop + '._locked !== \'undefined\' && ' + globalStyleLockProp + '())' : '') + (model !== null && typeof model._hideif != 'undefined' ? ', hidden: ' + model._hideif : '') + (typeof globalStyleProp !== 'undefined' ? ', notnull: ' + prop + '() !== null' : '') + ' }'];
+
       title = model !== null && typeof model._help !== 'undefined' ? ' title="' + utils.addSlashes(model._help) + '" data-bind="attr: { title: $root.ut(\'template\', \'' + utils.addSlashes(model._help) + '\') }"' : '';
       if (title.length > 0) bindings.push('tooltips: {}');
-      var bind = bindings.length > 0 ? 'data-bind="' + utils.addSlashes(bindings.join()) + '"' : '';
+      var bind = bindings.length > 0 ? 'data-bind="' + bindings.join() + '"' : '';
       html += '<div class="propEditor ' + propAccessor + (checkboxes ? ' checkboxes' : '') + '"' + bind + '>';
 
       var modelName2 = (model !== null && typeof model._name != 'undefined' ? model._name : (typeof prop !== 'undefined' ? '[' + prop + ']' : ''));
       modelName2 = '<span data-bind="text: $root.ut(\'template\', \'' + utils.addSlashes(modelName2) + '\')">' + modelName2 + '</span>';
       html += '<span' + title + ' class="propLabel">' + modelName2 + '</span>';
-      html += '<div class="propInput ' + (typeof globalStyles != 'undefined' ? 'local' : '') + '" data-bind="css: { default: ' + prop + '() === null }">';
-      html += _propInput(model, prop, propAccessor, editType, widgets);
+      html += '<div class="propInput' + (typeof globalStyles != 'undefined' ? ' local' : '') + '" data-bind="css: { default: ' + prop + '() === null }">';
+      html += _propInput(model, prop, propAccessor, editType, widgets, false);
       for (var j = ''; typeof model['_button' + j] != 'undefined'; j++) {
         var btnOpts = _getOptionsObject(model['_button' + j]);
         var btnType = ( btnOpts.opts.hasOwnProperty( 'type' ) ? btnOpts.opts.type : '' );
@@ -529,9 +524,10 @@ var _propEditor = function(withBindingProvider, widgets, templateUrlConverter, m
         }
       }
       html += '</div>';
+
       if (typeof globalStyleProp != 'undefined') {
         html += '<div class="propInput global" data-bind="css: { overridden: ' + prop + '() !== null }">';
-        html += _propInput(model, prop, globalStyleProp, editType, widgets);
+        html += _propInput(model, prop, globalStyleProp, editType, widgets, true);
         html += '</div>';
 
         if (checkboxes) {
@@ -540,6 +536,21 @@ var _propEditor = function(withBindingProvider, widgets, templateUrlConverter, m
           html += '</label></div>';
         }
       }
+      // Lock Down Mode Support
+      html += '<!-- ko if: $root.lockDownMode() === 1 && typeof ' + prop + '._locked !== \'undefined\' -->';
+      html += '<div class="propCheck propLock' + (typeof globalStyles != 'undefined' ? ' local' : '') + '" data-bind="css: { default: ' + prop + '._locked() === null }">';
+      html += '<label data-bind="click: function(evt, obj) { ' + prop + '._locked(!' + prop + '._locked()); return false }"><input type="checkbox" data-bind="focusable: true, click: function(evt, obj) { ' + prop + '._locked(!' + prop + '._locked()); return false }, checked: ' + prop + '._locked() === true">';
+      html += '<span class="checkbox-replacer" data-bind="css: { checked: ' + prop + '._locked() === true }"></span>';
+      html += '</label>';
+      html += '</div>';
+      if (globalStyleLockProp !== null) {
+        html += '<div class="propCheck propLock global" data-bind="css: { overridden: ' + prop + '._locked() !== null }">';
+        html += '<label data-bind="click: function(evt, obj) { ' + globalStyleLockProp + '(!' + globalStyleLockProp + '()); return false }"><input type="checkbox" data-bind="focusable: true, click: function(evt, obj) { ' + globalStyleLockProp + '(!' + globalStyleLockProp + '()); return false }, checked: ' + globalStyleLockProp + '() === true">';
+        html += '<span class="checkbox-replacer" data-bind="css: { checked: ' + globalStyleLockProp + '() === true }"></span>';
+        html += '</label>';
+        html += '</div>';
+      }
+	  html += '<!-- /ko -->';
       html += '</div>';
     } else if (model === null || typeof model != 'object') {
       // TODO remove debug output

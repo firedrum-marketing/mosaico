@@ -22,9 +22,19 @@ var checkModel = function(reference, blockDefs, model, origPrefix, reverse) {
           // Ignore auto-generated properties that are not defined in the template
           continue;
         }
-        if (prop === 'manualImageHeight') {
-          // Ignore this property as it has a special meaning and does not need to be defined in the template to be useful
-          continue;
+        switch(prop) {
+          case 'manualImageHeight':
+          case '_variantTarget':
+          case '_locks':
+          case '_locked':
+          case '_lockedAbove':
+          case '_lockedBelow':
+          case 'getContainerIndex':
+          case 'getNearestUnlockedIndex':
+            // Ignore these properties as they have a special meaning and do not need to be defined in the template to be useful
+            continue;
+          default:
+            break;
         }
         if (reverse) {
           console.warn("WARN Property ", prefix, "found in model is not defined by template: removing it!");
@@ -116,9 +126,19 @@ var checkModel = function(reference, blockDefs, model, origPrefix, reverse) {
           // Ignore auto-generated properties that are not defined in the template
           continue;
         }
-        if (prop === 'manualImageHeight') {
-          // Ignore this property as it has a special meaning and does not need to be defined in the template to be useful
-          continue;
+        switch(prop) {
+          case 'manualImageHeight':
+          case '_variantTarget':
+          case '_locks':
+          case '_locked':
+          case '_lockedAbove':
+          case '_lockedBelow':
+          case 'getContainerIndex':
+          case 'getNearestUnlockedIndex':
+            // Ignore these properties as they have a special meaning and do not need to be defined in the template to be useful
+            continue;
+          default:
+            break;
         }
         console.log("TODO unsupported type", prefix, typeof reference[prop]);
         valid = Math.max(valid, 2);

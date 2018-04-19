@@ -101,7 +101,7 @@ var _processStyleSheetRules_processBlockDef = function(blockDefsUpdater, rules) 
   }
 };
 
-var processStylesheetRules = function(style, localWithBindingProvider, blockDefsUpdater, themeUpdater, templateUrlConverter, rootModelName, templateName) {
+var processStylesheetRules = function(style, localWithBindingProvider, blockDefsUpdater, themeUpdater, templateUrlConverter, rootModelName, templateName, isRecursion) {
   var styleSheet = cssParse(style, {
     comments: true
   });
@@ -125,9 +125,13 @@ var processStylesheetRules = function(style, localWithBindingProvider, blockDefs
       };
 
       foundBlockMatch = null;
-      match = styleSheet.stylesheet.rules[i].name.match(/\-ko-blockloop-([^ ]*)/);
+	  var prefix = '';
+      match = styleSheet.stylesheet.rules[i].name.match(/\-ko-blockloop-([^ \(]*)(?:\(([^\)]*)\))?/);
       if (match !== null) {
         foundBlockMatch = match[1];
+        if (typeof match[2] !== 'undefined') {
+          prefix = match[2];
+        }
       }
 
       styleSheet.stylesheet.rules.splice(i, 1);
@@ -136,30 +140,25 @@ var processStylesheetRules = function(style, localWithBindingProvider, blockDefs
         internalStyleSheet = declarations.elaborateDeclarations(internalStyleSheet, templateUrlConverter, localWithBindingProvider.bind(this, foundBlockMatch, ''), {}, true);
         var j;
         for (j = 0; j < internalStyleSheet.stylesheet.rules.length; j++) {
-          for (var k = 0; k < internalStyleSheet.stylesheet.rules[j].selectors.length; k++) {
-           internalStyleSheet.stylesheet.rules[j].selectors[k] = '<!-- ko text: (templateMode ==\'wysiwyg\' ? ($root.mosaicoConfig.mainElement && $root.mosaicoConfig.mainElement.id ? \'#\' + $root.mosaicoConfig.mainElement.id + \' \' : \'\') + \'#main-wysiwyg-area \' : \'\')+\'#\'+id()+\' \' --><!-- /ko -->' + internalStyleSheet.stylesheet.rules[j].selectors[k];
-          }
+          if (internalStyleSheet.stylesheet.rules[j].type == 'rule')
+            for (var k = 0; k < internalStyleSheet.stylesheet.rules[j].selectors.length; k++) {
+             internalStyleSheet.stylesheet.rules[j].selectors[k] = '<!-- ko text: (templateMode ==\'wysiwyg\' ? ($root.mosaicoConfig.mainElement && $root.mosaicoConfig.mainElement.id ? \'#\' + $root.mosaicoConfig.mainElement.id + \' \' : \'\') + \'#main-wysiwyg-area \' : \'\')+\'' + prefix + ' \'+\'#\'+id()+\' \' --><!-- /ko -->' + internalStyleSheet.stylesheet.rules[j].selectors[k];
+            }
         }
 
-        var addedPrefix = false;
-        for (j = 0; j < internalStyleSheet.stylesheet.rules.length; j++) {
-          if (internalStyleSheet.stylesheet.rules[j].type === 'rule' && typeof internalStyleSheet.stylesheet.rules[j].selectors !== 'undefined' && internalStyleSheet.stylesheet.rules[j].selectors.length >= 1) {
-            internalStyleSheet.stylesheet.rules[j].selectors[0] = '<!-- ko foreach: $root.findObjectsOfType($data, \'' + foundBlockMatch + '\') -->' + internalStyleSheet.stylesheet.rules[j].selectors[0];
-            addedPrefix = true;
-            break;
-          }
-        }
+        internalStyleSheet.stylesheet.rules.splice(0, 0, {
+          type: 'comment',
+          text: '<!-- ko foreach: { data: $root.findObjectsOfType($data, \'' + foundBlockMatch + '\'), includeDestroyed: false } -->'
+        });
 
-        if (addedPrefix) {
-          internalStyleSheet.stylesheet.rules.push({
-            type: 'comment',
-            text: ' */<!-- /ko -->/* '
-          });
-          for (j = internalStyleSheet.stylesheet.rules.length - 1; j >= 0; j--)
+        internalStyleSheet.stylesheet.rules.push({
+          type: 'comment',
+          text: '<!-- /ko -->'
+        });
+        for (j = internalStyleSheet.stylesheet.rules.length - 1; j >= 0; j--)
           styleSheet.stylesheet.rules.splice(i, 0, internalStyleSheet.stylesheet.rules[j]);
 
-          i += internalStyleSheet.stylesheet.rules.length;
-        }
+        i += internalStyleSheet.stylesheet.rules.length;
       }
 
       i--;
@@ -171,7 +170,9 @@ var processStylesheetRules = function(style, localWithBindingProvider, blockDefs
             stylesheet: {
               rules: styleSheet.stylesheet.rules[i].rules
             }
-          }), localWithBindingProvider, blockDefsUpdater, themeUpdater, templateUrlConverter, rootModelName, templateName
+          }, {
+            comments: true
+          }), localWithBindingProvider, blockDefsUpdater, themeUpdater, templateUrlConverter, rootModelName, templateName, true
         ), {
           comments: true
         }
@@ -195,10 +196,10 @@ var processStylesheetRules = function(style, localWithBindingProvider, blockDefs
         for (l = 0; l < styleSheet.stylesheet.rules[i].selectors.length; l++) {
           styleSheet.stylesheet.rules[i].selectors[l] = styleSheet.stylesheet.rules[i].selectors[l].replace(regex, '<!-- ko text: \'#\'+id() --><!-- /ko -->');
         }
-        styleSheet.stylesheet.rules[i].selectors[0] = '<!-- ko foreach: $root.findObjectsOfType($data, \'' + foundBlockMatch + '\') -->' + styleSheet.stylesheet.rules[i].selectors[0];
+        styleSheet.stylesheet.rules[i].selectors[0] = '<!-- ko foreach: { data: $root.findObjectsOfType($data, \'' + foundBlockMatch + '\'), includeDestroyed: false } -->' + styleSheet.stylesheet.rules[i].selectors[0];
         styleSheet.stylesheet.rules.splice(i + 1, 0, {
           type: 'comment',
-          text: ' */<!-- /ko -->/* '
+          text: '<!-- /ko -->'
         });
         blockDefsUpdater(foundBlockMatch, '', { contextName: 'block' });
       }
@@ -213,9 +214,13 @@ var processStylesheetRules = function(style, localWithBindingProvider, blockDefs
       console.log("Unknown rule type", styleSheet.stylesheet.rules[i].type, "while parsing <style> rules");
     }
   }
-  return cssStringify(styleSheet, {
+  var result = cssStringify(styleSheet, {
     comments: true
-  }).replace(/\/\* \*\//g, '');
+  } );
+  if ( !isRecursion ) {
+    result = result.replace(/\/\*(<!-- \/?ko.*?-->)\*\//g, '$1');
+  }
+  return result;
 };
 
 module.exports = processStylesheetRules;

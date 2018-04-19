@@ -1,4 +1,4 @@
-<table tabfocus="0" cellspacing="0" cellpadding="0" data-bind="style: _stylebind, click: function(obj, evt) { $root.selectItem(_item, _data); return true; }, clickBubble: false, fudroppable: { activeClass: 'ui-state-highlight', hoverClass: 'ui-state-draghover' }, extdroppable: { options: { accept: '.image', activeClass: 'ui-state-highlight', hoverClass: 'ui-state-draghover' }, data: _src, dragged: $root.fileToImage }, css: { selecteditem: $root.isSelectedItem(_item) }, scrollIntoView: $root.isSelectedItem(_item), attr: { 'data-drop-content': $root.t('Drop here'), width: _width, height: _height, align: _halign }"
+<table tabfocus="0" cellspacing="0" cellpadding="0" data-bind="style: _stylebind, click: function(obj, evt) { $root.selectItem(_item, _data); return true; }, clickBubble: false, fudroppable: { activeClass: 'ui-state-highlight', hoverClass: 'ui-state-draghover' }, extdroppable: { options: { accept: '.image', activeClass: 'ui-state-highlight', hoverClass: 'ui-state-draghover' }, data: _src, dragged: $root.fileToImage, isEnabled: $root.lockDownMode() < 2 || ($root.lockDownMode() === 2 && !_src._locked()) }, css: { selecteditem: $root.isSelectedItem(_item) }, scrollIntoView: $root.isSelectedItem(_item), attr: { 'data-drop-content': $root.t('Drop here'), width: _width, height: _height, align: _halign }"
   class="img-wysiwyg selectable-img" style="display: table;"><tr><td class="uploadzone" data-drop-content="Drop here" data-bind="attr: { height: _height, align: _halign, valign: _align }">
   <div class="mo-imgselectionhelper">
     <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" shape-rendering="crispEdges">
@@ -19,6 +19,7 @@
   <div class="mo-uploadzone"></div>
   <div class="img-size" data-bind="text: _size">size</div>
   <div class="midtools" data-bind="">
+    <!-- ko if: $root.lockDownMode() < 2 || ($root.lockDownMode() === 2 && !_src._locked()) -->
     <!-- ko if: _src() != '' -->
     <div title="Remove image" class="tool delete" data-bind="attr: { title: $root.t('Remove image') }, click: _src.bind(_src, ''), clickBubble: false"><i class="fa fa-fw fa-trash-o"></i></div>
     <!-- ko if: typeof $root.editImage !== 'undefined' -->
@@ -32,6 +33,18 @@
     <!-- /ko -->
     <!-- ko if: typeof $root.selectImage !== 'undefined' -->
     <div title="Select image from gallery" class="tool gallery" data-bind="attr: { title: $root.t('Select image from gallery') }, click: $root.selectImage.bind($element, _src), clickBubble: true"><i class="fa fa-fw fa-picture-o"></i></div>
+    <!-- /ko -->
+    <!-- /ko -->
+    <!-- ko if: $root.lockDownMode() === 1 -->
+    <!-- ko if: !_src._locked() -->
+    <div title="Lock image" class="tool lock" data-bind="attr: { title: $root.t('Lock image') }, click: _src._locked.bind(undefined, true), clickBubble: false"><i class="fa fa-fw fa-unlock-alt"></i></div>
+    <!-- /ko -->
+    <!-- ko if: _src._locked() -->
+    <div title="Unlock image" class="tool unlock" data-bind="attr: { title: $root.t('Unlock image') }, click: _src._locked.bind(undefined, false), clickBubble: false"><i class="fa fa-fw fa-lock"></i></div>
+    <!-- /ko -->
+    <!-- /ko -->
+    <!-- ko if: $root.lockDownMode() > 2 || ($root.lockDownMode() === 2 && _src._locked()) -->
+    <div class="tool locked"><i class="fa fa-fw fa-lock"></i></div>
     <!-- /ko -->
   </div>
 
@@ -54,8 +67,14 @@
     <!-- ko if: _src() != '' -->
       <input class="fileupload withfile" type="file" name="files[]" data-bind="fileupload: { data: _src, onerror: $root.notifier.error, onfile: $root.galleryRecent.unshift.bind($root.galleryRecent), canvasPreview: true }" style="z-index: -20; position: absolute; top: 0; left: 0; right: 0; bottom: 0; min-width: 100%; min-height: 100%; font-zie: 999px; text-align: right; filter: alpha(opacity=0); opacity: 0; outline: none; cursor: inherit; display: block">
     <!-- /ko -->
-    <div class="progress" style="opacity: .5; width: 100%; position: absolute; bottom: 50%; transform: translate3d(0,50%,0); height: 100%;">
-      <div class="progress-bar progress-bar-success" style="height: 100%; background-color: #000000; "></div>
+    <div class="progress">
+      <div>
+        <div>
+          <div class="progress-bar progress-bar-success"></div>
+        </div>
+      </div>
     </div>
   </div>
+  </td>
+  </tr>
 </table>

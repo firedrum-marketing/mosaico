@@ -14,6 +14,9 @@ ko.bindingHandlers[ 'emojionearea' ] = {
   init: function( element, valueAccessor, allBindings ) {
     var options = valueAccessor() || {};
     var value = options.value;
+    if ( !ko.isObservable( value ) ) {
+      value = ko.observable( value );
+    }
 
     // In order to have a correct dependency tracking in "ifSubs" we have to ensure we use a single computer for each editable
     // property. Given this binding needs 2 of them, we create a computed so to "proxy" the dependencies.
@@ -36,7 +39,10 @@ ko.bindingHandlers[ 'emojionearea' ] = {
           tonesStyle: 'checkbox',
           pickerPosition: 'right',
           filterPosition: 'bottom',
-          autocomplete: true
+          autocomplete: true,
+          attributes: {
+            spellcheck: true
+          }
         };
 
         for ( var prop in options ) {
@@ -48,7 +54,7 @@ ko.bindingHandlers[ 'emojionearea' ] = {
         $area.emojioneArea( opt );
       },
       disposeWhenNodeIsRemoved: element
-    });
+    } );
 
     var changeEventHandler = function() {
       newDO( $area[ 0 ].emojioneArea.getText() );
@@ -62,20 +68,80 @@ ko.bindingHandlers[ 'emojionearea' ] = {
     $area[ 0 ].emojioneArea.on( 'change', changeEventHandler );
     $area[ 0 ].emojioneArea.on( 'focus', focusEventHandler );
 
-    var subscription;
-    newDO.subscribe( function ( newValue ) {
+    var subscription = newDO.subscribe( function ( newValue ) {
       try {
-        if ( $area[ 0 ].emojioneArea.getText() != newValue ) {
+        if ( $area[ 0 ].emojioneArea && $area[ 0 ].emojioneArea.getText() != newValue ) {
           $area[ 0 ].emojioneArea.setText( newValue );
         }
       } catch(e) {
         $area[ 0 ].emojioneArea.setText( newValue );
       }
     } );
-    ko.utils.domNodeDisposal.addDisposeCallback(element, function () {
+
+    ko.utils.domNodeDisposal.addDisposeCallback( element, function () {
       subscription.dispose();
       $area[ 0 ].emojioneArea.off( 'change', focusEventHandler );
       $area[ 0 ].emojioneArea.off( 'focus', focusEventHandler );
-    });
+    } );
+  }
+};
+
+ko.bindingHandlers[ 'emojioneareatext' ] = {
+  init: function( element, valueAccessor, allBindings ) {
+    var options = valueAccessor() || {};
+    var value = options.value;
+    if ( !ko.isObservable( value ) ) {
+      value = ko.observable( value );
+    }
+
+    // In order to have a correct dependency tracking in "ifSubs" we have to ensure we use a single computer for each editable
+    // property. Given this binding needs 2 of them, we create a computed so to "proxy" the dependencies.
+    var newDO = ko.computed( {
+      read: value,
+      write: value,
+      disposeWhenNodeIsRemoved: element
+    } );
+
+    var $area = $( element );
+    
+    ko.computed( {
+      read: function() {
+        var opt = {
+          tonesStyle: 'checkbox',
+          pickerPosition: 'right',
+          filterPosition: 'bottom',
+          autocomplete: true,
+          attributes: {
+            spellcheck: true
+          }
+        };
+
+        for ( var prop in options ) {
+          if ( prop !== 'value' && options.hasOwnProperty( prop ) ) {
+            opt[ prop ] = ko.utils.unwrapObservable( options[ prop ] );
+          }
+        }
+
+        $area.emojioneAreaText( opt );
+      },
+      disposeWhenNodeIsRemoved: element
+    } );
+
+    var subscription = newDO.subscribe( function ( newValue ) {
+      try {
+        if ( $area[ 0 ].emojioneAreaText ) {
+          if ( $area[ 0 ].emojioneAreaText.getText() != newValue ) {
+            $area[ 0 ].emojioneAreaText.setText( newValue );
+          }
+        } else {
+          $area.text( newValue );
+        }
+      } catch(e) {
+      }
+    } );
+
+    ko.utils.domNodeDisposal.addDisposeCallback( element, function () {
+      subscription.dispose();
+    } );
   }
 };

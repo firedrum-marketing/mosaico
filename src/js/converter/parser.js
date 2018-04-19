@@ -88,8 +88,6 @@ var processBlock = function(element, defs, themeUpdater, blockPusher, templateUr
   try {
 
   var templateName;
-  var variantName = '',
-    variantDef = '';
   if (contextName == 'block') {
     templateName = domutils.getAttribute(element, 'data-ko-block');
     domutils.removeAttribute(element, 'data-ko-block');
@@ -207,7 +205,7 @@ var processBlock = function(element, defs, themeUpdater, blockPusher, templateUr
       newBinding = "";
 
       if (!domutils.getAttribute(element, "id")) {
-        newBinding += "wysiwygId: id()+'_" + dataEditable.replace('.', '_') + "_'+(++Mosaico.ko.bindingHandlers.wysiwyg.currentIndex), ";
+        newBinding += "wysiwygId: 'e_'+(++Mosaico.ko.bindingHandlers.wysiwyg.currentIndex), ";
       }
 
       if (typeof selectBinding !== 'undefined') {
@@ -244,25 +242,31 @@ var processBlock = function(element, defs, themeUpdater, blockPusher, templateUr
       currentBindings = domutils.getAttribute(element, 'data-bind');
 
       var text = null;
-      // TODO this is ugly... maybe a better strategy is to pass this around using "data-" attributes
-      var dynHeight = currentBindings && currentBindings.match(/virtualAttr: {[^}]* height: ([^,}]*)[,}]/);
+      var dynHeight = domutils.getAttribute(element, 'data-ko-dynamic-height');
       if (dynHeight) {
-        height = dynHeight[1].slice(0, dynHeight[1].lastIndexOf("()"));
-        text = '(typeof ' + dynHeight[1].slice(0, dynHeight[1].lastIndexOf("()")) + 'MAGLabel !== \'undefined\' && ' + dynHeight[1].slice(0, dynHeight[1].lastIndexOf("()")) + 'MAGLabel()) || null';
+        domutils.removeAttribute(element, 'data-ko-dynamic-height');
+        height = dynHeight;
       }
-      var dynWidth = currentBindings && currentBindings.match(/virtualAttr: {[^}]* width: ([^,}]*)[,}]/);
+      var dynWidth = domutils.getAttribute(element, 'data-ko-dynamic-width');
       if (dynWidth) {
-        width = dynWidth[1].slice(0, dynWidth[1].lastIndexOf("()"));
-        text = '(typeof ' + dynWidth[1].slice(0, dynWidth[1].lastIndexOf("()")) + 'MAGLabel !== \'undefined\' && ' + dynWidth[1].slice(0, dynWidth[1].lastIndexOf("()")) + 'MAGLabel()) || null';
+        domutils.removeAttribute(element, 'data-ko-dynamic-width');
+        width = dynWidth;
       }
-      var dynAlign = currentBindings && currentBindings.match(/virtualAttr: {[^}]* align: ([^,}]*)[,}]/);
+      var dynText = domutils.getAttribute(element, 'data-ko-dynamic-text');
+      if (dynText) {
+        domutils.removeAttribute(element, 'data-ko-dynamic-text');
+        text = '(typeof ' + dynText + ' !== \'undefined\' && ' + dynText + '()) || null';
+      }
+      var dynAlign = domutils.getAttribute(element, 'data-ko-dynamic-align');
       if (dynAlign) {
-        dynAlign = dynAlign[1];
+        domutils.removeAttribute(element, 'data-ko-dynamic-align');
+		dynAlign = converterUtils.conditionBinding(dynAlign, bindingProvider);
       }
       var alt = "";
-      var dynAlt = currentBindings && currentBindings.match(/virtualAttr: {[^}]* alt: ([^,}]*)[,}]/);
+      var dynAlt = domutils.getAttribute(element, 'data-ko-dynamic-alt');
       if (dynAlt) {
-        alt = dynAlt[1];
+        domutils.removeAttribute(element, 'data-ko-dynamic-alt');
+        alt = dynAlt;
       }
 
       var hAlign = domutils.getAttribute(element, 'data-ko-text-align');
@@ -426,9 +430,14 @@ var processBlock = function(element, defs, themeUpdater, blockPusher, templateUr
   // TODO do we really need to loop in reverse order?
   // data-ko-wrap have to be processed at the end, expecially after "replaceblocks"
   // otherwise a data-ko-wrap wrapping a data-ko-block would break everything.
-  $($("[data-ko-wrap]", element).get().reverse(), element).each(function(index, element) {
+  $($("[data-ko-wrap],[data-ko-fullwrap]", element).get().reverse(), element).each(function(index, element) {
+    var isFullWrap = false;
     var cond = domutils.getAttribute(element, 'data-ko-wrap');
-    if (typeof cond === 'undefined' || cond === '' || cond === 'true') {
+    if (cond === null) {
+      isFullWrap = true;
+      cond = domutils.getAttribute(element, 'data-ko-fullwrap');
+    }
+    if (cond === null || cond === '' || cond === 'true') {
       throw "Unsupported empty value for data-ko-wrap: use false value if you want to always remove the tag";
     }
 
@@ -455,16 +464,24 @@ var processBlock = function(element, defs, themeUpdater, blockPusher, templateUr
       // we can't put the content in a template because it will be overwritten by the binding
       var innerTmplContent = '<!-- ko ' + dataBind + ' -->' + domutils.getInnerHtml(element) + '<!-- /ko -->';
       innerTmplName = templateCreator(innerTmplContent);
-      domutils.removeAttribute(element, 'data-ko-wrap');
+      if (!isFullWrap) {
+        domutils.removeAttribute(element, 'data-ko-wrap');
+      } else {
+        domutils.removeAttribute(element, 'data-ko-fullwrap');
+      }
       outerTmplName = templateCreator(element);
-      domutils.replaceHtml(element, '<!-- ko template: /* special */ (typeof templateMode != \'undefined\' && templateMode == \'wysiwyg\') || ' + condBinding + ' ? \'' + outerTmplName + '\' : \'' + innerTmplName + '\' --><!-- /ko -->');
+      domutils.replaceHtml(element, '<!-- ko template: /* special */ ' + (!isFullWrap ? '(typeof templateMode != \'undefined\' && templateMode == \'wysiwyg\') || ' : '') + condBinding + ' ? \'' + outerTmplName + '\' : \'' + innerTmplName + '\' --><!-- /ko -->');
     } else {
       // we put the content in a template and the frame in another template including this one.
       innerTmplName = templateCreator(domutils.getInnerHtml(element));
-      domutils.removeAttribute(element, 'data-ko-wrap');
+      if (!isFullWrap) {
+        domutils.removeAttribute(element, 'data-ko-wrap');
+      } else {
+        domutils.removeAttribute(element, 'data-ko-fullwrap');
+      }
       domutils.setContent(element, '<!-- ko template: \'' + innerTmplName + '\' --><!-- /ko -->');
       outerTmplName = templateCreator(element);
-      domutils.replaceHtml(element, '<!-- ko template: (typeof templateMode != \'undefined\' && templateMode == \'wysiwyg\') || ' + condBinding + ' ? \'' + outerTmplName + '\' : \'' + innerTmplName + '\' --><!-- /ko -->');
+      domutils.replaceHtml(element, '<!-- ko template: ' + (!isFullWrap ? '(typeof templateMode != \'undefined\' && templateMode == \'wysiwyg\') || ' : '') + condBinding + ' ? \'' + outerTmplName + '\' : \'' + innerTmplName + '\' --><!-- /ko -->');
     }
 
   });
@@ -525,8 +542,9 @@ var translateTemplate = function(templateName, html, templateUrlConverter, templ
   var themeUpdater = function(name, key, val) {
     if (typeof defs['themes'] === 'undefined') defs['themes'] = {};
     if (typeof defs['themes'][name] === 'undefined') defs['themes'][name] = {};
-    if (typeof defs['themes'][name][key] === 'undefined' || defs['themes'][name][key] === null) defs['themes'][name][key] = val;
-    else if (typeof val !== 'undefined' && val !== null) {
+    if (typeof defs['themes'][name][key] === 'undefined' || defs['themes'][name][key] === null) {
+      defs['themes'][name][key] = val;
+    } else if (typeof val !== 'undefined' && val !== null) {
       var precVal = defs['themes'][name][key];
       if (precVal != val) console.log("Error setting a new default for property " + key + " in theme " + name + ". old:" + precVal + " new:" + val + "!");
     }

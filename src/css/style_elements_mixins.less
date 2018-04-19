@@ -322,12 +322,10 @@
     background-color: @sidebar-background-color;
   }
   margin: 0;
-  border-top: @tabs-border-width solid #FF5722;
   .clear-after;
   li {
-    float: left;
     list-style-type: none;
-    margin: .4em 0 -@tabs-border-width 0; // margin-top used to show good tabs when they wrap on multiple lines
+    margin: .4em 0 -@tabs-border-width 1px; // margin-top used to show good tabs when they wrap on multiple lines
     display: block;
     text-align: center;
     > a {
@@ -354,8 +352,8 @@
     }
 
     > a:hover {
-      background-color: #E5E5E5;
-      border-top-color: #E5E5E5;
+      background-color: #FFFFFF;
+      color: @text-color;
     }
   }
   li@{activeclass} a {
@@ -367,7 +365,7 @@
       color: @text-color;
     }
     & when not (@buttonstyle) {
-      background-color: #E5E5E5;
+      background-color: #FFFFFF;
       color: @text-color;
     }
   }

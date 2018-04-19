@@ -3,7 +3,7 @@
 
 var modelDef = require("./model.js");
 
-var wrappedResultModel = function(templateDef) {
+var wrappedResultModel = function(templateDef, vmWrapper) {
   var defs = templateDef._defs;
   var templateName = templateDef.templateName;
   var finalModelContentDef = modelDef.getDef(defs, templateName);
@@ -11,20 +11,20 @@ var wrappedResultModel = function(templateDef) {
   var finalModelContent = modelDef.generateResultModel(templateDef);
 
   var wrapper = require("./wrapper.js");
-  var res = wrapper(finalModelContent, finalModelContentDef, defs);
+  var res = wrapper(finalModelContent, finalModelContentDef, defs, vmWrapper);
 
   return res;
 };
 
 // requires only when imported
-var wrappedModel = function(templateDef, name) {
+var wrappedModel = function(templateDef, name, vmWrapper) {
   var defs = templateDef._defs;
   var finalModelDef = modelDef.getDef(defs, name);
 
   var finalModel = modelDef.generateModel(defs, name);
   
   var wrapper = require("./wrapper.js");
-  var res = wrapper(finalModel, finalModelDef, defs);
+  var res = wrapper(finalModel, finalModelDef, defs, vmWrapper);
 
   return res;
 };

@@ -9,22 +9,7 @@ var performanceAwareCaller = require("./timed-call.js").timedCall;
 var url = require("url");
 var querystring = require("querystring");
 
-var toastr = require("toastr");
-toastr.options = {
-  "closeButton": false,
-  "debug": false,
-  "positionClass": "toast-bottom-full-width",
-  "target": "#mo-body",
-  "onclick": null,
-  "showDuration": "300",
-  "hideDuration": "1000",
-  "timeOut": "5000",
-  "extendedTimeOut": "1000",
-  "showEasing": "swing",
-  "hideEasing": "linear",
-  "showMethod": "fadeIn",
-  "hideMethod": "fadeOut"
-};
+var clearFromCache = require("./clear-from-browserify-cache.js");
 
 function initializeEditor(content, blockDefs, thumbPathConverter, galleryUrl) {
 
@@ -38,6 +23,7 @@ function initializeEditor(content, blockDefs, thumbPathConverter, galleryUrl) {
     }),
     selectedBlock: ko.observable(null),
     selectedItem: ko.observable(null),
+    selectedEditable: ko.observable(null),
     selectedTool: ko.observable(0),
     selectedImageTab: ko.observable(0),
     dragging: ko.observable(false),
@@ -51,14 +37,158 @@ function initializeEditor(content, blockDefs, thumbPathConverter, galleryUrl) {
     contentListeners: ko.observable(0),
     logoPath: 'rs/img/mosaico32.png',
     logoUrl: '.',
-    logoAlt: 'mosaico'
+    logoAlt: 'mosaico',
+	lockDownMode: ko.observable(0),
+    standardFonts: ko.observableArray([
+      {
+        label: 'Arial',
+        value: 'Arial, Helvetica, sans-serif'
+      },
+      {
+        label: 'Arial Black',
+        value: 'Arial Black, Gadget, sans-serif'
+      },
+      {
+        label: 'Comic Sans',
+        value: 'Comic Sans MS, cursive, sans-serif'
+      },
+      {
+        label: 'Courier New',
+        value: 'Courier New, Courier, monospace'
+      },
+      {
+        label: 'Geneva',
+        value: 'Geneva, Arial, Helvetica, sans-serif'
+      },
+      {
+        label: 'Georgia',
+        value: 'Georgia, serif'
+      },
+      {
+        label: 'Impact',
+        value: 'Impact, Charcoal, sans-serif'
+      },
+      {
+        label: 'Lucida Console',
+        value: 'Lucida Console, Monaco, monospace'
+      },
+      {
+        label: 'Lucida Sans',
+        value: 'Lucida Sans Unicode, Lucida Grande, sans-serif'
+      },
+      {
+        label: 'Lucida Typewriter',
+        value: 'Lucida Sans Typewriter, sans-serif'
+      },
+      {
+        label: 'Palatino Linotype',
+        value: 'Palatino Linotype, Book Antiqua, Palatino, serif'
+      },
+      {
+        label: 'Tahoma',
+        value: 'Tahoma, Geneva, sans-serif'
+      },
+      {
+        label: 'Times New Roman',
+        value: 'Times New Roman, Times, serif'
+      },
+      {
+        label: 'Trebuchet MS',
+        value: 'Trebuchet MS, Helvetica, sans-serif'
+      },
+      {
+        label: 'Verdana',
+        value: 'Verdana, Geneva, sans-serif'
+      }
+    ]),
+	customFonts: ko.observableArray([
+      {
+        label: 'Arvo',
+        value: 'Arvo, Courier, Georgia, serif'
+      },
+      {
+        label: 'Cormorant Garamond',
+        value: 'Cormorant Garamond, Times New Roman, serif'
+      },
+      {
+        label: 'Dancing Script',
+        value: 'Dancing Script, Comic Sans MS, Comic Sans MS5, cursive'
+      },
+      {
+        label: 'Lato',
+        value: 'Lato, Helvetica Neue, Helvetica, Arial, sans-serif'
+      },
+      {
+        label: 'Lora',
+        value: 'Lora, Georgia, Times New Roman, serif'
+      },
+      {
+        label: 'Merriweather',
+        value: 'Merriweather, Georgia, Times New Roman, serif'
+      },
+      {
+        label: 'Merriweather Sans',
+        value: 'Merriweather Sans, Helvetica Neue, Helvetica, Arial, sans-serif'
+      },
+      {
+        label: 'Noticia Text',
+        value: 'Noticia Text, Georgia, Times New Roman, serif'
+      },
+      {
+        label: 'Open Sans',
+        value: 'Open Sans, Helvetica Neue, Helvetica, Arial, sans-serif'
+      },
+      {
+        label: 'Playfair Display',
+        value: 'Playfair Display, Georgia, Times New Roman, serif'
+      },
+      {
+        label: 'Roboto',
+        value: 'Roboto, Helvetica Neue, Helvetica, Arial, sans-serif'
+      },
+      {
+        label: 'Roboto Mono',
+        value: 'Roboto Mono, Lucida Console, Monaco, monospace'
+      },
+      {
+        label: 'Source Sans Pro',
+        value: 'Source Sans Pro, Helvetica Neue, Helvetica, Arial, sans-serif'
+      }
+    ])
+  };
+  viewModel.allFonts = ko.pureComputed(function() {
+    return this.standardFonts().concat(this.customFonts());
+  }, viewModel);
+  viewModel.allFontsOptionsAfterRender = function(option, item) {
+    if (viewModel.standardFonts.indexOf(item) === 0) {
+      $(option).before('<optgroup label="Standard Web Fonts"></optgroup><optgroup label="━━━━━━━━━"></optgroup>');
+    } else if (viewModel.customFonts.indexOf(item) === 0) {
+      $(option).before((viewModel.standardFonts().length > 0 ? '<optgroup label=""></optgroup>' : '') + '<optgroup label="Custom Web Fonts"></optgroup><optgroup label="━━━━━━━━━"></optgroup>');
+    }
+    ko.applyBindingsToNode(option, {style: {fontFamily: item.value}}, item);
   };
 
   // viewModel.content = content._instrument(ko, content, undefined, true);
   viewModel.content = content;
   viewModel.blockDefs = blockDefs;
 
-  viewModel.notifier = toastr;
+  viewModel.notifier = require("toastr");
+  viewModel.notifier.options = {
+    "closeButton": false,
+    "debug": false,
+    "positionClass": "toast-bottom-full-width",
+    "onclick": null,
+    "showDuration": "300",
+    "hideDuration": "1000",
+    "target": "#mo-body",
+    "timeOut": "5000",
+    "extendedTimeOut": "1000",
+    "showEasing": "swing",
+    "hideEasing": "linear",
+    "showMethod": "fadeIn",
+    "hideMethod": "fadeOut"
+  };
+  clearFromCache( viewModel.notifier );
 
   // Does token substitution in i18next style
   viewModel.tt = function(key, paramObj) {
@@ -145,12 +275,13 @@ function initializeEditor(content, blockDefs, thumbPathConverter, galleryUrl) {
   viewModel.moveBlock = function(index, parent, up) {
     var idx = ko.utils.unwrapObservable(index);
     var parentBlocks = ko.utils.unwrapObservable(parent.blocks);
-    if ((up && idx > 0) || (!up && idx < parentBlocks.length - 1)) {
-      var destIndex = idx + (up ? -1 : 1);
-      var destBlock = parentBlocks[destIndex];
+    var lockDownMode = ko.utils.unwrapObservable(viewModel.lockDownMode);
+    var curBlock = parentBlocks[idx];
+    var destIndex = ko.utils.unwrapObservable(curBlock).getNearestUnlockedIndex(up);
+    if (destIndex > -1) {
       viewModel.startMultiple();
-      parent.blocks.splice(destIndex, 1);
-      parent.blocks.splice(idx, 0, destBlock);
+      parent.blocks.splice(idx, 1);
+      parent.blocks.splice(destIndex, 0, curBlock);
       viewModel.stopMultiple();
     }
   };
@@ -175,7 +306,10 @@ function initializeEditor(content, blockDefs, thumbPathConverter, galleryUrl) {
   viewModel.addImage = function(img) {
     var selectedImg = $('#main-wysiwyg-area .selectable-img.selecteditem', (this.mosaicoConfig && this.mosaicoConfig.mainElement) || global.document.body);
     if (selectedImg.length == 1 && typeof img == 'object' && typeof img.url !== 'undefined') {
-      ko.contextFor(selectedImg[0])._src(img.url);
+      var context = ko.contextFor(selectedImg[0]);
+      if (viewModel.lockDownMode() < 2 || (viewModel.lockDownMode() === 2 && !context._src._locked())) {
+        context._src(img.url);
+      }
       return true;
     } else {
       return false;
@@ -184,36 +318,41 @@ function initializeEditor(content, blockDefs, thumbPathConverter, galleryUrl) {
 
   // toolbox.tmpl.html
   viewModel.addBlock = function(obj, event) {
-    // if there is a selected block we try to add the block just after the selected one.
+    // if there is a selected block we try to add the block just after the selected one, otherwise we try to add to the bottom.
     var selected = viewModel.selectedBlock();
     // search the selected block position.
-    var found;
-    if (selected !== null) {
-      // TODO "mainBlocks" is an hardcoded thing.
-      for (var i = viewModel.content().mainBlocks().blocks().length - 1; i >= 0; i--) {
-        if (viewModel.content().mainBlocks().blocks()[i]() == selected) {
-          found = i;
-          break;
-        }
+    if (selected === null) {
+      // TODO "mainBlocks" is a hardcoded thing.
+      selected = viewModel.content().mainBlocks().blocks().slice(-1)[0];
+      if (typeof selected !== 'undefined') {
+        // Use the block to search for unlocked regions
+        selected = ko.utils.unwrapObservable(selected);
+      } else {
+        // Empty content area
+        selected = null;
       }
     }
-    var pos;
-    if (typeof found !== 'undefined') {
-      pos = found + 1;
-      viewModel.content().mainBlocks().blocks.splice(pos, 0, obj);
-      viewModel.notifier.info(viewModel.t('New block added after the selected one (__pos__)', {
-        pos: pos
-      }));
-    } else {
-      viewModel.content().mainBlocks().blocks.push(obj);
-      pos = viewModel.content().mainBlocks().blocks().length - 1;
-      viewModel.notifier.info(viewModel.t('New block added at the model bottom (__pos__)', {
-        pos: pos
-      }));
+
+    var pos = 0;
+    if (selected !== null) {
+      pos = selected.getNearestUnlockedIndex();
+    } else if (viewModel.lockDownMode() === 3) {
+      pos = -1;
     }
-    // find the newly added block and select it!
-    var added = viewModel.content().mainBlocks().blocks()[pos]();
-    viewModel.selectBlock(added, true);
+
+    if (pos > -1) {
+      viewModel.content().mainBlocks().blocks.splice(pos, 0, obj);
+      viewModel.notifier.info(viewModel.t('New block added at position __pos__.', {
+        pos: pos + 1
+      }));
+
+      // Find the newly added block and select it!
+      var added = viewModel.content().mainBlocks().blocks()[pos]();
+      viewModel.selectBlock(added, true);
+    } else {
+      viewModel.notifier.error(viewModel.t('New blocks cannot be inserted into a fully locked template.'));
+    }
+
     // prevent click propagation (losing url hash - see #43)
     return false;
   };
@@ -285,18 +424,27 @@ function initializeEditor(content, blockDefs, thumbPathConverter, galleryUrl) {
   viewModel.selectItem = function(valueAccessor, item, block) {
     var blocksIndex = (typeof viewModel.envelope !== 'undefined' ? 1 : 0);
     var val = ko.utils.peekObservable(valueAccessor);
-    if (typeof block !== 'undefined') viewModel.selectBlock(block, false, true);
+    if (typeof block !== 'undefined') viewModel.selectBlock(block, val != item, true);
     if (val != item) {
       valueAccessor(item);
       // On selectItem if we were not on either the "Content" or "Style" toolbox tab, move to either the "Content" or "Style" toolbox tab.
-      var selectedTool = viewModel.selectedTool();
-      var targetTool = (typeof block === 'undefined' ? blocksIndex + 2 : blocksIndex + 1 );
-      if (item !== null && selectedTool <= blocksIndex) {
-        viewModel.selectedTool(targetTool);
+      if (item !== null) {
+        if (viewModel.selectedTool() <= blocksIndex) {
+          viewModel.selectedTool( typeof block === 'undefined' ? blocksIndex + 2 : blocksIndex + 1 );
+        }
       }
     }
     return false;
   }.bind(viewModel, viewModel.selectedItem);
+
+  // Used by editor and main "converter" to support editable selection
+  viewModel.selectEditable = function(valueAccessor, editable, block) {
+    var val = ko.utils.peekObservable(valueAccessor);
+    if (val != editable) {
+      valueAccessor(editable);
+    }
+    return false;
+  }.bind(viewModel, viewModel.selectedEditable);
 
   viewModel.isSelectedItem = function(item) {
     return viewModel.selectedItem() == item;
@@ -310,9 +458,7 @@ function initializeEditor(content, blockDefs, thumbPathConverter, galleryUrl) {
       valueAccessor(item);
       // hide gallery on block selection
       viewModel.showGallery(false);
-      var selectedTool = viewModel.selectedTool();
-      var targetTool = (!doNotUnselectItem ? blocksIndex + 2 : blocksIndex + 1 );
-      if (item !== null && !doNotSelect && selectedTool <= blocksIndex) viewModel.selectedTool(targetTool);
+      if (item !== null && !doNotSelect && viewModel.selectedTool() <= blocksIndex) viewModel.selectedTool(blocksIndex + (!doNotUnselectItem ?  2 : 1));
     }
   }.bind(viewModel, viewModel.selectedBlock);
 
@@ -383,8 +529,7 @@ function initializeEditor(content, blockDefs, thumbPathConverter, galleryUrl) {
   };
 
   viewModel.exportHTML = function(callback) {
-    var beginExport = function() {
-      var id = 'exportframe';
+    var beginExport = function(searchContext, id) {
       var frameEl = global.document.getElementById(id);
       if (frameEl === null) {
           $('body').append('<iframe id="' + id + '"></iframe>');
@@ -392,7 +537,7 @@ function initializeEditor(content, blockDefs, thumbPathConverter, galleryUrl) {
       }
 
       // Prevent issue in Chrome (and maybe other WebKit?) where removing an iframe from the DOM that has been bound to the viewmodel blanks out images in the main editor and preview panes
-      frameEl.contentWindow.document.write( ko.bindingHandlers.bindIframe.tplDoctype + $('#main-preview iframe')[0].contentWindow.document.documentElement.outerHTML );
+      frameEl.contentWindow.document.write( ko.bindingHandlers.bindIframe.tplDoctype + $('#main-preview iframe', searchContext)[0].contentWindow.document.documentElement.outerHTML );
       frameEl.contentWindow.document.close();
 
       if (viewModel.inline) viewModel.inline(frameEl.contentWindow.document);
@@ -407,7 +552,29 @@ function initializeEditor(content, blockDefs, thumbPathConverter, galleryUrl) {
           (!node.publicId && node.systemId ? ' SYSTEM' : '') +
           (node.systemId ? ' "' + node.systemId + '"' : '') + '>';
 
+        var webFontSupportTagsTemp = [], webFontSupportTags = $('.mo-web-font-support', frameEl.contentWindow.document.documentElement), i;
+		for (i = 0; i < webFontSupportTags.length; i++) {
+          webFontSupportTagsTemp.push($(frameEl.contentWindow.document.createTextNode('')));
+          $(webFontSupportTags[i]).replaceWith(webFontSupportTagsTemp[i]);
+        }
+
         var content = docType + '\n' + frameEl.contentWindow.document.documentElement.outerHTML;
+
+        var neededWebFonts = viewModel.neededWebFonts( content );
+		if (neededWebFonts.length > 0) {
+          var webFontTags = '<!--[if !mso]><!--><link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="crossorigin"><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=', contentHead = $( 'head', frameEl.contentWindow.document.documentElement );
+          for (i = 0; i < neededWebFonts.length; i++) {
+            webFontTags += (i > 0 ? '|' : '') + global.encodeURIComponent(neededWebFonts[i]) + ':400,400i,700,700i';
+          }
+          webFontTags = $(webFontTags + '"><!--<![endif]-->');
+          contentHead.append(webFontTags);
+          content = docType + '\n' + frameEl.contentWindow.document.documentElement.outerHTML;
+          webFontTags.remove();
+        }
+
+        for (i = 0; i < webFontSupportTags.length; i++) {
+          webFontSupportTagsTemp[i].replaceWith(webFontSupportTags[i]);
+        }
 
         content = content.replace(/<script ([^>]* )?type="text\/html"[^>]*>[\s\S]*?<\/script>/gm, '');
         // content = content.replace(/<!-- ko .*? -->/g, ''); // sometimes we have expressions like (<!-- ko var > 2 -->)
@@ -447,12 +614,12 @@ function initializeEditor(content, blockDefs, thumbPathConverter, galleryUrl) {
     if (ko.bindingHandlers.wysiwygSrc.waitingImages() > 0) {
       var subscription = ko.bindingHandlers.wysiwygSrc.waitingImages.subscribe(function(newValue) {
         if (newValue === 0) {
-          beginExport();
+          beginExport( (viewModel.mosaicoConfig && viewModel.mosaicoConfig.mainElement) || global.document.body, (viewModel.mosaicoConfig && viewModel.mosaicoConfig.mainElement && viewModel.mosaicoConfig.mainElement.id ? viewModel.mosaicoConfig.mainElement.id + '_' : '') + 'exportframe' );
           subscription.dispose();
         }
       });
     } else {
-      beginExport();
+      beginExport( (viewModel.mosaicoConfig && viewModel.mosaicoConfig.mainElement) || global.document.body, (viewModel.mosaicoConfig && viewModel.mosaicoConfig.mainElement && viewModel.mosaicoConfig.mainElement.id ? viewModel.mosaicoConfig.mainElement.id + '_' : '') + 'exportframe' );
     }
   };
 
@@ -546,6 +713,43 @@ function initializeEditor(content, blockDefs, thumbPathConverter, galleryUrl) {
   // Dummy log method overridden by extensions
   viewModel.log = function(category, msg) {
     // console.log("viewModel.log", category, msg);
+  };
+
+  // Given an array of background colors affecting the foreground color, closest to farthest away, return an appropriately readable foreground color
+  viewModel.colorControl = function(foreground, backgrounds, factor) {
+    if ( foreground !== null ) {
+      if ( typeof factor === 'undefined' ) {
+        factor = (this.mosaicoConfig && this.mosaicoConfig.colorReadabilityFactor) || 2;
+	  }
+
+      for ( var i = 0; i < backgrounds.length; i++ ) {
+        if ( backgrounds[i] === null || backgrounds[i].trim().toLowerCase() === 'transparent' ) {
+          continue;
+        }
+
+        if ( global.Color.readability( foreground, backgrounds[i] ) <= factor ) {
+          if ( global.Color.isReadable( '#FFFFFF', backgrounds[i] ) ) {
+            foreground = '#FFFFFF';
+          } else {
+            foreground = '#000000';
+          }
+        }
+		break;
+      }
+    }
+
+	return foreground;
+  };
+
+  viewModel.neededWebFonts = function(content) {
+	var neededFonts = [], customFonts = this.customFonts(), i;
+    for ( i = 0; i < customFonts.length; i++ ) {
+      if ( content.match(new RegExp('font-family\\s*:\\s*\'?'+customFonts[i].value.split( ',' )[0])) !== null ) {
+        neededFonts.push(customFonts[i].label);
+      }
+    }
+
+    return neededFonts;
   };
 
   // automatically load the gallery when the gallery tab is selected

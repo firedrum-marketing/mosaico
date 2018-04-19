@@ -71,12 +71,14 @@
   }
 } 
 
-#main-toolbox #tooltabs.ui-tabs > .ui-tabs-nav {
-  box-shadow: 0 0 10px @shadow-color;
-  position: absolute;
-  left: 0;
-  right: 0;
-  z-index: 105; // the panel is 100, and the main toolbar 110
+#main-toolbox #tooltabs.ui-tabs {
+  > .ui-tabs-nav, > .ui-tabs-scroll {
+    box-shadow: 0 0 10px @shadow-color;
+    position: absolute;
+    left: 0;
+    right: 0;
+    z-index: 105; // the panel is 100, and the main toolbar 110
+  }
 }
 
 #main-toolbox #tooltabs.ui-tabs {
@@ -192,6 +194,9 @@
 .mo .propInput .data-select:after {
   background-color: transparent;
   color: lighten(@text-color, 30%);
+}
+.mo .propInput .data-font select optgroup {
+  font-family: Noto Sans,Helvetica Neue,Helvetica,Arial,Nimbus Sans L,Liberation Sans,Arimo,sans-serif;
 }
 .mo .propInput .evo-pointer:before {
   background-color: white;
@@ -329,6 +334,11 @@
   .mo .propInput textarea,
   .mo .propInput textarea + .emojionearea {
     border-width: 0 2px 2px 2px;
+  }
+
+  .mo .propInput textarea + .emojionearea .emojionearea-editor {
+    min-height: 0;
+    padding: 0 16px 0 0;
   }
 
   .mo .propInput .data-color input[type=text] {

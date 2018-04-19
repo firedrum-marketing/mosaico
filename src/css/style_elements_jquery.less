@@ -23,7 +23,7 @@
 // Overlays
 .ui-widget-overlay, &.ui-widget-overlay, &.ui-dialog + .ui-widget-overlay {position: fixed;top: 0;left: 0;width: 100%;height: 100%;}
 .ui-widget-overlay, &.ui-widget-overlay, &.ui-dialog + .ui-widget-overlay {background: #aaaaaa none;opacity: .6;filter: Alpha(Opacity=60);}
-.ui-widget-shadow, &.ui-widget-shadow {margin: -8px 0 0 -8px;padding: 8px;background: #aaaaaa none;opacity: .3;filter: Alpha(Opacity=30);border-radius: 8px;}
+.ui-widget-shadow, &.ui-widget-shadow {margin: -8px 0 0 -8px;padding: 8px;background: #aaaaaa none;border-radius: 8px;}
 
 .ui-corner-all, &.ui-corner-all { border-radius: @standard-border-radius; }
 
@@ -45,8 +45,8 @@
       position: absolute;
       top: 50%;
       left: 50%;
-      margin-top: -8px;
-      margin-left: -8px;
+      margin: 0;
+      transform: translate3d(-50%, -50%, 0);
     }
     .ui-button-text { display: none; }
   }
@@ -217,7 +217,7 @@
  * JQUERY HORIZONTAL UI TABS
  */
 .ui-tabs.tabs_horizontal, &.ui-tabs.tabs_horizontal {
-  > ul {
+  > ul, > .ui-tabs-scroll > ul {
     .tabs-style(~'.ui-state-active', false);
     padding: 0px 0px 0px .5em;
   }
@@ -227,9 +227,17 @@
       padding: 0;
     }
   }
+  .ui-tabs-scroll-left-button-disabled, .ui-tabs-scroll-right-button-disabled {
+    display: none;
+  }
+  .ui-tabs-scroll-left-button, .ui-tabs-scroll-right-button {
+    &.ui-state-hover {
+      color: @button-text-color
+    }
+  }
 }
 .ui-tabs.tabs_horizontal.button_color, &.ui-tabs.tabs_horizontal.button_color {
-  > ul {
+  > ul, > .ui-tabs-scroll > ul {
     .tabs-style(~'.ui-state-active', true);
   }
 }
@@ -240,7 +248,7 @@
 .ui-tabs.tabs_vertical, &.ui-tabs.tabs_vertical {
   position: relative;
   margin: 1em 0;
-  > ul {
+  > ul, > .ui-tabs-scroll > ul {
     margin: 0;
     padding: 0;
     text-align: left;
@@ -278,6 +286,10 @@
   max-width: 300px;
   padding: .5em;
   z-index: @zindex-tooltip;
+
+  .ui-tooltip-content.breakall {
+    word-break: break-all;
+  }
 }
 
 .ui-spinner, &.ui-spinner {
