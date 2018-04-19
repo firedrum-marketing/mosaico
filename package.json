@@ -4,7 +4,7 @@
   "description": "Mosaico - OpenSource Email Template Editor",
   "main": [
     "./src/js/app.js",
-	"./src/js/template-translation-worker.js"
+    "./src/js/template-translation-worker.js"
   ],
   "repository": {
     "type": "git",
@@ -37,69 +37,85 @@
       "jquery-ui/tabs": "jquery-ui/ui/widgets/tabs.js",
       "jquery.ui.widget": "jquery-ui/ui/widget.js",
       "jquery-ui": "jquery-ui/dist/jquery-ui.js",
-      "jqueryui-touch-punch": "jquery-ui-touch-punch",
-      "knockout-jqueryui": "knockout-jqueryui/dist/knockout-jqueryui.js",
-      "knockoutjs-reactor": "ko-reactor/dist/ko-reactor.js",
-      "tinycolor": "tinycolor2"
+      "knockout-jqueryui": "knockout-jqueryui/dist/knockout-jqueryui.js"
     }
   },
   "browserify-shim": {
     "jquery": {
-	  "exports": "$",
-	  "depends": ["jsdom-global"]
-	},
+      "exports": "$",
+      "depends": [
+        "jsdom-global"
+      ]
+    },
     "jquery-ui": {
-	  "depends": ["jquery:jQuery"]
-	},
-	"jquery-ui/draggable": {
-	  "depends": ["jquery:jQuery"]
-	},
-	"jquery-ui/droppable": {
-	  "depends": ["jquery:jQuery"]
-	},
-	"jquery-ui/sortable": {
-	  "depends": ["jquery:jQuery"]
-	},
-	"jquery-ui/spinner": {
-	  "depends": ["jquery:jQuery"]
-	},
-	"jquery-ui/tabs": {
-	  "depends": ["jquery:jQuery"]
-	},
+      "depends": [
+        "jquery:jQuery"
+      ]
+    },
+    "jquery-ui/draggable": {
+      "depends": [
+        "jquery:jQuery"
+      ]
+    },
+    "jquery-ui/droppable": {
+      "depends": [
+        "jquery:jQuery"
+      ]
+    },
+    "jquery-ui/sortable": {
+      "depends": [
+        "jquery:jQuery"
+      ]
+    },
+    "jquery-ui/spinner": {
+      "depends": [
+        "jquery:jQuery"
+      ]
+    },
+    "jquery-ui/tabs": {
+      "depends": [
+        "jquery:jQuery"
+      ]
+    },
     "knockout-jqueryui": {
-		"exports": "kojqui",
-		"depends": ["jquery:jQuery", "knockout:ko" ]
-	},
-	"blueimp-load-image": {
-		"depends": ["blueimp-load-image-orientation"]
-	},
+      "exports": "kojqui",
+      "depends": [
+        "jquery:jQuery",
+        "knockout:ko"
+      ]
+    },
+    "blueimp-load-image": {
+      "depends": [
+        "blueimp-load-image-orientation"
+      ]
+    },
     "tinymce": "global:tinymce"
   },
   "dependencies": {
     "blueimp-canvas-to-blob": "3.5.0",
-    "blueimp-load-image": "2.12.2",
     "blueimp-file-upload": "9.21.0",
+    "blueimp-load-image": "2.12.2",
     "console-browserify": "^1.1.0",
-    "default-passive-events": "^1.0.7",
+    "default-passive-events": "^1.0.10",
     "downloadjs": "~1.4.6",
-    "emojionearea": "jhorowitz-firedrum/emojionearea",
+    "emojionearea": "github:jhorowitz-firedrum/emojionearea",
     "evol-colorpicker": "^3.3.1",
     "font-awesome": "^4.7.0",
     "jquery": "^3.3.1",
     "jquery-migrate": "^3.0.1",
-    "jquery-textselection": "jhorowitz-firedrum/jquery-textselection",
-    "jquery-ui": "jhorowitz-firedrum/jquery-ui",
     "jquery-mousewheel": "~3.1.13",
+    "jquery-textselection": "github:jhorowitz-firedrum/jquery-textselection",
+    "jquery-ui": "github:jhorowitz-firedrum/jquery-ui",
     "jquery-ui-touch-punch": "^0.2.3",
     "jquery.iframe-transport": "^1.0.0",
     "jsdom": "^11.8.0",
-    "jsep": "^0.3.3",
+    "jsep": "^0.3.4",
     "juice": "^4.2.3",
-    "knockout": "jhorowitz-firedrum/knockout",
-    "knockout-jqueryui": "jhorowitz-firedrum/knockout-jqueryui",
+    "knockout": "github:jhorowitz-firedrum/knockout",
+    "knockout-jqueryui": "github:jhorowitz-firedrum/knockout-jqueryui",
     "knockout-sortable": "^1.1.0",
-    "ko-reactor": "jhorowitz-firedrum/knockoutjs-reactor",
-    "mensch": "jhorowitz-firedrum/mensch",
+    "ko-reactor": "github:jhorowitz-firedrum/knockoutjs-reactor",
+    "mensch": "github:jhorowitz-firedrum/mensch",
     "slick": "1.12.2",
     "tinycolor2": "1.4.1",
     "tinymce": "4.5.8",
@@ -140,7 +156,7 @@
     "grunt-release": "0.13.1",
     "jasmine-core": "3.1.0",
     "jquery-file-upload-middleware": "0.1.8",
-    "jsdom-global": "jhorowitz-firedrum/jsdom-global",
+    "jsdom-global": "github:jhorowitz-firedrum/jsdom-global",
     "jshint-stylish": "2.2.1",
     "license-checker": "16.0.0",
     "load-grunt-tasks": "3.5.2",
@@ -152,8 +168,8 @@
   "author": "Stefano Bagnara",
   "contributors": [
     {
-        "name": "Jonathan Horowitz",
-        "email": "jhorowitz@firedrum.com"
+      "name": "Jonathan Horowitz",
+      "email": "jhorowitz@firedrum.com"
     }
   ],
   "license": "GPL-3.0",
