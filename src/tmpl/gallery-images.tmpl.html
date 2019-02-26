@@ -1,14 +1,14 @@
 <div data-bind="foreach: { data: items.currentPageData, includeDestroyed: false }">
   <div class="draggable-item" data-bind="if: typeof thumbnailUrl != 'undefined'">
     <div class="draggable image" data-bind="click: $root.addImage, extdraggable: { data: $data, dropContainer: ($root.mosaicoConfig.mainElement && $root.mosaicoConfig.mainElement.id ? \'#\' + $root.mosaicoConfig.mainElement.id + \' \' : \'\') + '#main-wysiwyg-area', dragging: $root.draggingImage, 'options': { 'appendTo': ($root.mosaicoConfig.mainElement && $root.mosaicoConfig.mainElement.id ? \'#\' + $root.mosaicoConfig.mainElement.id + \' \' : \'\') + '#page' } }, style: { backgroundImage: 'url(\\'' + thumbnailUrl + '\\')' }">
-      <img title="Drag this image and drop it on any template image placeholder" style="display: block;" data-bind="tooltips: { classes: { 'ui-tooltip-content': 'breakall' }, content: function() {return Mosaico.$(this).attr('title')} }, attr: { src: thumbnailUrl, 'title': name + '<br><br>' + $root.t('Drag this image and drop it on any template image placeholder') }"/>
+      <img title="Drag this image and drop it on any template image placeholder" style="display: block;" data-bind="tooltip: {show: {delay: 500}, track: true, classes: { 'ui-tooltip-content': 'breakall' }, content: function() {return Mosaico.$(this).attr('title')} }, attr: { src: thumbnailUrl, 'title': name + '<br><br>' + $root.t('Drag this image and drop it on any template image placeholder') }"/>
     </div>
     <!-- ko if: typeof $root.libraryPath !== 'undefined' && typeof $root.libraryPaths()['/Favorites'] !== 'undefined' && typeof $root.addFavoriteImage !== 'undefined' && typeof $root.removeFavoriteImage !== 'undefined' -->
-    <div data-bind="click: function() { if ( favorited() ) { $root.removeFavoriteImage($data) } else { $root.addFavoriteImage($data) } }, attr: { title: $root.t( ( favorited() ? 'Remove from' : 'Add to' ) + ' Favorites' ), class: 'manipulate-favorite-image fa fa-star' + ( favorited() ? '' : '-o' ) }"></div>
+    <div data-bind="click: function() { if ( favorited() ) { $root.removeFavoriteImage($data) } else { $root.addFavoriteImage($data) } }, attr: { title: $root.t( ( favorited() ? 'Remove from' : 'Add to' ) + ' Favorites' ), class: 'manipulate-favorite-image fa fa-star' + ( favorited() ? '' : '-o' ) }, tooltip: {show: {delay: 500}, track: true}"></div>
     <!-- /ko -->
   </div>
   <div class="directory-item" data-bind="if: attributes[0] === 'd'">
-	<div class="directory fa fa-folder-open" data-bind="click: navigate"><span data-bind="text: name, attr:{ 'title': name }"></span></div>
+	<div class="directory fa fa-folder-open" data-bind="click: navigate"><span data-bind="text: name, attr:{ 'title': name }, tooltip: {show: {delay: 500}, track: true}"></span></div>
   </div>
 </div>
 <!-- ko if: items.pageCount() > 1 -->

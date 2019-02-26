@@ -1,7 +1,7 @@
 "use strict";
 
 var ko = require("knockout");
-var reactor = require("knockoutjs-reactor");
+var reactor = require("ko-reactor/dist/ko-reactor");
 var console = require("console");
 
 /// <summary>
@@ -219,7 +219,8 @@ var undoManager = function (model, options) {
     undoCommand: _xdoCommand(options.undoLabel, STATE_UNDOING, undoStack),
     redoCommand: _xdoCommand(options.redoLabel, STATE_REDOING, redoStack),
     reset: function() { undoStack.removeAll(); redoStack.removeAll(); },
-    // setMode: function(newMode) { mode = newMode; _removeMergedAction(undoStack); },
+    setMode: function(newMode) { mode = newMode; _removeMergedAction(undoStack); },
+    getMode: function() { return mode; },
     setModeOnce: function() { mode = MODE_ONCE; _removeMergedAction(undoStack); },
     setModeMerge: function() { mode = MODE_MERGE; _removeMergedAction(undoStack); },
     setModeNormal: function() { mode = MODE_NORMAL; _removeMergedAction(undoStack); },

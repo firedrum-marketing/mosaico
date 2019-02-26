@@ -12,11 +12,17 @@ require("knockout-sortable");
 if (typeof sortable == 'undefined') throw "Cannot find jquery-ui sortable widget dependency!";
 if (typeof draggable == 'undefined') throw "Cannot find jquery-ui sortable widget dependency!";
 
-var isDraggingHelper = function(writable, e) {
-  if (writable()) {
-    if (e.type == writable() + 'stop') writable(false);
+var isDraggingHelper = function(writable, e, ui) {
+  if (writable().status) {
+    if (e.type == writable().type + 'stop') writable({
+      status: false
+    });
   } else {
-    if (e.type == 'dragstart' || e.type == 'sortstart') writable(e.type.substring(0, 4));
+    if (e.type == 'dragstart' || e.type == 'sortstart') writable({
+      status: true,
+      type: e.type.substring(0, 4),
+      helper: ui.helper.data('block-name')
+    });
   }
 };
 
@@ -33,7 +39,7 @@ var makeExtendedValueAccessor = function(valueAccessor) {
 
     var origStart = modelValue.options.start;
     modelValue.options.start = function(e, ui) {
-      if (typeof modelValue.dragging != 'undefined' && ko.isWritableObservable(modelValue.dragging)) isDraggingHelper(modelValue.dragging, e);
+      if (typeof modelValue.dragging != 'undefined' && ko.isWritableObservable(modelValue.dragging)) isDraggingHelper(modelValue.dragging, e, ui);
       if (typeof modelValue.dropContainer != 'undefined') {
         modelValue.scrollInterval = global.setInterval(function() {
           var foo = $(modelValue.dropContainer).scrollTop();
@@ -44,7 +50,7 @@ var makeExtendedValueAccessor = function(valueAccessor) {
     };
     var origStop = modelValue.options.stop;
     modelValue.options.stop = function(e, ui) {
-      if (typeof modelValue.dragging != 'undefined' && ko.isWritableObservable(modelValue.dragging)) isDraggingHelper(modelValue.dragging, e);
+      if (typeof modelValue.dragging != 'undefined' && ko.isWritableObservable(modelValue.dragging)) isDraggingHelper(modelValue.dragging, e, ui);
       if (typeof modelValue.dropContainer != 'undefined') {
         global.clearInterval(modelValue.scrollInterval);
       }

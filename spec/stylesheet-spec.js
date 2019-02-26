@@ -1,16 +1,6 @@
 'use strict';
 /* globals console:false, describe:false, it:false, expect:false, jasmine:false */
 
-var mockery = require('mockery');
-mockery.enable();
-mockery.registerAllowables(['../src/js/converter/declarations.js', 'console', './utils.js', './domutils.js', 'console', '../node_modules/mensch'])
-
-mockery.registerMock('jquery', require('cheerio'));
-
-mockery.registerMock('mensch/lib/parser.js', function() {
-  var parse = require('../node_modules/mensch').parse;
-  return parse.apply(parse, arguments);
-});
 var processStylesheetRules = require('../src/js/converter/stylesheet.js');
 
 var mockedWithBindingProvider = function(x, y, a, b) {

@@ -25,21 +25,18 @@ var _scrollIntoView = function($element, alignTop, scrollParent, moveBy) {
 
 ko.bindingHandlers.scrollIntoView = {
   update: function(element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
-    // Work around mysterious bug in Chrome where element may be null even though arguments[0] is the element!
-    if (element !== arguments[0]) {
-      console.warn('Working around Chrome bug in scrollIntoView.');
-      element = arguments[0];
-    }
-
     var selected = ko.utils.unwrapObservable(valueAccessor());
     if (!selected) return;
-    try {
 
-      while (element.nodeType === 8 || element.nodeType === 3) {
+    // Work around mysterious bug in Chrome where element may be null even though arguments[0] is the element!
+    element = arguments[0];
+
+    try {
+      while (element !== null && (element.nodeType === 8 || element.nodeType === 3)) {
         // element is a comment or text, move to the next sibling...
         element = element.nextSibling;
       }
-      if (element.nodeType !== 8 && element.nodeType !== 3) {
+      if (element !== null && element.nodeType !== 8 && element.nodeType !== 3) {
         var scrollParent = $(element).scrollParent();
 
         var parentTop;

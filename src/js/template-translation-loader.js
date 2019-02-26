@@ -56,7 +56,7 @@ var templateCreator = function(templatePlugin, htmlOrElement, optionalName, temp
     var $body = $('replacedbody', $el);
     var $webFonts = '<!-- ko if: $root.customFonts().length > 0 -->';
     $webFonts += '<link class="mo-web-font-support" rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="crossorigin">';
-    $webFonts += '<link class="mo-web-font-support" rel="stylesheet" data-bind="attr: { href: Mosaico.ko.pureComputed(function(){var r=\'https://fonts.googleapis.com/css?family=\',i=0,f=this.customFonts();for(;i<f.length;i++)r+=(i>0?\'|\':\'\')+encodeURIComponent(f[i].label)+\':400,400i,700,700i\';return r},$root) }">';
+    $webFonts += '<link class="mo-web-font-support" rel="stylesheet" data-bind="attr: { href: Mosaico.ko.pureComputed(function(){var r=\'https://fonts.googleapis.com/css?family=\',i=0,f=this.customFonts();for(;i<f.length;i++)r+=(i>0?\'|\':\'\')+encodeURIComponent(f[i].label)+\':100,100i,400,400i,500,500i,700,700i,900,900i\';return r},$root) }">';
     $webFonts += '<!-- /ko -->';
     templatePlugin.adder(tmpName + '-head', $head.append($webFonts).html() || $webFonts);
     templatePlugin.adder(tmpName + '-show', $body.html() || '');

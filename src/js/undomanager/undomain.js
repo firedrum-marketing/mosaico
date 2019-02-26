@@ -22,6 +22,9 @@ var addUndoStackExtensionMaker = function(performanceAwareCaller) {
     viewModel.undoReset = performanceAwareCaller.bind(viewModel, 'undoReset', undoRedoStack.reset, undefined);
     viewModel.setUndoModeMerge = undoRedoStack.setModeMerge;
     viewModel.setUndoModeOnce = undoRedoStack.setModeOnce;
+	viewModel.setUndoModeIgnore = undoRedoStack.setModeIgnore;
+    viewModel.setUndoMode = undoRedoStack.setMode;
+    viewModel.getUndoMode = undoRedoStack.getMode;
     undoRedoStack.setModeIgnore();
     undoRedoStack.setUndoActionMaker(undoserializer.makeUndoAction.bind(undefined, viewModel.content));
     undoserializer.watchEnabled(true);

@@ -10,7 +10,7 @@ var wrappedResultModel = function(templateDef, vmWrapper) {
 
   var finalModelContent = modelDef.generateResultModel(templateDef);
 
-  var wrapper = require("./wrapper.js");
+  var wrapper = require("./wrapper.js").modelInstrument;
   var res = wrapper(finalModelContent, finalModelContentDef, defs, vmWrapper);
 
   return res;
@@ -23,7 +23,7 @@ var wrappedModel = function(templateDef, name, vmWrapper) {
 
   var finalModel = modelDef.generateModel(defs, name);
   
-  var wrapper = require("./wrapper.js");
+  var wrapper = require("./wrapper.js").modelInstrument;
   var res = wrapper(finalModel, finalModelDef, defs, vmWrapper);
 
   return res;

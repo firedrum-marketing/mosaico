@@ -45,7 +45,7 @@
       position: absolute;
       top: 50%;
       left: 50%;
-      margin: 0;
+      margin: 1px 0 0;
       transform: translate3d(-50%, -50%, 0);
     }
     .ui-button-text { display: none; }
@@ -287,8 +287,11 @@
   padding: .5em;
   z-index: @zindex-tooltip;
 
-  .ui-tooltip-content.breakall {
-    word-break: break-all;
+  .ui-tooltip-content {
+    white-space: pre-line;
+    &.breakall {
+      word-break: break-all;
+    }
   }
 }
 

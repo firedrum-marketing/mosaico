@@ -24,6 +24,7 @@ var checkModel = function(reference, blockDefs, model, origPrefix, reverse) {
         }
         switch(prop) {
           case 'manualImageHeight':
+          case 'dynamicContent':
           case '_variantTarget':
           case '_locks':
           case '_locked':
@@ -113,6 +114,12 @@ var checkModel = function(reference, blockDefs, model, origPrefix, reverse) {
                 valid = Math.max(valid, 1);
                 model[prop] = reference[prop];
               }
+            } else if (prop === 'dynamicContent') {
+              // For dynamic content, the keys are ID numbers, so simply iterate over them against reference.mainBlocks
+              for (var prop2 in model[prop])
+                if (model[prop].hasOwnProperty(prop2)) {
+                  valid = Math.max(valid, checkModel(reference.mainBlocks, blockDefsObj, model[prop][prop2], prefix + '.' + prop2, reverse));
+                }
             } else {
               valid = Math.max(valid, checkModel(reference[prop], blockDefsObj, model[prop], prefix, reverse));
             }
@@ -128,6 +135,7 @@ var checkModel = function(reference, blockDefs, model, origPrefix, reverse) {
         }
         switch(prop) {
           case 'manualImageHeight':
+          case 'dynamicContent':
           case '_variantTarget':
           case '_locks':
           case '_locked':

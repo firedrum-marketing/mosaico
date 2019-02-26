@@ -149,6 +149,7 @@
       height: 100%;
       display: block;
       box-sizing: content-box;
+      position: absolute;
       g[stroke=''], g[stroke='transparent'] {
         stroke: #FFFFFF;
       }
@@ -558,6 +559,46 @@ i.mce-i-newsletter-profile:before {
 
   #loading.loading img {
     animation: loading 4s linear infinite;
+  }
+
+  // Third-party goes here
+  .data-datetime {
+    @import 'bootstrap/less/bootstrap.less';
+    @import 'eonasdan-bootstrap-datetimepicker/src/less/bootstrap-datetimepicker-build.less';
+    .bootstrap-datetimepicker-widget.dropdown-menu {
+      left: auto !important;
+      right: 0px !important;
+
+      &.bottom:before {
+        left: auto;
+        right: 7px;
+      }
+
+      &.bottom:after {
+        left: auto;
+        right: 8px;
+      }
+
+      .collapse, .picker-switch {
+        margin: 0;
+      }
+
+      table {
+        border-bottom: none;
+      }
+
+      td {
+        background-color: transparent;
+      }
+
+      th {
+        font-weight: bold;
+        border-top: none;
+        border-bottom: none;
+        vertical-align: middle;
+        background-color: transparent;
+      }
+    }
   }
 }
 

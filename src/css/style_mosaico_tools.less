@@ -135,6 +135,10 @@
       input[type=text] {
         width: auto;
       }
+      &.emojionearea-inline>.emojionearea-editor {
+        left: 7px;
+        color: inherit;
+      }
     }
 
     .data-select {
@@ -218,13 +222,21 @@
     }
   }
 
-  #toolenvelope .propLabel, #toolsocialsharing .propLabel {
+  #toolenvelope .level0 > div > .propLabel, #toolsocialsharing .level0 > div > .propLabel {
     width: 100%;
-    padding-left: 1em;
-    background-color: #E5E5E5;
-    border: 1px solid #D4D4D4;
-    border-top-left-radius: 8px;
-    border-top-right-radius: 8px;
+    padding: 5px 5px 5px 1em;
+    background-color: #738999;
+    border-radius: 2px 2px 0 0;
+    text-align: center;
+    color: #FFFFFF;
+    font-size: 1.2em;
+    box-shadow: 0 3px 1px -2px rgba(0,0,0,.2), 0 2px 2px 0 rgba(0,0,0,.14), 0 1px 5px 0 rgba(0,0,0,.12);
+    text-transform: uppercase;
+
+    &:before {
+      color: #FFFFFF;
+      font-size: 1.85em;
+    }
   }
 
   .propInput { 
@@ -233,86 +245,25 @@
     input,  select { width: 100%; }
   }
 
-  #toolenvelope .propInput, #toolsocialsharing .propInput {
+  #toolenvelope .level0 > div > .propInput, #toolsocialsharing .level0 > div > .propInput {
     width: 100%;
     padding: 1em;
     background-color: #F9F9F9;
     color: #333333;
-    border: 1px solid #D4D4D4;
     border-top: 0;
     min-height: 0;
     margin-bottom: 1em;
-    border-bottom-left-radius: 8px;
-    border-bottom-right-radius: 8px;
+    box-shadow: 0 3px 1px -2px rgba(0,0,0,.2), 0 2px 2px 0 rgba(0,0,0,.14), 0 1px 5px 0 rgba(0,0,0,.12);
   }
 
   div:not(.ui-widget) #toolsocialsharing {
     padding: .7em;
     overflow-y: auto;
     overflow-x: hidden;
-    .level0 .objEdit {
-      padding: 1em;
-      margin-top: 0;
-      box-shadow: none;
-      border-top-left-radius: 8px;
-      border-top-right-radius: 8px;
-      border-bottom-left-radius: 8px;
-      border-bottom-right-radius: 8px;
-      border: 1px solid #D4D4D4;
-      background-color: #F9F9F9;
-    }
 
-    .level1 .objLabel {
-      box-sizing: content-box;
-      width: 100%;
-      padding-right: 1em;
-      padding-left: 1em;
-      margin-top: -1em;
-      margin-bottom: 1em;
-      margin-left: -1em;
-      background-color: #E5E5E5;
-      text-align: left;
-      color: #333333 !important;
-      text-transform: none;
-      font-size: 13.6px;
-      border-bottom: 1px solid #D4D4D4;
-      border-top-left-radius: 8px;
-      border-top-right-radius: 8px;
-    }
-
-     .objEdit.selectable {
-       &:hover:after, &.selecteditem:after {
-         visibility: hidden !important;
-       }
-     }
-
-     .level1 .propEditor:last-child .propInput {
-       margin-bottom: 0;
-     }
-
-    .propEditor.fdSocialSharingUseSubjectAsTitle {
-      background-color: #e5e5e5;
-      border: 1px solid #d4d4d4;
-      margin-bottom: 1em;
-      border-top-left-radius: 8px;
-      border-top-right-radius: 8px;
-      border-bottom-left-radius: 8px;
-      border-bottom-right-radius: 8px;
-
-      .propLabel {
-        width: 45%;
-        padding: 8px 8px 8px 1em;
-        background-color: inherit;
-        border: none;
-      }
-
-      .propInput {
-        width: 55%;
-        padding: inherit;
-        background-color: inherit;
-        color: inherit;
-        border: none;
-        margin-bottom: 0;
+    .level1 {
+      &.objEdit, &.objLabel {
+        border-radius: 2px 2px 0 0;
       }
     }
   }
@@ -750,7 +701,7 @@
     display: inline-block;
   }
 
-  #saveMenu, #testMenu {
+  #saveMenu, #testMenu, #helpAndSupportMenu, #backMenu {
     position: relative;
     display: inline-block;
 
@@ -787,12 +738,12 @@
     .ui-button {
       margin-top: 0;
       margin-right: 0;
-      color: #EEEEEE;
-      background-color: #0B9444;
       line-height: 40px;
       width: 100%;
       text-align: left;
       border: 0;
+      color: #EEEEEE;
+      background-color: #0B9444;
 
       &:hover {
        background-color: #10C85D;
@@ -829,12 +780,13 @@
         padding: 0 0 0 .5em;
       }
     }
+
     div {
       margin-top: -2px;
     }
   }
 
-  #testMenu {
+  #testMenu, #helpAndSupportMenu, #backMenu {
     > .ui-button {
       cursor: default;
     }
@@ -858,10 +810,12 @@
 .toolbar-tooltip {
   visibility: hidden;
 }
-@media (max-width: 1534px) {
+@media (max-width: 1592px) {
   #toolbar {
     > span > .ui-button,
-    > div:not(.ui-widget) > .ui-button {
+    > div:not(.ui-widget) > .ui-button,
+    #helpAndSupportMenu > .ui-button,
+    #backMenu > .ui-button {
       width: 2.6em;
       overflow: hidden;
       span:last-child {
@@ -989,26 +943,13 @@
       z-index: 120;
       position: absolute;
       top: 0; bottom: 0;
-      left: 20px; right: 20px;
+      left: 0px; right: 0px;
     }
   }
   .draggable-item {
     position: relative;
 
-    .addblockbutton {
-      z-index: 1000;
-      position: absolute;
-      bottom: 10px;
-      right: 5px;
-      display: none;
-      background-color: #0B9444;
-    }
-
-    .addblockbutton:hover {
-      background-color: #10C85D;
-    }
-
-    .image, .block img {
+    .image {
       box-shadow: 0 0 1px @mosaico-shadow-color;
       margin: 3px 0;
     }
@@ -1058,22 +999,11 @@
   }
 
   .draggable-item:hover {
-
-    transform: scale(1.05, 1.05);
     z-index: 10;
     position: relative;
 
-    .addblockbutton {
-      display: block;
-    }
-
     .image {
       box-shadow: 0 0 15px @mosaico-shadow-color;
-    }
-    .block {
-      img {
-        box-shadow: 0 0 15px @mosaico-shadow-color;
-      }
     }
   }
 
@@ -1081,29 +1011,46 @@
     display: none;
   }
   .block-list {
-    // suppongo che le immagini siano create per i 340px
-    .draggable-item {
-      margin: 4px 0;
-      padding: .5em;
-      background-color: #F9F9F9;
-      border-radius: 5px;
+    .block-category {
+      text-align: left;
 
-      > div:before {
-        content: attr(data-block-name);
-        display: block;
-        font-size: 1.25em;
-        font-weight: bold;
-        color: #738999;
-        line-height: 1.25em;
-        height: 1.5em;
+      h3 {
+        margin: 0 0 .5em;
+      }
+      .draggable-item {
+        width: 108px;
+        overflow: hidden;
+        margin: 3px 8px 5px 0;
+        border: 1px solid #8492a6;
+        box-shadow: 0;
+        border-radius: 3px;
+        transition: box-shadow 0.2s;
+        background: #F9F9F9;
+        cursor: move;
+        display: inline-block;
+        padding: 8px 4px;
+        text-align: center;
+        font-size: 12px;
+
+        > div:after {
+          content: attr(data-block-name);
+          display: block;
+          margin-top: .5em;
+          line-height: 1.25em;
+          height: 1.25em;
+        }
+
+        img.drawerImg {
+          display: block;
+          margin: 0 auto;
+          padding-bottom: 8px;
+        }
+
+        img.dragImg {
+          display: none;
+        }
       }
     }
-  }
-
-  // mette i blocchi al 100%
-  .block-list .draggable-item,
-  .block-list .draggable-item img {
-    width: 100%;
   }
 
   .objEdit.level1.selectable {
@@ -1242,6 +1189,15 @@
 .mo-standalone #main-toolbox #tooltabs.ui-tabs {
   > .ui-tabs-nav, > .ui-tabs-scroll > .ui-tabs-nav {
     padding-left: 0;
+  }
+}
+
+#page .block.ui-draggable-dragging {
+  img.drawerImg {
+    display: none;
+  }
+  img.dragImg {
+    display: block;
   }
 }
 
@@ -1409,32 +1365,39 @@
   .button, .ui-button, .button_dropdown_split {
     margin-top: 0; margin-bottom: 0;
   }
-}
 
-#main-preview #preview-toolbar {
-  padding: 3px 10px;
-  text-align: center;
-  position: absolute;
-  bottom: 0;
-  right: 0;
-  left: 0;
-  z-index: 200;
+  #preview-toolbar {
+    padding: 3px 10px;
+    text-align: center;
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    left: 0;
+    z-index: 200;
 
-  .ui-button {
-    padding: 4px 5px;
-    margin-right: 0;
-    line-height: 30px;
+    .ui-button {
+      padding: 4px 5px;
+      margin-right: 0;
+      line-height: 30px;
+    }
+  }
+
+  #frame-container {
+    position: absolute;
+    top: 0;
+    bottom: 40px;
+    left: 0;
+    right: 0;
+    background-color: @mosaico-background-color;
+    box-shadow: inset 0px 0px 10px @mosaico-shadow-color;
   }
 }
 
-#main-preview #frame-container {
+#main-preview-content {
   position: absolute;
   top: @topbar-height;
-  bottom: 40px;
-  left: 0;
-  right: 0;
-  background-color: @mosaico-background-color;
-  box-shadow: inset 0px 0px 10px @mosaico-shadow-color;
+  bottom: 0;
+  width: 100%;
 }
 
 #frame-container > iframe {

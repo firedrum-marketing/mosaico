@@ -7,6 +7,7 @@
 var ko = require("knockout");
 var console = require("console");
 var $ = require("jquery");
+var uuidv4 = require('uuid/v4');
 
 function wrap(v) {
   var typeOfv = typeof v;
@@ -126,71 +127,72 @@ var _nextVariantFunction = function(ko, prop, variants) {
 
   prop(nextValue);
 };
-var _generateBlockHelperFunctions = function(def, defs, ko, type, t, blocks, vmWrapper) {
-  t.getContainerIndex = function(blocks, vmWrapper) {
-    var blocksArray = blocks();
-    var i = blocksArray.length - 1;
-    while( i >= 0 ) {
-      if ( ko.utils.unwrapObservable(ko.utils.unwrapObservable(blocksArray[i]).id) == ko.utils.unwrapObservable(t.id) ) break;
-      i--;
-    }
-    return i;
-  }.bind(t, blocks, vmWrapper);
-  t.getNearestUnlockedIndex = function(blocks, vmWrapper, up, strict, includeSelf) {
-    if (typeof up === 'undefined') {
-      up = false;
-      strict = false;
-      includeSelf = true;
-    } else if (up === false && typeof strict === 'undefined') {
-      strict = true;
-      includeSelf = false;
-    }
 
-    var lockDownMode = 0;
-
-    var tmp = vmWrapper();
-    if (tmp !== null) {
-      lockDownMode = tmp.lockDownMode();
-    }
-
-    var result = -1;
-    if (lockDownMode < 3) {
-      var containerIndex = this.getContainerIndex();
-      var blocksArray = blocks();
-      var curBlock = null;
-
-      result = containerIndex;
-      if (!up) {
-        if (includeSelf) {
-          result--;
-        }
-        while (++result <= blocksArray.length - 1) {
-          curBlock = blocksArray[result];
-          if (lockDownMode < 2 || !curBlock()._lockedBelow()) {
-            break;
-          }
-        }
-        if (result > blocksArray.length - 1) {
-          result = -1;
-        } else if (includeSelf) {
-          result++;
-        }
-      }
-      if (up || (strict === false && result === -1 && (result = containerIndex))) {
-        if (includeSelf) {
-          result++;
-        }
-        while (--result >= 0) {
-          curBlock = blocksArray[result];
-          if (lockDownMode < 2 || !curBlock()._lockedAbove()) {
-            break;
-          }
-        }
-      }
-    }
-    return result;
-  }.bind(t, blocks, vmWrapper);
+var _getContainerIndex = function(blocks) {
+  var blocksArray = blocks();
+  var i = blocksArray.length - 1;
+  while( i >= 0 ) {
+    if ( ko.utils.unwrapObservable(ko.utils.unwrapObservable(blocksArray[i]).id) === ko.utils.unwrapObservable(this.id) ) break;
+    i--;
+  }
+  return i;
 };
+
+var _getNearestUnlockedIndex = function($root, blocks, up, strict, includeSelf) {
+  if (typeof up === 'undefined') {
+    up = false;
+    strict = false;
+    includeSelf = true;
+  } else if (up === false && typeof strict === 'undefined') {
+    strict = true;
+    includeSelf = false;
+  }
+
+  var lockDownMode = $root.lockDownMode();
+
+  var result = -1;
+  if (lockDownMode < 3) {
+    var containerIndex = this.getContainerIndex(blocks);
+    var blocksArray = blocks();
+    var curBlock = null;
+
+    result = containerIndex;
+    if (!up) {
+      if (includeSelf) {
+        result--;
+      }
+      while (++result <= blocksArray.length - 1) {
+        curBlock = blocksArray[result];
+        if (lockDownMode < 2 || !curBlock()._lockedBelow($root, blocks)) {
+          break;
+        }
+      }
+      if (result > blocksArray.length - 1) {
+        result = -1;
+      } else if (includeSelf) {
+        result++;
+      }
+    }
+    if (up || (strict === false && result === -1 && (result = containerIndex))) {
+      if (includeSelf) {
+        result++;
+      }
+      while (--result >= 0) {
+        curBlock = blocksArray[result];
+        if (lockDownMode < 2 || !curBlock()._lockedAbove($root, blocks)) {
+          break;
+        }
+      }
+    }
+  }
+  return result;
+};
+
+var _generateBlockHelperFunctions = function(def, defs, ko, type, t) {
+  t.getContainerIndex = _getContainerIndex.bind(t);
+  t.getNearestUnlockedIndex = _getNearestUnlockedIndex.bind(t);
+};
+
 var _generateBlockLocks = function(def, defs, ko, type, t, blocks, vmWrapper) {
   // Handle lock down mode data for block movement
   var locked = {};
@@ -202,59 +204,45 @@ var _generateBlockLocks = function(def, defs, ko, type, t, blocks, vmWrapper) {
     t._locked = ko.observable(false);
     locked.above = locked.below = false;
   }
-  t._lockedAbove = ko.computed( {
-    read: function(locked, vmWrapper) {
-      var lockDownMode = 0;
 
-      var tmp = vmWrapper();
-      if (tmp !== null) {
-        lockDownMode = tmp.lockDownMode();
-      }
-      var blocksArray = blocks();
+  t._lockedAbove = function(locked, $root, blocks) {
+    var lockDownMode = $root.lockDownMode();
 
-      switch (lockDownMode) {
-        case 0:
-          return false;
-        case 1:
-          var result = false;
-          if ( t._locked() ) {
-            var i = t.getContainerIndex();
-            result = i === -1 ? locked.above : ( i === 0 ) || ko.utils.unwrapObservable(blocksArray[i - 1])._locked();
-          }
-          return (locked.above = result);
-        case 2:
-        case 3:
-          return locked.above;
-      }
-    }.bind(undefined, locked, vmWrapper),
-    write: function(value) { /* no-op, necessary for undo/redo to work! */ }.bind(undefined)
-  } );
-  t._lockedBelow = ko.computed( {
-    read: function(locked, vmWrapper) {
-      var lockDownMode = 0;
-      var tmp = vmWrapper();
-      if (tmp !== null && ko.isObservable(tmp.lockDownMode)) {
-        lockDownMode = tmp.lockDownMode();
-      }
-      var blocksArray = blocks();
+    switch (lockDownMode) {
+      case 0:
+        return false;
+      case 1:
+        var result = false;
+        if ( t._locked() ) {
+          var i = t.getContainerIndex(blocks);
+          var blocksArray = blocks();
+          result = i === -1 ? locked.above : ( i === 0 ) || ko.utils.unwrapObservable(blocksArray[i - 1])._locked();
+        }
+        return (locked.above = result);
+      case 2:
+      case 3:
+        return locked.above;
+    }
+  }.bind(t, locked);
+  t._lockedBelow = function(locked, $root, blocks) {
+    var lockDownMode = $root.lockDownMode();
 
-      switch (lockDownMode) {
-        case 0:
-          return false;
-        case 1:
-          var result = false;
-          if ( t._locked() ) {
-            var i = t.getContainerIndex();
-            result = i === -1 ? locked.below : ( i === (blocksArray.length - 1) ) || ko.utils.unwrapObservable(blocksArray[i + 1])._locked();
-          }
-          return (locked.below = result);
-        case 2:
-        case 3:
-          return locked.below;
-      }
-    }.bind(undefined, locked, vmWrapper),
-    write: function(value) { /* no-op, necessary for undo/redo to work! */ }.bind(undefined)
-  } );
+    switch (lockDownMode) {
+      case 0:
+        return false;
+      case 1:
+        var result = false;
+        if ( t._locked() ) {
+          var i = t.getContainerIndex(blocks);
+          var blocksArray = blocks();
+          result = i === -1 ? locked.below : ( i === (blocksArray.length - 1) ) || ko.utils.unwrapObservable(blocksArray[i + 1])._locked();
+        }
+        return (locked.below = result);
+      case 2:
+      case 3:
+        return locked.below;
+    }
+  }.bind(t, locked);
 };
 
 var _generateLock = function(defs, ko, prop, newType, newTypeProp, val, t, locks) {
@@ -419,7 +407,7 @@ var _getImageWidths = function(t, def) {
   return imageWidths;
 };
 
-var _makeComputedFunction = function(def, defs, thms, vmWrapper, ko, contentModel, isContent, t) {
+var _makeComputedFunction = function(def, defs, thms, vmWrapper, ko, contentModel, isContent, t, blockContainer) {
   if (typeof def == 'undefined') {
     if (typeof ko.utils.unwrapObservable(t).type === 'undefined') {
       console.log("TODO ERROR Found a non-typed def ", def, t);
@@ -571,22 +559,22 @@ var _makeComputedFunction = function(def, defs, thms, vmWrapper, ko, contentMode
         if (typeof val._context != 'undefined' && val._context == 'block') {
           // This is a block instantiation!
           var propVm = contentModel[prop2]();
-          var newVm = _makeComputedFunction(defs[prop2], defs, thms, vmWrapper, ko, contentModel, isContent, propVm);
+          var newVm = _makeComputedFunction(defs[prop2], defs, thms, vmWrapper, ko, contentModel, isContent, propVm, contentModel.mainBlocks);
           t[prop2](newVm);
           _generateSelectDefinitionLabels(defs[prop2], defs, ko, val.type, newVm);
           _generateConditionalCommentData(defs[prop2], defs, ko, val.type, newVm);
-          _generateBlockHelperFunctions(defs[prop2], defs, ko, val.type, newVm, contentModel.mainBlocks().blocks, vmWrapper);
+          _generateBlockHelperFunctions(defs[prop2], defs, ko, val.type, newVm, vmWrapper);
           _generateBlockLocks(defs[prop2], defs, ko, val.type, newVm, contentModel.mainBlocks().blocks, vmWrapper);
           _generateLocks(defs[prop2], defs, ko, val.type, newVm, newVm._locks());
-        } else if (val.type == 'blocks') {
-          // This is a block list
+        } else if (val.type === 'blocks') {
+          // This is the main block list
           var mainVm = contentModel[prop2]();
           var blocksVm = mainVm.blocks();
           var oldBlock, blockType, newBlock;
           for (var ib = 0; ib < blocksVm.length; ib++) {
             oldBlock = ko.utils.unwrapObservable(blocksVm[ib]);
             blockType = ko.utils.unwrapObservable(oldBlock.type);
-            newBlock = _makeComputedFunction(defs[blockType], defs, thms, vmWrapper, ko, contentModel, isContent, oldBlock);
+            newBlock = _makeComputedFunction(defs[blockType], defs, thms, vmWrapper, ko, contentModel, isContent, oldBlock, contentModel[prop2]);
             blocksVm[ib](newBlock);
           }
 
@@ -595,6 +583,7 @@ var _makeComputedFunction = function(def, defs, thms, vmWrapper, ko, contentMode
           _augmentBlocksObservable(blocksObs, _blockInstrumentFunction.bind(mainVm, undefined, defs, thms, vmWrapper, ko, undefined, contentModel, isContent));
 
           contentModel[prop2]._wrap = _makeBlocksWrap.bind(contentModel[prop2], blocksObs._instrumentBlock);
+		  
           contentModel[prop2]._unwrap = _unwrap.bind(contentModel[prop2]);
         }
       }
@@ -613,13 +602,43 @@ var _makeComputedFunction = function(def, defs, thms, vmWrapper, ko, contentMode
           _generateLock(defs, ko, prop3, val2.type, val2.type, defs[prop3], contentModel, contentModel._locks());
         }
       }
+
+    if (!ko.isObservable(contentModel.dynamicContent)) {
+      contentModel.dynamicContent = ko.observable({});
+    }
+
+    var dynamicContent = contentModel.dynamicContent();
+      for (var prop4 in dynamicContent)
+        if (dynamicContent.hasOwnProperty(prop4)) {
+          // This is a dynamic block list
+          var dynamicContentVm = dynamicContent[prop4]();
+          dynamicContentVm.dragging = ko.observable({
+            status: false
+          });
+          var dynamicContentBlocksVm = dynamicContentVm.blocks();
+          var oldDynamicBlock, dynamicBlockType, newDynamicBlock;
+          for (var ic = 0; ic < dynamicContentBlocksVm.length; ic++) {
+            oldDynamicBlock = ko.utils.unwrapObservable(dynamicContentBlocksVm[ic]);
+            dynamicBlockType = ko.utils.unwrapObservable(oldDynamicBlock.type);
+            newDynamicBlock = _makeComputedFunction(defs[dynamicBlockType], defs, thms, vmWrapper, ko, contentModel, isContent, oldDynamicBlock, dynamicContent[prop4]);
+            dynamicContentBlocksVm[ic](newDynamicBlock);
+          }
+
+          var dynamicContentBlocksObs = dynamicContentVm.blocks;
+
+          _augmentBlocksObservable(dynamicContentBlocksObs, _blockInstrumentFunction.bind(dynamicContentVm, undefined, defs, thms, vmWrapper, ko, undefined, contentModel, isContent));
+
+          dynamicContent[prop4]._wrap = _makeBlocksWrap.bind(dynamicContent[prop4], dynamicContentBlocksObs._instrumentBlock);
+
+          dynamicContent[prop4]._unwrap = _unwrap.bind(dynamicContent[prop4]);
+        }
   }
 
   if (typeof def._context != 'undefined' && def._context == 'block') {
     _generateSelectDefinitionLabels(def, defs, ko, def.type, t);
     _generateConditionalCommentData(def, defs, ko, def.type, t);
-    _generateBlockHelperFunctions(def, defs, ko, def.type, t, contentModel.mainBlocks().blocks, vmWrapper);
-    _generateBlockLocks(def, defs, ko, def.type, t, contentModel.mainBlocks().blocks, vmWrapper);
+    _generateBlockHelperFunctions(def, defs, ko, def.type, t, vmWrapper);
+    _generateBlockLocks(def, defs, ko, def.type, t, typeof blockContainer !== 'undefined' ? blockContainer().blocks : undefined, vmWrapper);
     _generateLocks(def, defs, ko, def.type, t, t._locks());
   }
 
@@ -662,8 +681,10 @@ var _makePush = function() {
     }
   }
   if (!ko.isObservable(arguments[0])) {
-    var instrumented = this._instrumentBlock(arguments[0]);
-    return this.origPush.apply(this, [instrumented]);
+    if (arguments[0].type === 'pushRegionBlock' && !arguments[0].id) {
+      arguments[0].pushRegionName = arguments[0].pushRegionLabel = uuidv4();
+    }
+    return this.origPush.apply(this, [this._instrumentBlock(arguments[0])]);
   } else {
     return this.origPush.apply(this, arguments);
   }
@@ -679,8 +700,10 @@ var _makeSplice = function() {
     }
   }
   if (arguments.length > 2 && !ko.isObservable(arguments[2])) {
-    var instrumented = this._instrumentBlock(arguments[2]);
-    return this.origSplice.apply(this, [arguments[0], arguments[1], instrumented]);
+    if (arguments[2].type === 'pushRegionBlock' && !arguments[2].id) {
+      arguments[2].pushRegionName = arguments[2].pushRegionLabel = uuidv4();
+    }
+    return this.origSplice.apply(this, [arguments[0], arguments[1], this._instrumentBlock(arguments[2])]);
   } else {
     return this.origSplice.apply(this, arguments);
   }
@@ -717,4 +740,7 @@ var _modelInstrument = function(model, modelDef, defs, vmWrapper) {
   return res;
 };
 
-module.exports = _modelInstrument;
+module.exports = {
+  modelInstrument: _modelInstrument,
+  makeBlocksWrap: _makeBlocksWrap
+};

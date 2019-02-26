@@ -84,7 +84,7 @@ var templateCreator = function(templatePlugin, htmlOrElement, optionalName, temp
     var $body = $('replacedbody', $el);
     var $webFonts = '<!-- ko if: $root.customFonts().length > 0 -->';
     $webFonts += '<link class="mo-web-font-support" rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="crossorigin">';
-    $webFonts += '<link class="mo-web-font-support" rel="stylesheet" data-bind="attr: { href: Mosaico.ko.pureComputed(function(){var r=\'https://fonts.googleapis.com/css?family=\',i=0,f=this.customFonts();for(;i<f.length;i++)r+=(i>0?\'|\':\'\')+encodeURIComponent(f[i].label)+\':400,400i,700,700i\';return r},$root) }">';
+    $webFonts += '<link class="mo-web-font-support" rel="stylesheet" data-bind="attr: { href: Mosaico.ko.pureComputed(function(){var r=\'https://fonts.googleapis.com/css?family=\',i=0,f=this.customFonts();for(;i<f.length;i++)r+=(i>0?\'|\':\'\')+encodeURIComponent(f[i].label)+\':100,100i,400,400i,500,500i,700,700i,900,900i\';return r},$root) }">';
     $webFonts += '<!-- /ko -->';
     templatePlugin.adder(tmpName + '-head', $head.append($webFonts).html() || $webFonts);
     templatePlugin.adder(tmpName + '-show', $body.html() || '');
@@ -262,6 +262,10 @@ var templateCompiler = function(performanceAwareCaller, templateUrlConverter, te
         unwrapped = jsorjson;
       }
 
+      if (typeof unwrapped.dynamicContent === 'undefined') {
+        unwrapped.dynamicContent = {};
+      }
+
       // we run a basic compatibility check between the content-model we expect and the initialization model
       var checkModelRes = performanceAwareCaller('checkModel', templateConverter.checkModel.bind(undefined, content._unwrap(), blockDefs, unwrapped));
       // if checkModelRes is 1 then the model is not fully compatible but we fixed it
@@ -310,20 +314,52 @@ var templateCompiler = function(performanceAwareCaller, templateUrlConverter, te
     
     viewModel.metadata = metadata;
     // let's run some version check on template and editor used to build the model being loaded.
-  // This will be replaced by browserify-versionify during the build
-  var editver = '__VERSION__';
+    // This will be replaced by browserify-versionify during the build
+    var editver = '__VERSION__';
     if (typeof viewModel.metadata.editorversion !== 'undefined' && viewModel.metadata.editorversion !== editver) {
-    console.log("The model being loaded has been created with a different editor version", viewModel.metadata.editorversion, "runtime:", editver);
+      console.log("The model being loaded has been created with a different editor version", viewModel.metadata.editorversion, "runtime:", editver);
     }
     viewModel.metadata.editorversion = editver;
 
-    // Store templateDef name mapping somewhere accessible to ko templateSystem
+    // Store templateDef name mapping and templateDef category mapping somewhere accessible to ko templateSystem
     viewModel.blockNameMap = {};
+	var blockCategoriesMap = {};
     for( var bi = 0; bi < templateDef._blocks.length; bi++ ) {
       if( templateDef._defs.hasOwnProperty(templateDef._blocks[bi].block) ) {
         viewModel.blockNameMap[templateDef._blocks[bi].block] = templateDef._defs[templateDef._blocks[bi].block]._name;
+        blockCategoriesMap[templateDef._blocks[bi].block] = {
+          'category': templateDef._defs[templateDef._blocks[bi].block]._categoryText,
+          'order': templateDef._defs[templateDef._blocks[bi].block]._categoryOrder
+        };
       }
     }
+
+    viewModel.blockCategories = [];
+    var categories = {};
+    for (var ci = 0; ci < viewModel.blockDefs.length; ci++) {
+      if (typeof categories[blockCategoriesMap[blockDefs[ci].type].category] === 'undefined') {
+          categories[blockCategoriesMap[blockDefs[ci].type].category] = {
+            'category': blockCategoriesMap[blockDefs[ci].type].category,
+            'order': blockCategoriesMap[blockDefs[ci].type].order,
+            'blockDefs': []
+          };
+        }
+        categories[blockCategoriesMap[blockDefs[ci].type].category].blockDefs.push(blockDefs[ci]);
+    }
+    for (var categoriesProp in categories) {
+      if (categories.hasOwnProperty(categoriesProp)) {
+        viewModel.blockCategories.push(categories[categoriesProp]);
+      }
+    }
+    viewModel.blockCategories.sort(function(a,b) {
+      if (a.order < b.order) {
+        return -1;
+      } else if (a.order > b.order) {
+        return 1;
+      }
+      return 0;
+    });
+
     if (typeof templateDef.version !== 'undefined') {
       if (typeof viewModel.metadata.templateversion !== 'undefined' && viewModel.metadata.templateversion !== templateDef.version) {
       console.log("The model being loaded has been created with a different template version", viewModel.metadata.templateversion, "runtime:", templateDef.version);
@@ -333,6 +369,9 @@ var templateCompiler = function(performanceAwareCaller, templateUrlConverter, te
 
     templateSystem.init();
 
+    if (typeof viewModel.envelope !== 'undefined') {
+      viewModel.selectedTool(1);
+    }
     // everything's ready, start knockout bindings.
     plugins.push(bindingPluginMaker(performanceAwareCaller, options));
   
@@ -465,9 +504,9 @@ var checkBadBrowserExtensions = function() {
   ko.bindingHandlers.bindIframe.tplDoctype = origTplDoctype;
   ko.bindingHandlers.bindIframe.tplDocument = origTplDocument;
 
-  var expected = "<!DOCTYPE html>\n<html><head><title>A</title>\n</head>\n<body><p align=\"right\" style=\"color: red;\" data-bind=\"style: { color: 'red' }\">B</p><div data-bind=\"text: content\">dummy content</div>\n\n</body></html>";
-  var expected2 = "<!DOCTYPE html>\n<html><head><title>A</title>\n</head>\n<body><p style=\"color: red;\" data-bind=\"style: { color: 'red' }\" align=\"right\">B</p><div data-bind=\"text: content\">dummy content</div>\n\n</body></html>";
-  var expected3 = "<!DOCTYPE html>\n<html><head><title>A</title>\n</head>\n<body><p style=\"color: red;\" align=\"right\" data-bind=\"style: { color: 'red' }\">B</p><div data-bind=\"text: content\">dummy content</div>\n\n</body></html>";
+  var expected = "<!DOCTYPE html>\n<html><head><title>A</title>\n</head>\n<body><p align=\"right\" style=\"color: rgb(255, 0, 0);\" data-bind=\"style: { color: 'red' }\">B</p><div data-bind=\"text: content\">dummy content</div>\n\n</body></html>";
+  var expected2 = "<!DOCTYPE html>\n<html><head><title>A</title>\n</head>\n<body><p style=\"color: rgb(255, 0, 0);\" data-bind=\"style: { color: 'red' }\" align=\"right\">B</p><div data-bind=\"text: content\">dummy content</div>\n\n</body></html>";
+  var expected3 = "<!DOCTYPE html>\n<html><head><title>A</title>\n</head>\n<body><p style=\"color: rgb(255, 0, 0);\" align=\"right\" data-bind=\"style: { color: 'red' }\">B</p><div data-bind=\"text: content\">dummy content</div>\n\n</body></html>";
   if (expected !== content && expected2 !== content && expected3 !== content) {
     console.info("BadBrowser.FrameContentCheck", content.length, expected.length, expected2.length, expected3.length, content == expected, content == expected2, content == expected3);
     console.info(content);

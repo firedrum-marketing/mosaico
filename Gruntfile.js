@@ -39,7 +39,8 @@ module.exports = function(grunt) {
         sourceMap: true,
         sourceMapRootpath: '../',
         /* sourceMapFilename: 'build/mosaico.css.map' */
-        sourceMapFileInline: true
+        sourceMapFileInline: true,
+        paths: 'node_modules'
       },
       css: {
         files: {
@@ -276,6 +277,7 @@ module.exports = function(grunt) {
                   ' * jQuery File Upload Plugin + dependencies | Copyright 2010, Sebastian Tschan | Licensed under the MIT license: https://opensource.org/licenses/MIT\n'+
                   ' * knockout-jqueryui | Copyright (c) 2016 Vas Gabor <gvas.munka@gmail.com> Licensed MIT\n'+
                   ' * TinyMCE + Plugins | Copyright (c) 1999-2017 Ephox Corp. | Released under LGPL License. http://www.tinymce.com/license\n'+
+                  ' * left-pad | Released under WTFPL License\n'+
                   ' */'
         },
         files: {
@@ -321,6 +323,7 @@ module.exports = function(grunt) {
           forceExit: true,
           captureExceptions: true,
           jasmine: {
+            helpers: ['**/*-helpers.js'],
             reporters: {
               spec: {},
               junitXml: {
@@ -356,6 +359,7 @@ module.exports = function(grunt) {
           'spdx-expression-parse': 'MIT', // (MIT AND CC-BY-3.0)
           'spdx-expression-validate': 'MIT', // (MIT AND CC-BY-3.0)
           'jquery-textselection': 'GPL-3.0',
+          'left-pad': 'WTFPL',
           /* Optional runtime dependency */
           'tinymce': 'LGPL-2.1', // LGPL-2.1, optional runtime dependency
           /* CC-BY licensed */
@@ -399,7 +403,7 @@ module.exports = function(grunt) {
   grunt.registerTask('css', ['less', 'postcss']);
   grunt.registerTask('server', ['express', 'watch', 'keepalive']);
   grunt.registerTask('deps', ['copy', 'uglify', 'cssmin']);
-  grunt.registerTask('build', ['googlefonts', 'deps', 'jshint', 'js', 'css']);
+  grunt.registerTask('build', ['googlefonts', 'jshint', 'js', 'css']);
   grunt.registerTask('default', ['build', 'server']);
   grunt.registerTask('test', ['jasmine_node']);
   grunt.registerTask('dist', ['check_licenses', 'build', 'test', 'compress']);

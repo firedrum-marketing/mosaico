@@ -57,7 +57,8 @@ function removeTemplate(templateName) {
 }
 
 function init() {
-  ko.setTemplateEngine(createStringTemplateEngine(new ko.nativeTemplateEngine()));
+  if (Object.getPrototypeOf(ko.nativeTemplateEngine.instance).makeTemplateSource === ko.nativeTemplateEngine.instance.makeTemplateSource)
+    createStringTemplateEngine(ko.nativeTemplateEngine.instance);
 }
 
 function getTemplateContent(id) {

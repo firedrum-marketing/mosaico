@@ -16,13 +16,18 @@
   <!-- /ko -->
 
   <div id="toolblocks" data-bind="scrollable: true">
-    <div class="block-list" data-bind="foreach: { data: blockDefs, includeDestroyed: false }" style="text-align: center">
-      <div class="draggable-item" data-bind="withProperties: { templateMode: 'show' }, attr: {'data-block-name': $root.blockNameMap[ko.utils.unwrapObservable(type)]}">
-        <div class="block" data-bind="extdraggable: { connectClass: 'sortable-blocks-edit', data: $data, dropContainer: ($root.mosaicoConfig.mainElement && $root.mosaicoConfig.mainElement.id ? \'#\' + $root.mosaicoConfig.mainElement.id + \' \' : \'\') + '#main-wysiwyg-area', dragging: $root.dragging, 'options': { handle: '.handle', distance: 10, 'appendTo': ($root.mosaicoConfig.mainElement && $root.mosaicoConfig.mainElement.id ? \'#\' + $root.mosaicoConfig.mainElement.id + \' \' : \'\') + '#page' } }, click: $root.addBlock, attr: {'data-block-name': $root.blockNameMap[ko.utils.unwrapObservable(type)]}" style="position: relative;">
-          <div title="__name__ - Click or drag to add this block to the template" class="handle" data-bind="attr: { title: $root.t('__name__ - Click or drag to add this block to the template', { name: $root.blockNameMap[ko.utils.unwrapObservable(type)] }) }, tooltips: {}"></div>
-          <img data-bind="attr: { alt: $root.t('Block __name__', { name: ko.utils.unwrapObservable(type) }), src: $root.templatePath(($root.mosaicoConfig.blockImagePath ? $root.mosaicoConfig.blockImagePath : 'edres/')+ko.utils.unwrapObservable(type)+'.png') }" alt="Block __name__" />
+    <div class="block-list" data-bind="foreach: { data: blockCategories, includeDestroyed: false }" style="text-align: center">
+      <div class="block-category">
+        <h3 data-bind="text: category">CATEGORY NAME</h3>
+        <!-- ko foreach: blockDefs --><!-- ko if: ko.utils.unwrapObservable(type) !== 'pushRegionBlock' || $root.pushMode() === 1 -->
+        <div class="draggable-item" data-bind="withProperties: { templateMode: 'show' }, attr: {'data-block-name': $root.blockNameMap[ko.utils.unwrapObservable(type)]}">
+          <div class="block" data-bind="extdraggable: { connectClass: ko.utils.unwrapObservable(type) !== 'pushRegionBlock' ? 'sortable-blocks-edit' : 'sortable-main-blocks-edit', data: $data, dropContainer: ($root.mosaicoConfig.mainElement && $root.mosaicoConfig.mainElement.id ? \'#\' + $root.mosaicoConfig.mainElement.id + \' \' : \'\') + '#main-wysiwyg-area', dragging: $root.dragging, 'options': { handle: '.handle', distance: 10, 'appendTo': ($root.mosaicoConfig.mainElement && $root.mosaicoConfig.mainElement.id ? \'#\' + $root.mosaicoConfig.mainElement.id + \' \' : \'\') + '#page', toSortable: function(event, ui) {var sortable=event.sortable,draggable=Mosaico.$(this).draggable('instance');sortable.offset.parent.left=(draggable.offset.parent.left+sortable.offset.parent.left)/2;sortable.offset.parent.top=(draggable.offset.parent.top+sortable.offset.parent.top)/2} } }, attr: {'data-block-name': $root.blockNameMap[ko.utils.unwrapObservable(type)]}" style="position: relative;">
+            <div title="__name__ - Click or drag to add this block to the template" class="handle" data-bind="attr: { title: $root.t('__name__ - Click or drag to add this block to the template', { name: $root.blockNameMap[ko.utils.unwrapObservable(type)] }) }, tooltip: {show: {delay: 500}, track: true}"></div>
+            <img class="dragImg" data-bind="attr: { alt: $root.t('Block __name__', { name: ko.utils.unwrapObservable(type) }), src: $root.templatePath(($root.mosaicoConfig.blockImagePath ? $root.mosaicoConfig.blockImagePath : 'edres/')+ko.utils.unwrapObservable(type)+'.png') }" alt="Block __name__" />
+            <img class="drawerImg" data-bind="attr: { alt: $root.t('Block __name__', { name: ko.utils.unwrapObservable(type) }), src: $root.templatePath(($root.mosaicoConfig.blockIconPath ? $root.mosaicoConfig.blockIconPath : 'img/')+ko.utils.unwrapObservable(type)+'.png') }" alt="Block __name__" />
+          </div>
         </div>
-        <a href="javascript:void(0)" class="addblockbutton" data-bind="click: $root.addBlock, button: { label: $root.t('Add') }">Add</a>
+        <!-- /ko --><!-- /ko -->
       </div>
     </div>
   </div>
@@ -78,8 +83,8 @@
     <!-- ko if: typeof $root.libraryPath === 'undefined' -->
     <div id="toolimagestab" class="tabs_horizontal" data-bind="tabs: { active: $root.selectedImageTab }">
       <ul>
-        <li data-bind="tooltips: {}"><a title="Session images" data-local="true" href="#toolimagesrecent" data-bind="attr: { title: $root.t('Session images') }, text: $root.t('Recents')">Recents</a></li>
-        <li data-bind="tooltips: {}"><a title="Remote gallery" data-local="true" href="#toolimagesgallery" data-bind="attr: { title: $root.t('Remote gallery') }, text: $root.t('Gallery')">Gallery</a></li>
+        <li><a title="Session images" data-local="true" href="#toolimagesrecent" data-bind="attr: { title: $root.t('Session images') }, text: $root.t('Recents'), tooltip: {show: {delay: 500}, track: true}">Recents</a></li>
+        <li><a title="Remote gallery" data-local="true" href="#toolimagesgallery" data-bind="attr: { title: $root.t('Remote gallery') }, text: $root.t('Gallery'), tooltip: {show: {delay: 500}, track: true}">Gallery</a></li>
       </ul>
 
       <div id="toolimagesrecent">
@@ -101,7 +106,7 @@
     <!-- ko if: typeof $root.loadExternalImageSearch !== 'undefined' -->
     <div style="text-align: center;"><a class="loadbutton" href="javascript:void(0)" data-bind="click: $root.loadExternalImageSearch, button: { label: $root.t('Need images?'), showLabel: true }"># Need images? #</a></div>
     <!-- /ko -->
-    <div class="propEditor libraryFileSystem" data-bind="tooltips: {}">
+    <div class="propEditor libraryFileSystem">
 
       <div id="galleryPath" data-bind="text: $root.libraryPath"></div>
 
@@ -116,7 +121,7 @@
 
       <div id="toolimagestab" class="tabs_horizontal" data-bind="tabs: { refreshOn: libraryFileSystems, create: function(event, ui) {$root.loadGallery()}, active: $root.fileSystemTab, activate: function(event, ui) {var pathRoot = $root.libraryFileSystems()[parseInt(ui.newTab.data('index'))]; $root.libraryFileSystem(pathRoot.path); processLibraryFileSystems(pathRoot);} }">
         <ul data-bind="foreach: { data: libraryFileSystems, includeDestroyed: false }">
-          <li data-bind="tooltips: {}, attr: { 'data-index': $root.libraryFileSystems().indexOf($data) }"><a data-local="true" data-bind="attr: { href: '#gallery_tab_' + name.replace(/ /g, '_'), title: name }, text: name"># FileSystem Name #</a></li>
+          <li data-bind="attr: { 'data-index': $root.libraryFileSystems().indexOf($data) }"><a data-local="true" data-bind="attr: { href: '#gallery_tab_' + name.replace(/ /g, '_'), title: name }, text: name, tooltip: {show: {delay: 500}, track: true}"># FileSystem Name #</a></li>
         </ul>
         <!-- ko foreach: { data: libraryFileSystems, includeDestroyed: false } -->
         <div class="toolimagesgallery" data-bind="attr: { id: 'gallery_tab_' + name.replace(/ /g, '_') }, visible: path === $root.libraryPath()">
@@ -293,8 +298,8 @@
       <img class="medium_icon" data-bind="attr: { src: $root.infoIcon() }" style="vertical-align: middle;"> <span data-bind="text: $root.tests.send.strings.instructions"># Use semicolon to separate multiple email addresses. #</span>
     </div>
 
-    <div class="propEditor testsendemailaddress" data-bind="tooltips: {}">
-      <span data-bind="attr: { title: $root.ut('template', 'The email address to which a test will be sent.') }" class="propLabel">
+    <div class="propEditor testsendemailaddress">
+      <span data-bind="attr: { title: $root.ut('template', 'The email address to which a test will be sent.') }, tooltip: {show: {delay: 500}, track: true}" class="propLabel">
         <span data-bind="text: $root.ut('template', 'Send to:')">Send to:</span>
       </span>
 

@@ -1,14 +1,6 @@
 'use strict';
 /* globals it:false, describe:false, expect:false */
 
-var mockery = require('mockery');
-mockery.enable();
-mockery.registerAllowables(['console', './domutils.js']);
-var currentDocument;
-mockery.registerMock('jquery', function() {
-  return currentDocument.apply(currentDocument, arguments);
-});
-
 describe('Model generator', function() {
 
   /*

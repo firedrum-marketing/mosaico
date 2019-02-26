@@ -84,6 +84,32 @@
         "color": "#ffffff",
         "size": "13",
         "decoration": "underline"
+      },
+      "_locks": {
+        "type": "frameTheme",
+        "backgroundColor": null,
+        "longTextStyle": {
+          "type": "longTextStyle",
+          "face": null,
+          "color": null,
+          "size": null,
+          "lineHeight": null,
+          "align": null,
+          "linksColor": null
+        },
+        "linkStyle": {
+          "type": "linkStyle",
+          "face": null,
+          "color": null,
+          "size": null,
+          "decoration": null
+        },
+        "linksColor": "#cccccc",
+        "color": "#ffffff",
+        "size": "13",
+        "face": "Arial, Helvetica, sans-serif",
+        "decoration": "underline",
+        "align": "left"
       }
     },
     "contentTheme": {
@@ -153,6 +179,85 @@
         "align": null,
         "buttonColor": "#bfbfbf",
         "radius": "4"
+      },
+	  "_locks": {
+        "type": "contentTheme",
+        "longTextStyle": {
+          "type": "longTextStyle",
+          "face": null,
+          "color": null,
+          "size": null,
+          "lineHeight": null,
+          "align": null,
+          "linksColor": null
+        },
+        "externalBackgroundColor": null,
+        "externalTextStyle": {
+          "type": "textStyle",
+          "face": null,
+          "color": null,
+          "size": null,
+          "align": null
+        },
+        "backgroundColor": null,
+        "titleTextStyle": {
+          "type": "textStyle",
+          "face": null,
+          "color": null,
+          "size": null,
+          "align": null
+        },
+        "buttonStyle": {
+          "type": "buttonStyle",
+          "face": null,
+          "color": null,
+          "size": null,
+          "align": null,
+          "buttonColor": null,
+          "radius": null
+        },
+        "bigTitleStyle": {
+          "type": "bigTitleStyle",
+          "face": null,
+          "color": null,
+          "size": null,
+          "align": null
+        },
+        "hrStyle": {
+          "type": "hrStyle",
+          "color": null,
+          "hrWidth": null,
+          "hrHeight": null
+        },
+        "bigButtonStyle": {
+          "type": "buttonStyle",
+          "face": null,
+          "color": null,
+          "size": null,
+          "align": null,
+          "buttonColor": null,
+          "radius": null
+        },
+        "shareButtonStyle": {
+          "type": "shareButtonStyle",
+          "face": null,
+          "iconColorType": null,
+          "color": null,
+          "size": null,
+          "align": null,
+          "buttonColor": null,
+          "radius": null
+        },
+        "linksColor": "#3f3f3f",
+        "size": "13",
+        "face": "Arial, Helvetica, sans-serif",
+        "color": "#3f3f3f",
+        "align": "center",
+        "lineHeight": "normal",
+        "radius": "4",
+        "buttonColor": "#bfbfbf",
+        "hrWidth": "100",
+        "hrHeight": "1"
       }
     }
   }

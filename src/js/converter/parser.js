@@ -180,6 +180,10 @@ var processBlock = function(element, defs, themeUpdater, blockPusher, templateUr
   $("[data-ko-display]", element).each(function(index, element) {
     wrapElementWithCondition('data-ko-display', element, bindingProvider);
   });
+  
+  $("[data-ko-replace-with-text]", element).each(function(index, element) {
+    domutils.replaceHtml(element, "<!-- ko text: " + bindingProvider(domutils.getAttribute(element, "data-ko-replace-with-text"), "") + " --><!-- /ko -->");
+  });
 
   $("[data-ko-editable]", element).each(function(index, element) {
     var newBinding, defaultValue, model, currentBindings, dataBind;
@@ -307,7 +311,7 @@ var processBlock = function(element, defs, themeUpdater, blockPusher, templateUr
       }
 
       var pltext = domutils.getAttribute(element, 'data-ko-placeholder-text');
-      if ( pltext && text === null ) {
+      if ( pltext !== null && text === null ) {
         text = "'" + pltext + "'";
       }
 

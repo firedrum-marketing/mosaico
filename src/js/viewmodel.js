@@ -8,6 +8,8 @@ var console = require("console");
 var performanceAwareCaller = require("./timed-call.js").timedCall;
 var url = require("url");
 var querystring = require("querystring");
+var makeBlocksWrap = require("./converter/wrapper.js").makeBlocksWrap;
+var uuidv4 = require('uuid/v4');
 
 var clearFromCache = require("./clear-from-browserify-cache.js");
 
@@ -26,8 +28,12 @@ function initializeEditor(content, blockDefs, thumbPathConverter, galleryUrl) {
     selectedEditable: ko.observable(null),
     selectedTool: ko.observable(0),
     selectedImageTab: ko.observable(0),
-    dragging: ko.observable(false),
-    draggingImage: ko.observable(false),
+    dragging: ko.observable({
+      status: false
+    }),
+    draggingImage: ko.observable({
+      status: false
+    }),
     galleryLoaded: ko.observable(false),
     showPreviewFrame: ko.observable(false),
     previewMode: ko.observable('mobile'),
@@ -38,7 +44,10 @@ function initializeEditor(content, blockDefs, thumbPathConverter, galleryUrl) {
     logoPath: 'rs/img/mosaico32.png',
     logoUrl: '.',
     logoAlt: 'mosaico',
-	lockDownMode: ko.observable(0),
+    lockDownMode: ko.observable(0),
+    pushMode: ko.observable(0),
+    pushTarget: ko.observable('content'),
+    editPushContent: ko.observable(true),
     standardFonts: ko.observableArray([
       {
         label: 'Arial',
@@ -254,7 +263,17 @@ function initializeEditor(content, blockDefs, thumbPathConverter, galleryUrl) {
     if (ko.utils.unwrapObservable(viewModel.selectedBlock) == ko.utils.unwrapObservable(data)) {
       viewModel.selectBlock(null, true);
     }
+    var currentUndoMode = typeof viewModel.getUndoMode === 'function' && viewModel.getUndoMode() || 1;
+    if (currentUndoMode === 2)
+      viewModel.startMultiple();
     var res = parent.blocks.remove(data);
+    if (data.type === 'pushRegionBlock') {
+      var dynamicContent = viewModel.content().dynamicContent();
+      delete dynamicContent[data.pushRegionName];
+      viewModel.content().dynamicContent(dynamicContent);
+    }
+    if (currentUndoMode === 2)
+      viewModel.stopMultiple();
     // TODO This message should be different depending on undo plugin presence.
     viewModel.notifier.info(viewModel.t('Block removed: use undo button to restore it...'));
     return res;
@@ -267,8 +286,29 @@ function initializeEditor(content, blockDefs, thumbPathConverter, galleryUrl) {
     var unwrapped = ko.toJS(ko.utils.unwrapObservable(parent.blocks)[idx]);
     // We need to remove the id so that a new one will be assigned to the clone
     if (typeof unwrapped.id !== 'undefined') unwrapped.id = '';
+    var currentUndoMode = typeof viewModel.getUndoMode === 'function' && viewModel.getUndoMode() || 1;
+    if (currentUndoMode === 2)
+      viewModel.startMultiple();
+    if (unwrapped.type === 'pushRegionBlock') {
+      var dynamicContent = viewModel.content().dynamicContent();
+      var duplicatedDynamicContent = ko.toJS(dynamicContent[unwrapped.pushRegionName]);
+      duplicatedDynamicContent.type = 'blocks';
+      delete duplicatedDynamicContent.dragging;
+      var res = ko.observable(null);
+      performanceAwareCaller('augmentDynamicBlocks', makeBlocksWrap.bind(res, viewModel.content().mainBlocks().blocks._instrumentBlock, duplicatedDynamicContent));
+      duplicatedDynamicContent = res();
+      duplicatedDynamicContent.type('dynamic-blocks');
+      duplicatedDynamicContent.dragging = ko.observable({
+        status: false
+      });
+      unwrapped.pushRegionName = unwrapped.pushRegionLabel = uuidv4();
+      dynamicContent[unwrapped.pushRegionName] = duplicatedDynamicContent;
+      viewModel.content().dynamicContent(dynamicContent);
+    }
     // insert the cloned block
     parent.blocks.splice(idx + 1, 0, unwrapped);
+    if (currentUndoMode === 2)
+      viewModel.stopMultiple();
   };
 
   // block-wysiwyg.tmpl.html
@@ -277,12 +317,15 @@ function initializeEditor(content, blockDefs, thumbPathConverter, galleryUrl) {
     var parentBlocks = ko.utils.unwrapObservable(parent.blocks);
     var lockDownMode = ko.utils.unwrapObservable(viewModel.lockDownMode);
     var curBlock = parentBlocks[idx];
-    var destIndex = ko.utils.unwrapObservable(curBlock).getNearestUnlockedIndex(up);
+    var destIndex = ko.utils.unwrapObservable(curBlock).getNearestUnlockedIndex(viewModel, parent.blocks, up);
+    var currentUndoMode = typeof viewModel.getUndoMode === 'function' && viewModel.getUndoMode() || 1;
     if (destIndex > -1) {
-      viewModel.startMultiple();
+      if (currentUndoMode === 2)
+        viewModel.startMultiple();
       parent.blocks.splice(idx, 1);
       parent.blocks.splice(destIndex, 0, curBlock);
-      viewModel.stopMultiple();
+      if (currentUndoMode === 2)
+        viewModel.stopMultiple();
     }
   };
 
@@ -302,6 +345,44 @@ function initializeEditor(content, blockDefs, thumbPathConverter, galleryUrl) {
     performanceAwareCaller('setMainBlocks', viewModel.content().mainBlocks._wrap.bind(viewModel.content().mainBlocks, res));
   };
 
+  viewModel.loadDynamicBlocks = function(blocks) {
+    var res = null;
+    var currentUndoMode = typeof viewModel.getUndoMode === 'function' && viewModel.getUndoMode() || 1;
+    if (currentUndoMode === 2)
+      viewModel.startMultiple();
+    for (var prop in blocks) {
+      if (blocks.hasOwnProperty(prop)) {
+        res = ko.observable(null);
+        performanceAwareCaller('augmentDynamicBlocks', makeBlocksWrap.bind(res, viewModel.content().mainBlocks().blocks._instrumentBlock, blocks[prop]));
+        blocks[prop] = res();
+        blocks[prop].type('dynamic-blocks');
+        blocks[prop].dragging = ko.observable({
+          status: false
+        });
+      }
+    }
+    viewModel.content().dynamicContent(blocks);
+    if (currentUndoMode === 2)
+      viewModel.stopMultiple();
+  };
+
+  viewModel.ensureDynamicBlockPath = function(dynamicContent, blockPath) {
+    if (typeof dynamicContent[blockPath] === 'undefined' || typeof dynamicContent[blockPath] !== 'function') {
+      var dynamicBlocks = null;
+      var res = ko.observable(null);
+      performanceAwareCaller('augmentDynamicBlocks', makeBlocksWrap.bind(res, viewModel.content().mainBlocks().blocks._instrumentBlock, dynamicContent[blockPath] || {
+        blocks: [],
+        type: 'blocks'
+      }));
+      dynamicBlocks = res();
+      dynamicBlocks.type('dynamic-blocks');
+      dynamicBlocks.dragging = ko.observable({
+        status: false
+      });
+      dynamicContent[blockPath] = res;
+    }
+  };
+
   // gallery-images.tmpl.html
   viewModel.addImage = function(img) {
     var selectedImg = $('#main-wysiwyg-area .selectable-img.selecteditem', (this.mosaicoConfig && this.mosaicoConfig.mainElement) || global.document.body);
@@ -317,13 +398,12 @@ function initializeEditor(content, blockDefs, thumbPathConverter, galleryUrl) {
   };
 
   // toolbox.tmpl.html
-  viewModel.addBlock = function(obj, event) {
+  viewModel.addBlock = function(obj, blocks, event) {
     // if there is a selected block we try to add the block just after the selected one, otherwise we try to add to the bottom.
     var selected = viewModel.selectedBlock();
     // search the selected block position.
     if (selected === null) {
-      // TODO "mainBlocks" is a hardcoded thing.
-      selected = viewModel.content().mainBlocks().blocks().slice(-1)[0];
+      selected = blocks().slice(-1)[0];
       if (typeof selected !== 'undefined') {
         // Use the block to search for unlocked regions
         selected = ko.utils.unwrapObservable(selected);
@@ -335,19 +415,19 @@ function initializeEditor(content, blockDefs, thumbPathConverter, galleryUrl) {
 
     var pos = 0;
     if (selected !== null) {
-      pos = selected.getNearestUnlockedIndex();
+      pos = selected.getNearestUnlockedIndex(viewModel, blocks);
     } else if (viewModel.lockDownMode() === 3) {
       pos = -1;
     }
 
     if (pos > -1) {
-      viewModel.content().mainBlocks().blocks.splice(pos, 0, obj);
+      blocks.splice(pos, 0, obj);
       viewModel.notifier.info(viewModel.t('New block added at position __pos__.', {
         pos: pos + 1
       }));
 
       // Find the newly added block and select it!
-      var added = viewModel.content().mainBlocks().blocks()[pos]();
+      var added = blocks()[pos]();
       viewModel.selectBlock(added, true);
     } else {
       viewModel.notifier.error(viewModel.t('New blocks cannot be inserted into a fully locked template.'));
@@ -358,7 +438,7 @@ function initializeEditor(content, blockDefs, thumbPathConverter, galleryUrl) {
   };
 
   // Used by stylesheet.js to create multiple styles
-  viewModel.findObjectsOfType = function(data, type) {
+  viewModel.findObjectsOfType = function(data, type, excludeDynamicContent) {
     var res = [];
     var obj = ko.utils.unwrapObservable(data);
     for (var prop in obj)
@@ -376,6 +456,21 @@ function initializeEditor(content, blockDefs, thumbPathConverter, galleryUrl) {
           if (type === null || ko.utils.unwrapObservable(val.type) == type) res.push(val);
         }
       }
+
+    if (!excludeDynamicContent) {
+      var dynamicContent = viewModel.content().dynamicContent();
+      if (dynamicContent !== null) {
+        for (var prop2 in dynamicContent)
+          if (dynamicContent.hasOwnProperty(prop2)) {
+            var dContents = ko.utils.unwrapObservable(ko.utils.unwrapObservable(dynamicContent[prop2]).blocks);
+            for (var j = 0; j < dContents.length; j++) {
+              var dC = ko.utils.unwrapObservable(dContents[j]);
+              if (type === null || ko.utils.unwrapObservable(dC.type) == type) res.push(dC);
+            }
+          }
+      }
+    }
+
     return res;
   };
 
@@ -403,7 +498,7 @@ function initializeEditor(content, blockDefs, thumbPathConverter, galleryUrl) {
     }
   };
 
-  // TODO the undumanager should be pluggable.
+  // TODO the undomanager should be pluggable.
   // Used by "moveBlock" and blocks-wysiwyg.tmpl.html to "merge" drag/drop operations into a single undo/redo op.
   viewModel.startMultiple = function() {
     if (typeof viewModel.setUndoModeMerge !== 'undefined') viewModel.setUndoModeMerge();
@@ -411,6 +506,31 @@ function initializeEditor(content, blockDefs, thumbPathConverter, galleryUrl) {
   viewModel.stopMultiple = function() {
     if (typeof viewModel.setUndoModeOnce !== 'undefined') viewModel.setUndoModeOnce();
   };
+
+  viewModel.dynamicBlockPathMaintainer = ko.computed({
+    read: function() {
+      var pushRegionBlocks = viewModel.findObjectsOfType(viewModel.content(), 'pushRegionBlock', true);
+      if (pushRegionBlocks.length > 0) {
+        var dynamicContent = viewModel.content().dynamicContent();
+        if (dynamicContent) {
+          var regionNames = {};
+          for (var i = 0; i < pushRegionBlocks.length; i++) {
+            regionNames[pushRegionBlocks[i].pushRegionName()] = true;
+          }
+          var currentUndoMode = typeof viewModel.getUndoMode === 'function' && viewModel.getUndoMode() || 1;
+          if (currentUndoMode === 2)
+            viewModel.startMultiple();
+          for (var regionName in regionNames)
+            if (regionNames.hasOwnProperty(regionName))
+              viewModel.ensureDynamicBlockPath(dynamicContent, regionName);
+          if (currentUndoMode === 2)
+            viewModel.stopMultiple();
+        }
+      }
+
+      return null;
+    }
+  });
 
   // Used by code generated by editor.js 
   viewModel.localGlobalSwitch = function(prop, globalProp) {
@@ -536,9 +656,14 @@ function initializeEditor(content, blockDefs, thumbPathConverter, galleryUrl) {
           frameEl = global.document.getElementById(id);
       }
 
+      var mainPreviewDocument = $('#main-preview iframe', searchContext)[0].contentWindow.document;
+
       // Prevent issue in Chrome (and maybe other WebKit?) where removing an iframe from the DOM that has been bound to the viewmodel blanks out images in the main editor and preview panes
-      frameEl.contentWindow.document.write( ko.bindingHandlers.bindIframe.tplDoctype + $('#main-preview iframe', searchContext)[0].contentWindow.document.documentElement.outerHTML );
+      frameEl.contentWindow.document.write( ko.bindingHandlers.bindIframe.tplDoctype + mainPreviewDocument.documentElement.outerHTML );
       frameEl.contentWindow.document.close();
+
+      // Fix issue in Chrome 69+ where document.write fails to properly recreate the main preview document
+      frameEl.contentWindow.document.documentElement.innerHTML = mainPreviewDocument.documentElement.innerHTML;
 
       if (viewModel.inline) viewModel.inline(frameEl.contentWindow.document);
 
@@ -564,7 +689,7 @@ function initializeEditor(content, blockDefs, thumbPathConverter, galleryUrl) {
 		if (neededWebFonts.length > 0) {
           var webFontTags = '<!--[if !mso]><!--><link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="crossorigin"><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=', contentHead = $( 'head', frameEl.contentWindow.document.documentElement );
           for (i = 0; i < neededWebFonts.length; i++) {
-            webFontTags += (i > 0 ? '|' : '') + global.encodeURIComponent(neededWebFonts[i]) + ':400,400i,700,700i';
+            webFontTags += (i > 0 ? '|' : '') + global.encodeURIComponent(neededWebFonts[i]) + ':100,100i,400,400i,500,500i,700,700i,900,900i';
           }
           webFontTags = $(webFontTags + '"><!--<![endif]-->');
           contentHead.append(webFontTags);

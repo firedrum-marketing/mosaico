@@ -73,6 +73,8 @@ var _processStyleSheetRules_processBlockDef = function(blockDefsUpdater, rules) 
         for (var k = 0, val; k < decls.length; k++) if (decls[k].type == 'property') {
           val = _removeOptionalQuotes(decls[k].value);
           if (decls[k].name == 'label') namedProps.name = val;
+          else if (decls[k].name == 'categoryText') namedProps.categoryText = val;
+          else if (decls[k].name == 'categoryOrder') namedProps.categoryOrder = parseInt( val );
           else if (decls[k].name == 'context') namedProps.contextName = val;
           else if (decls[k].name == 'properties') properties = val;
           else if (decls[k].name == 'theme') namedProps.globalStyle = '_theme_.' + val;

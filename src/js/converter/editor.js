@@ -145,6 +145,18 @@ var _propInput = function(model, prop, propAccessor, editType, widgets, isGlobal
      onfocusbinding += ' }';
     }
     html += '<input size="7" type="text" data-bind="colorpicker: { color: ' + propAccessor + ', strings: $root.t(\'Theme Colors,Standard Colors,Web Colors,Theme Colors,Back to Palette,History,No history yet.\') }, ' + ', ' + onfocusbinding + '" />';
+  } else if (widget === 'datetime') {
+    if (Object.keys(eventbinding).length > 0) {
+      onfocusbinding += ', event: { ';
+      for (evt in eventbinding) {
+        if (eventbinding.hasOwnProperty(evt)) {
+          onfocusbinding += (isfirstevent ? '' : ', ') + evt + ': function(ui, event) { ' + eventbinding[evt] + ' }';
+          isfirstevent = false;
+        }
+      }
+     onfocusbinding += ' }';
+    }
+    html += '<input size="7" type="text" data-bind="dateTimePicker: ' + propAccessor + ', dateTimePickerOptions: { useCurrent: false, showClear: true, timeZone: $root.userTimeZone }, ' + onfocusbinding + '" />';
   } else if (widget == 'select') {
     if (typeof model._options != 'undefined') {
       var opts = _getOptionsObject(model._options);
@@ -231,7 +243,7 @@ var _propInput = function(model, prop, propAccessor, editType, widgets, isGlobal
     html += '<div class="ui-textbutton">';
     // <a class="ui-spinner-button ui-spinner-down ui-corner-br ui-button ui-widget ui-state-default ui-button-text-only" tabindex="-1" role="button"><span class="ui-button-text"><span class="ui-icon fa fa-fw caret-down">▼</span></span></a>
     html += '<input class="ui-textbutton-input" size="7" type="url" pattern="((mailto:(.+@.+)|(\\[.*\\].*))|(tel:([0-9]+)|(\\[.*\\].*))|[a-zA-Z]+://.+\\..+|\\[.*\\].*)" value="nothing" data-bind="css: { withButton: typeof $root.linkDialog !== \'undefined\' }, validatedValue: { defaultProtocol: \'http://\', value: ' + propAccessor + ' }, ' + onfocusbinding + '" />';
-    html += '<a href="javascript:void(0)" class="ui-textbutton-button" data-bind="visible: typeof $root.linkDialog === \'function\', click: typeof $root.linkDialog === \'function\' ? $root.linkDialog.bind(undefined, \'' + propAccessor + '\', \'' + (model !== null && typeof model._disabledOn !== 'undefined' ? model._disabledOn : 'false') + '\', {}) : false, button: { icon: \'fa fa-fw fa-ellipsis-h\', label: $root.t(\'Opzioni\'), showLabel: false }"></a>';
+    html += '<a href="javascript:void(0)" class="ui-textbutton-button" data-bind="visible: typeof $root.linkDialog === \'function\', click: typeof $root.linkDialog === \'function\' ? $root.linkDialog.bind(undefined, \'' + propAccessor + '\', \'' + (model !== null && typeof model._disabledOn !== 'undefined' ? model._disabledOn : 'false') + '\', {}) : false, button: { icon: \'fa fa-fw fa-file-text-o\', label: $root.t(\'Opzioni\'), showLabel: false }"></a>';
     html += '</div>';
   } else if (widget == 'integer') {
     if (Object.keys(eventbinding).length > 0) {
@@ -271,7 +283,7 @@ var _propInput = function(model, prop, propAccessor, editType, widgets, isGlobal
     }
     html += '<div class="ui-textbutton">';
     html += '<input class="ui-textbutton-input" size="7" type="text" value="nothing" data-bind="' + valuebinding + ', ' + onfocusbinding + '" />';
-    html += '<a href="javascript:void(0)" class="ui-textbutton-button" data-bind="visible: typeof $root.linkDialog === \'function\', click: typeof $root.linkDialog === \'function\' ? $root.linkDialog.bind(undefined, \'' + propAccessor + '\', \'' + (model !== null && typeof model._disabledOn !== 'undefined' ? model._disabledOn : 'false') + '\', { extensions: \'bmp,jpg,jpeg,gif,png\', path: \'/Backgrounds\' }) : false, button: { icon: \'fa fa-fw fa-ellipsis-h\', label: $root.t(\'Opzioni\'), showLabel: false }"></a>';
+    html += '<a href="javascript:void(0)" class="ui-textbutton-button" data-bind="visible: typeof $root.linkDialog === \'function\', click: typeof $root.linkDialog === \'function\' ? $root.linkDialog.bind(undefined, \'' + propAccessor + '\', \'' + (model !== null && typeof model._disabledOn !== 'undefined' ? model._disabledOn : 'false') + '\', ' + ( propAccessor === 'annotationLogoImage' ? '{ extensions: \'bmp,jpg,jpeg,gif,png\' }' : propAccessor === 'annotationPromotionImage' ? '{ extensions: \'bmp,jpg,jpeg,png\' }' : '{ extensions: \'bmp,jpg,jpeg,gif,png\', path: \'/Backgrounds\' }' ) + ') : false, button: { icon: \'fa fa-fw fa-image\', label: $root.t(\'' + ( propAccessor === 'annotationLogoImage' ? 'Select Logo Image' : propAccessor === 'annotationPromotionImage' ? 'Select Promotion Image' : 'Select Background' ) + '\'), showLabel: false }"></a>';
     html += '</div>';
   } else {
     if (Object.keys(eventbinding).length > 0) {
@@ -363,13 +375,13 @@ var _propEditor = function(withBindingProvider, widgets, templateUrlConverter, m
     var selectedItemBinding = '';
     var additionalClasses = '';
     if (typeof prop !== 'undefined' && editType == 'edit') {
-      selectedItemBinding = ', click: function(obj, evt) { $root.selectItem(' + prop + ', $data); return false }, clickBubble: false, css: { selecteditem: $root.isSelectedItem(' + prop + ') }, scrollIntoView: $root.isSelectedItem(' + prop + '), ';
+      selectedItemBinding = 'click: function(obj, evt) { $root.selectItem(' + prop + ', $data); return false }, clickBubble: false, css: { selecteditem: $root.isSelectedItem(' + prop + ') }, scrollIntoView: $root.isSelectedItem(' + prop + '), ';
       additionalClasses += ' selectable';
     }
     if (hasCustomStyle) {
       additionalClasses += ' supportsCustomStyles';
     }
-    html += '<div class="objEdit level' + level + additionalClasses + '" data-bind="tooltips: {}' + selectedItemBinding + '">';
+    html += '<div class="objEdit level' + level + additionalClasses + '" data-bind="' + selectedItemBinding + '">';
     var modelName = (model !== null && typeof model._name != 'undefined' ? model._name : (typeof prop !== 'undefined' ? '[' + prop + ']' : ''));
     if (hasCustomStyle) {
       var themeSectionName = 'Stile';
@@ -383,7 +395,7 @@ var _propEditor = function(withBindingProvider, widgets, templateUrlConverter, m
     } else {
       modelName = '<span data-bind="text: $root.ut(\'template\', \'' + utils.addSlashes(modelName) + '\')">' + modelName + '</span>';
     }
-    title = model !== null && typeof model._help !== 'undefined' ? ' title="' + utils.addSlashes(model._help) + '" data-bind="attr: { title: $root.ut(\'template\', \'' + utils.addSlashes(model._help) + '\') }"' : '';
+    title = model !== null && typeof model._help !== 'undefined' ? ' title="' + utils.addSlashes(model._help) + '" data-bind="attr: { title: $root.ut(\'template\', \'' + utils.addSlashes(model._help) + '\') }, tooltip: {show: {delay: 500}, track: true}"' : '';
     html += '<span' + title + ' class="objLabel level' + level + '">' + modelName + '</span>';
 
     if (editType == 'edit' && typeof model._blockDescription !== 'undefined') {
@@ -392,9 +404,9 @@ var _propEditor = function(withBindingProvider, widgets, templateUrlConverter, m
 
     /* CUSTOM STYLE */
     if (hasCustomStyle) {
-      html += '<label class="data-boolean blockCheck" data-bind="tooltips: { }">';
+      html += '<label class="data-boolean blockCheck">';
       html += '<input type="checkbox" value="nothing" data-bind="focusable: true, checked: customStyle" />';
-      html += '<span title="Switch between global and block level styles editing" data-bind="attr: { title: $root.t(\'Switch between global and block level styles editing\') }" class="checkbox-replacer checkbox-replacer-onoff"></span>'; //  data-bind="tooltip: { content: \'personalizza tutti\' }"
+      html += '<span title="Switch between global and block level styles editing" data-bind="attr: { title: $root.t(\'Switch between global and block level styles editing\') }, tooltip: {show: {delay: 500}, track: true}" class="checkbox-replacer checkbox-replacer-onoff"></span>'; //  data-bind="tooltip: { content: \'personalizza tutti\' }"
       html += '</label>';
       html += '<!-- ko template: { name: \'customstyle\', if: customStyle } --><!-- /ko -->';
     }
@@ -501,10 +513,9 @@ var _propEditor = function(withBindingProvider, widgets, templateUrlConverter, m
         globalStyleLockProp = globalStyles['_locks.' + path];
       }
 
-      var bindings = ['css: { localLocked: $root.lockDownMode() > 2 || ($root.lockDownMode() === 2 && typeof ' + prop + '._locked !== \'undefined\' && ' + prop + '._locked())' + (globalStyleLockProp !== null ? ', globalLocked: $root.lockDownMode() > 2 || ($root.lockDownMode() === 2 && typeof ' + prop + '._locked !== \'undefined\' && ' + globalStyleLockProp + '())' : '') + (model !== null && typeof model._hideif != 'undefined' ? ', hidden: ' + model._hideif : '') + (typeof globalStyleProp !== 'undefined' ? ', notnull: ' + prop + '() !== null' : '') + ' }'];
+      var bindings = ['css: { localLocked: ' + (prop.substr(0,2) !== 'fd' ? '$root.lockDownMode() > 2 || ' : '') + '($root.lockDownMode() === 2 && typeof ' + prop + '._locked !== \'undefined\' && ' + prop + '._locked())' + (globalStyleLockProp !== null ? ', globalLocked: $root.lockDownMode() > 2 || ($root.lockDownMode() === 2 && typeof ' + prop + '._locked !== \'undefined\' && ' + globalStyleLockProp + '())' : '') + (model !== null && typeof model._hideif != 'undefined' ? ', hidden: ' + model._hideif : '') + (typeof globalStyleProp !== 'undefined' ? ', notnull: ' + prop + '() !== null' : '') + ' }'];
 
-      title = model !== null && typeof model._help !== 'undefined' ? ' title="' + utils.addSlashes(model._help) + '" data-bind="attr: { title: $root.ut(\'template\', \'' + utils.addSlashes(model._help) + '\') }"' : '';
-      if (title.length > 0) bindings.push('tooltips: {}');
+      title = model !== null && typeof model._help !== 'undefined' ? ' title="' + utils.addSlashes(model._help) + '" data-bind="attr: { title: $root.ut(\'template\', \'' + utils.addSlashes(model._help) + '\') }, tooltip: {show: {delay: 500}, track: true}"' : '';
       var bind = bindings.length > 0 ? 'data-bind="' + bindings.join() + '"' : '';
       html += '<div class="propEditor ' + propAccessor + (checkboxes ? ' checkboxes' : '') + '"' + bind + '>';
 
@@ -531,8 +542,8 @@ var _propEditor = function(withBindingProvider, widgets, templateUrlConverter, m
         html += '</div>';
 
         if (checkboxes) {
-          html += '<div class="propCheck"><label data-bind="tooltips: {}"><input type="checkbox" data-bind="focusable: true, click: function(evt, obj) { $root.localGlobalSwitch(' + prop + ', ' + globalStyleProp + '); return true; }, checked: ' + prop + '() !== null">';
-          html += '<span class="checkbox-replacer" data-bind="css: { checked: ' + prop + '() !== null }, attr: { title: $root.t(\'This style is specific for this block: click here to remove the custom style and revert to the theme value\') }"></span>';
+          html += '<div class="propCheck"><label><input type="checkbox" data-bind="focusable: true, click: function(evt, obj) { $root.localGlobalSwitch(' + prop + ', ' + globalStyleProp + '); return true; }, checked: ' + prop + '() !== null">';
+          html += '<span class="checkbox-replacer" data-bind="css: { checked: ' + prop + '() !== null }, attr: { title: $root.t(\'This style is specific for this block: click here to remove the custom style and revert to the theme value\') }, tooltip: {show: {delay: 500}, track: true}"></span>';
           html += '</label></div>';
         }
       }

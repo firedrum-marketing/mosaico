@@ -2,33 +2,6 @@
 /* globals describe: false, it: false, expect: false */
 /* globals process: false, console: false */
 
-var mockery = require('mockery');
-mockery.enable();
-mockery.registerAllowables(['../src/js/converter/declarations.js', 'console', './utils.js', './domutils.js', 'console', '../node_modules/mensch']);
-
-/*
-var cheerio = require('cheerio');
-var currentDocument = cheerio.load('<body></body>');
-
-mockery.registerMock('jquery', function() {
-console.log("XXXXX", currentDocument);
-return currentDocument.apply(currentDocument, arguments);
-});
-*/
-mockery.registerMock('jquery', require('cheerio'));
-
-mockery.registerMock('jsep', require('../node_modules/jsep/src/jsep.js'));
-mockery.registerMock('mensch/lib/parser.js', function() {
-  var parse = require('../node_modules/mensch').parse;
-  return parse.apply(parse, arguments);
-});
-var elaborateDeclarations = require('../src/js/converter/declarations.js');
-
-var mockedBindingProvider = function(a, b) {
-  // console.log("binding provider for", a, b);
-  return "$" + a + "[" + b + "]";
-};
-
 var templateUrlConverter = function(url) {
   return url;
 }
@@ -36,17 +9,20 @@ var templateUrlConverter = function(url) {
 describe('Template converter', function() {
 
   it('should handle basic template conversion', function() {
+    var domutils = require('../src/js/converter/domutils.js');
+
     var modelDef = require('../src/js/converter/model.js');
     var translateTemplate = require('../src/js/converter/parser.js');
     var templates = [];
-    var $ = require('jquery');
+
     var myTemplateCreator = function(htmlOrElement, optionalName, templateMode) {
       templates.push({
         optionalName: optionalName,
         templateMode: templateMode,
-        html: typeof htmlOrElement == 'object' ? $.html(htmlOrElement) : htmlOrElement
+        html: typeof htmlOrElement == 'object' ? domutils.getOuterHtml(htmlOrElement) : htmlOrElement
       });
     };
+
     var html = '<replacedhtml><replacedhead></replacedhead><repleacedbody><div data-ko-container="main"><div data-ko-block="simpleBlock"><div data-ko-editable="text">block1</div></div></div></replacedbody></replacedhtml>';
     var templateDef = translateTemplate('template', html, './basepath/', myTemplateCreator);
 
@@ -57,7 +33,7 @@ describe('Template converter', function() {
     }, {
       optionalName: 'simpleBlock',
       templateMode: 'show',
-      html: '<div data-bind="attr: { id: id }, uniqueId: $data"><div data-bind="wysiwygId: id()+&apos;_text&apos;, wysiwygClick: function(obj, evt) { $root.selectItem(text, $data); return false }, clickBubble: false, wysiwygCss: { selecteditem: $root.isSelectedItem(text) }, scrollIntoView: $root.isSelectedItem(text), wysiwygOrHtml: text"></div></div>'
+      html: '<!-- fd:remove:whitespace --><div data-bind="attr: { id: id }, uniqueId: $data"><div data-bind="wysiwygId: \'e_\'+(++Mosaico.ko.bindingHandlers.wysiwyg.currentIndex), wysiwygClick: function(obj, evt) { $root.selectItem(text, $data); return false }, clickBubble: false, wysiwygCss: { selecteditem: $root.isSelectedItem(text) }, scrollIntoView: $root.isSelectedItem(text), wysiwygOrHtml: text"></div></div><!-- fd:remove:whitespace -->'
     }];
 
     expect(templates).toEqual(expectedTemplates);
@@ -83,15 +59,17 @@ describe('Template converter', function() {
   });
 
   it('should handle versafix-1 template conversion', function() {
+    var domutils = require('../src/js/converter/domutils.js');
+
     var modelDef = require('../src/js/converter/model.js');
     var translateTemplate = require('../src/js/converter/parser.js');
     var templates = [];
-    var $ = require('jquery');
+
     var myTemplateCreator = function(htmlOrElement, optionalName, templateMode) {
       templates.push({
         optionalName: optionalName,
         templateMode: templateMode,
-        html: typeof htmlOrElement == 'object' ? $.html(htmlOrElement) : htmlOrElement
+        html: typeof htmlOrElement == 'object' ? domutils.getOuterHtml(htmlOrElement) : htmlOrElement
       });
     };
 

@@ -26,53 +26,156 @@ var getPixelsFromString = function(input, fontSize) {
   return num;
 };
 
-var extractWysiwygStyles = function(html, parentId, parentStyles) {
-  var classIndex = 0;
-  var styleRules = [];
-  $('[style]', html).each(function() {
-    var $this = $(this);
+var getEffectiveLineHeightAndFontSize = function($element) {
+  var fontSizeCSS = $element.css('font-size');
+  var lineHeightCSS = $element.css('line-height');
+  var fontSize = 14;
+  var lineHeight = 14;
+  var closestFontSize = $element.closest('[style*="font-size"]');
+  var closestLineHeight = $element.closest('[style*="line-height"]');
 
-    // Fix mso-text-raise issues with font-size or line-height set inside TinyMCE
-    $this.attr('style', $this.attr('style').replace(/mso-text-raise:[^;]*;/gi, ''));
-    var fontSize = $this.css('font-size');
-    var lineHeight = $this.css('line-height');
-    if ( fontSize || lineHeight ) {
-      if ( fontSize && lineHeight ) {
-        fontSize = getPixelsFromString(fontSize, 14);
-        lineHeight = getPixelsFromString(lineHeight, fontSize);
-        $this.css('mso-text-raise', Math.floor((lineHeight - fontSize) / 2) + 'px');
-      } else if ( fontSize ) {
-        fontSize = getPixelsFromString(fontSize, 14);
-        lineHeight = $this.closest( '[style*="line-height"]' );
-        if ( lineHeight.length > 0 ) {
-          lineHeight = getPixelsFromString(lineHeight.css('line-height'), fontSize);
-        } else {
-          lineHeight = parentStyles.lineHeight;
-        }
-        if ( lineHeight !== null ) {
-          $this.attr('style', 'mso-text-raise:' + Math.floor((lineHeight - fontSize) / 2) + 'px;' + $this.attr('style'));
-        }
-      } else {
-        fontSize = $this.closest( '[style*="font-size"]' );
-        if ( fontSize.length > 0 ) {
-          fontSize = getPixelsFromString(fontSize.css('font-size'), 14);
-        } else {
-          fontSize = parentStyles.fontSize;
-        }
-        if ( fontSize !== null ) {
-          lineHeight = getPixelsFromString(lineHeight, fontSize);
-          $this.attr('style', 'mso-text-raise:' + Math.floor((lineHeight - fontSize) / 2) + 'px;' + $this.attr('style'));
+  var grandParentFontSize = closestFontSize.parent().closest('[style*="font-size"]');
+  grandParentFontSize = grandParentFontSize.length > 0 ? getPixelsFromString(grandParentFontSize.css('font-size'), 14) : 14;
+
+  if (fontSizeCSS) {
+    fontSize = getPixelsFromString(fontSizeCSS, grandParentFontSize);
+  } else {
+    fontSize = getPixelsFromString(closestFontSize.css('font-size'), grandParentFontSize);
+  }
+
+  if (lineHeightCSS) {
+    lineHeight = getPixelsFromString(lineHeightCSS, fontSize);
+  } else {
+    lineHeight = getPixelsFromString(closestLineHeight.css('line-height'), fontSize);
+  }
+
+  return {
+    fontSize: fontSize,
+    lineHeight: lineHeight
+  };
+};
+
+var blockLevelElementsSelector = 'address,article,aside,blockquote,canvas,dd,div,dl,dt,fieldset,figcaption,figure,footer,form,h1,h2,h3,h4,h5,h6,header,hr,li,main,nav,noscript,ol,output,p,pre,section,table,tfoot,ul,video';
+var extractWysiwygStyles = function(html, parentId) {
+  var depthSort = function(a, b) {
+    var aDepth = 0, bDepth = 0, aParent = a.parent(), bParent = b.parent();
+
+    while ( aParent.length > 0 ) {
+      aDepth++;
+      aParent = aParent.parent();
+    }
+
+    while ( bParent.length > 0 ) {
+      bDepth++;
+      bParent = bParent.parent();
+    }
+
+    if ( aDepth < bDepth ) {
+      return 1;
+    } else if (aDepth > bDepth) {
+      return -1;
+    }
+
+    return 0;
+  };
+
+  var styledDepthSets = [];
+  $('[style]', html).each(function() {
+    var $siblings = $(this).siblings().addBack();
+    var notAdded = true;
+    for(var i = 0; i < styledDepthSets.length; i++) {
+      if (styledDepthSets[i].is(this)) {
+        notAdded = false;
+        break;
+      }
+    }
+    if (notAdded) {
+      styledDepthSets.push($siblings);
+    }
+  });
+  styledDepthSets.sort(depthSort);
+
+  for (var i1 = 0; i1 < styledDepthSets.length; i1++) {
+    var $siblings = styledDepthSets[i1];
+    // Ensure there are no issues with cropped text in Microsoft Word-based Outlook versions
+    var greatestSiblingLineHeight = 0;
+    var greatestSiblingFontSize = 0;
+
+    var $inlineSiblings = $siblings.not(blockLevelElementsSelector);
+    for (var j = 0; j < $inlineSiblings.length; j++) {
+      var $sibling = $($inlineSiblings[j]);
+      var effectiveSiblingLineHeightAndFontSize = getEffectiveLineHeightAndFontSize($sibling);
+
+      greatestSiblingFontSize = Math.max(greatestSiblingFontSize, effectiveSiblingLineHeightAndFontSize.fontSize);
+      greatestSiblingLineHeight = Math.max(greatestSiblingLineHeight, effectiveSiblingLineHeightAndFontSize.lineHeight);
+      if ($sibling.attr('style')) {
+        $sibling.attr('style', $sibling.attr('style').replace(/line-height:[^;]*;?/ig, ''));
+        if ($sibling.attr('style') === '') {
+          $sibling.removeAttr('style');
         }
       }
     }
 
+    if (greatestSiblingFontSize > 0 && greatestSiblingLineHeight > 0) {
+      if (greatestSiblingFontSize > greatestSiblingLineHeight) {
+        greatestSiblingLineHeight = greatestSiblingFontSize;
+      }
+      var $closestBlockLevelParentElement = $siblings.parent().closest(blockLevelElementsSelector);
+      var closestBlockLevelParentLineHeight = $closestBlockLevelParentElement.css('line-height');
+      var curStyle;
+      if (closestBlockLevelParentLineHeight) {
+        var effectiveBlockLevelParentFontSizeAndLineHeight = getEffectiveLineHeightAndFontSize($closestBlockLevelParentElement);
+        if (effectiveBlockLevelParentFontSizeAndLineHeight.lineHeight < greatestSiblingLineHeight) {
+          curStyle = $closestBlockLevelParentElement.attr('style') || 'line-height:';
+          $closestBlockLevelParentElement.attr('style', curStyle.replace(/line-height:[^;]*(;?)/ig, 'line-height:' + greatestSiblingLineHeight + 'px$1'));
+        }
+      } else {
+        curStyle = $closestBlockLevelParentElement.attr('style') || '';
+        $closestBlockLevelParentElement.attr('style', 'line-height:' + greatestSiblingLineHeight + 'px;' + curStyle);
+      }
+    }
+  }
+
+  var styledElements = [];
+  $('[style]', html).each(function() {
+    styledElements.push($(this));
+  });
+  styledElements.sort(depthSort);
+
+  var classIndex = 0;
+  var styleRules = [];
+  for (var i2 = 0; i2 < styledElements.length; i2++) {
+    var $this = styledElements[i2];
+
+    // Fix mso-text-raise issues with font-size or line-height set inside TinyMCE
+    $this.attr('style', $this.attr('style').replace(/mso-text-raise:[^;]*;/gi, ''));
+    if ($this.css('font-size')) {
+      var effectiveLineHeightAndFontSize = getEffectiveLineHeightAndFontSize($this);
+      $this.attr('style', 'mso-text-raise:' + Math.floor((effectiveLineHeightAndFontSize.lineHeight - effectiveLineHeightAndFontSize.fontSize) / 2) + 'px;' + $this.attr('style'));
+    }
+
+    // Add inline styles to styleRules
     var styleContent = $this.attr('style');
     if (styleContent) {
       var styleClass = 'e_' + classIndex++;
       styleRules.push('#' + parentId + ' .' + styleClass + '{' + styleContent + '}');
       $this.addClass(styleClass);
     }
-  });
+  }//);
+
+  // Detect and correct content that ends with <br>
+  var lastNode = html[0].lastChild;
+  while (lastNode) {
+    if (lastNode.nodeName === 'BR') {
+      html.append('\u200B');
+    } else if (lastNode.textContent === '') {
+      lastNode = lastNode.previousSibling;
+      continue;
+    }
+
+    break;
+  }
+
   return styleRules;
 };
 
@@ -80,24 +183,27 @@ ko.bindingHandlers.wysiwygOrHtml = {
   init: function(element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
     if (typeof bindingContext.templateMode == 'undefined' || bindingContext.templateMode != 'wysiwyg') {
       ko.bindingHandlers['virtualHtml'].init(element, valueAccessor, allBindingsAccessor, viewModel, bindingContext);
-      var parentId = null;
-      var parentStyles = {
-        lineHeight: null,
-        fontSize: null
-      };
-      if (element.getAttribute) {
-        parentId = element.getAttribute('id');
-        var tmp = element.ownerDocument.defaultView.getComputedStyle(element, null);
-        parentStyles.fontSize = getPixelsFromString(tmp.fontSize, 14);
-        parentStyles.lineHeight = getPixelsFromString(tmp.lineHeight, parentStyles.fontSize);
-      } else {
-        parentId = element.parentNode.getAttribute('id');
-        var tmp2 = element.ownerDocument.defaultView.getComputedStyle(element.parentNode, null);
-        parentStyles.fontSize = getPixelsFromString(tmp2.fontSize, 14);
-        parentStyles.lineHeight = getPixelsFromString(tmp2.lineHeight, parentStyles.fontSize);
+      var parentStyleElement = element.getAttribute ? element : element.parentNode;
+      var parentElementComputedStyle = null;
+      try {
+        parentElementComputedStyle = element.ownerDocument.defaultView.getComputedStyle(parentStyleElement, null);
+      } catch(e) {
+        parentElementComputedStyle = global.getComputedStyle(parentStyleElement, null);
       }
-      var html = $(element.nodeType !== 8 ? element : '<div>' + ko.utils.unwrapObservable(valueAccessor()) + '</div>');
-      var styleRules = extractWysiwygStyles(html, parentId, parentStyles);
+
+      var parentId = parentStyleElement.getAttribute('id');
+      var parentFontSize = getPixelsFromString(parentElementComputedStyle.fontSize, 14);
+
+      var html = $('<div>' + ko.utils.unwrapObservable(valueAccessor()) + '</div>');
+      html.css({
+        fontSize: parentFontSize + 'px',
+        lineHeight: (getPixelsFromString(parentElementComputedStyle.lineHeight, parentFontSize) / parentFontSize) + 'em'
+      });
+
+      var styleRules = extractWysiwygStyles(html, parentId);
+      if (html.css('line-height')) {
+        html.wrap('<div/>');
+      }
       var htmlNode = element;
       while (htmlNode.tagName !== 'HTML') {
         htmlNode = htmlNode.parentNode;
@@ -105,11 +211,14 @@ ko.bindingHandlers.wysiwygOrHtml = {
       var styleTag = $('style[data-e="' + parentId + '"]', htmlNode);
       if ( styleTag.length === 0 ) {
         styleTag = $('<style data-e="' + parentId + '"></style>');
-        $('head', htmlNode).append(styleTag);
+        var head = $('head', htmlNode).append(styleTag);
+        ko.utils.domNodeDisposal.addDisposeCallback(element, function() {
+          styleTag.remove();
+        });
       }
       styleTag.html(styleRules.join(''));
 
-      return ko.bindingHandlers['virtualHtml'].init(element, function(){return ko.observable(html.prop(element.nodeType !== 8 ? 'outerHTML' : 'innerHTML'));}, allBindingsAccessor, viewModel, bindingContext);
+      return ko.bindingHandlers['virtualHtml'].init(element, function(){return ko.observable(html.prop('innerHTML'));}, allBindingsAccessor, viewModel, bindingContext);
     } else {
       return ko.bindingHandlers.wysiwyg.init(element, valueAccessor, allBindingsAccessor, viewModel, bindingContext);
     }
@@ -117,24 +226,27 @@ ko.bindingHandlers.wysiwygOrHtml = {
   update: function(element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
     if (typeof bindingContext.templateMode == 'undefined' || bindingContext.templateMode != 'wysiwyg') {
       ko.bindingHandlers['virtualHtml'].update(element, valueAccessor, allBindingsAccessor, viewModel, bindingContext);
-      var parentId = null;
-      var parentStyles = {
-        lineHeight: null,
-        fontSize: null
-      };
-      if (element.getAttribute) {
-        parentId = element.getAttribute('id');
-        var tmp = global.getComputedStyle(element, null);
-        parentStyles.fontSize = getPixelsFromString(tmp.fontSize, 14);
-        parentStyles.lineHeight = getPixelsFromString(tmp.lineHeight, parentStyles.fontSize);
-      } else {
-        parentId = element.parentNode.getAttribute('id');
-        var tmp2 = global.getComputedStyle(element.parentNode, null);
-        parentStyles.fontSize = getPixelsFromString(tmp2.fontSize, 14);
-        parentStyles.lineHeight = getPixelsFromString(tmp2.lineHeight, parentStyles.fontSize);
+      var parentStyleElement = element.getAttribute ? element : element.parentNode;
+      var parentElementComputedStyle = null;
+      try {
+        parentElementComputedStyle = element.ownerDocument.defaultView.getComputedStyle(parentStyleElement, null);
+      } catch(e) {
+        parentElementComputedStyle = global.getComputedStyle(parentStyleElement, null);
       }
-      var html = $(element.nodeType !== 8 ? element : '<div>' + ko.utils.unwrapObservable(valueAccessor()) + '</div>');
-      var styleRules = extractWysiwygStyles(html, parentId, parentStyles);
+
+      var parentId = parentStyleElement.getAttribute('id');
+      var parentFontSize = getPixelsFromString(parentElementComputedStyle.fontSize, 14);
+
+      var html = $('<div>' + ko.utils.unwrapObservable(valueAccessor()) + '</div>');
+      html.css({
+        fontSize: parentFontSize + 'px',
+        lineHeight: (getPixelsFromString(parentElementComputedStyle.lineHeight, parentFontSize) / parentFontSize) + 'em'
+      });
+
+      var styleRules = extractWysiwygStyles(html, parentId);
+      if (html.css('line-height')) {
+        html.wrap('<div/>');
+      }
       var htmlNode = element;
       while (htmlNode.tagName !== 'HTML') {
         htmlNode = htmlNode.parentNode;
@@ -142,14 +254,15 @@ ko.bindingHandlers.wysiwygOrHtml = {
       var styleTag = $('style[data-e="' + parentId + '"]', htmlNode);
       if ( styleTag.length === 0 ) {
         styleTag = $('<style data-e="' + parentId + '"></style>');
-        $('head', htmlNode).append(styleTag);
+        var head = $('head', htmlNode).append(styleTag);
+        ko.utils.domNodeDisposal.addDisposeCallback(element, function() {
+          styleTag.remove();
+        });
       }
       styleTag.html(styleRules.join(''));
 
-      return ko.bindingHandlers['virtualHtml'].update(element, function(){return ko.observable(html.prop(element.nodeType !== 8 ? 'outerHTML' : 'innerHTML'));}, allBindingsAccessor, viewModel, bindingContext);
-    }/* else {
-      return ko.bindingHandlers.wysiwyg.update(element, valueAccessor, allBindingsAccessor, viewModel, bindingContext);
-    }*/
+      return ko.bindingHandlers['virtualHtml'].update(element, function(){return ko.observable(html.prop('innerHTML'));}, allBindingsAccessor, viewModel, bindingContext);
+    }
   }
 };
 ko.virtualElements.allowedBindings['wysiwygOrHtml'] = true;
@@ -556,7 +669,7 @@ var _catchingFire = function(event, args) {
 ko.bindingHandlers.wysiwyg = {
   debug: false,
   getContentOptions: {},
-  useTarget: false,
+  useTarget: true,
   currentIndex: 0,
   standardOptions: {},
   // add this class to the element while initializing the editor, by default we show a fade anymation and prevent clicks on that.
@@ -624,6 +737,9 @@ ko.bindingHandlers.wysiwyg = {
       language: 'en',
       schema: "html5",
       extended_valid_elements: 'strong/b,em/i,*[*]',
+      invalid_styles: {
+        'span': 'line-height'
+      },
       menubar: false,
       skin: 'gray-flat',
       forced_root_block: false,
@@ -659,24 +775,11 @@ ko.bindingHandlers.wysiwyg = {
           }
         };
 
-        // TODO change sometimes doesn't trigger (we have to document when)
-        // listening on keyup would increase correctness but we would need a rateLimit to avoid flooding.
-        editor.on('change redo undo', function() {
+        var changeHandler = function(curContent) {
           if (!isSubscriberChange) {
             try {
-              var curValue = ko.utils.unwrapObservable(value);
-
-              // This used to be 'raw' trying to keep simmetry with the setContent (see BeforeSetContent below)
-              // We moved this to a binding option so that this can be changed. We found that using 'raw' the field is often
-              // not emptied and full of tags used by tinymce as workaround.
-              // In future we'll probably change the default to "non raw", but at this time we keep this as an option
-              // in order to keep backward compatibility.
-              var curContent = editor.getContent(ko.bindingHandlers.wysiwyg.getContentOptions);
-              if ( curValue !== curContent ) {
+              if (ko.utils.unwrapObservable(value) !== curContent) {
                 isEditorChange = true;
-                // we failed with other ways to do this:
-                // value($(element).html());
-                // value(element.innerHTML);
                 value(curContent);
               }
             } catch (e) {
@@ -686,13 +789,22 @@ ko.bindingHandlers.wysiwyg = {
             }
           }
           if (ko.bindingHandlers.wysiwyg.emptyClass) emptyClassHandler();
+        };
+
+        editor.on('setcontent', function(event) {
+          if (event.format === 'html' && event.content) {
+            changeHandler(event.content);
+          }
         });
 
-        if (ko.bindingHandlers.wysiwyg.emptyClass) {
-          editor.on('keyup', function() {
-            emptyClassHandler();
-          });
-        }
+        editor.on('change keyup undo redo', function() {
+          // This used to be 'raw' trying to keep simmetry with the setContent (see BeforeSetContent below)
+          // We moved this to a binding option so that this can be changed. We found that using 'raw' the field is often
+          // not emptied and full of tags used by tinymce as workaround.
+          // In future we'll probably change the default to "non raw", but at this time we keep this as an option
+          // in order to keep backward compatibility.
+          changeHandler(editor.getContent(ko.bindingHandlers.wysiwyg.getContentOptions));
+        });
 
         // Clicking on the element on focus change allow the "click" code to be triggered and propagate the selection.
         // Not elegant, maybe we have better options.
@@ -720,16 +832,22 @@ ko.bindingHandlers.wysiwyg = {
 
         editor.on('init', function() {
           ko.computed(function() {
-            if (bindingContext.$root.lockDownMode() === 2) {
-              if (value._locked()) {
-                thisEditor.hide();
-              } else {
-                thisEditor.show();
+            if (thisEditor.getDoc() !== null) {
+              switch (bindingContext.$root.lockDownMode()) {
+                case 2:
+                  if (value._locked()) {
+                    thisEditor.hide();
+                  } else {
+                    thisEditor.show();
+                  }
+                  break;
+                case 3:
+                  thisEditor.hide();
+                  break;
+                default:
+                  thisEditor.show();
+                  break;
               }
-            } else if (bindingContext.$root.lockDownMode() === 3) {
-              thisEditor.hide();
-            } else {
-              thisEditor.show();
             }
           }, null, {
             disposeWhenNodeIsRemoved: element
@@ -776,8 +894,6 @@ ko.bindingHandlers.wysiwyg = {
       if (!isEditorChange) {
         try {
           isSubscriberChange = true;
-          // we failed setting contents in other ways...
-          // $(element).html(content);
           if (typeof thisEditor !== 'undefined') {
             thisEditor.setContent(content, {});
           } else {

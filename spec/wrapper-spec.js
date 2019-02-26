@@ -1,23 +1,13 @@
 'use strict';
 /* globals describe: false, it: false, expect: false */
 
-var mockery = require('mockery');
-mockery.enable();
-mockery.registerAllowables(['../src/js/converter/declarations.js', './wrapper.js', 'console', './utils.js', './domutils.js', 'console', '../node_modules/mensch', 'fs', 'path', 'mkdirp']);
-
 var main = require('../src/js/converter/main.js');
 var fs = require('fs');
 
-mockery.registerMock('knockout', require('../node_modules/knockout'));
-// mockery.registerMock('knockout.wrap', require('../node_modules/knockout.wrap/knockout.wrap.js'));
-mockery.registerMock('knockoutjs-reactor', require('../node_modules/ko-reactor/dist/ko-reactor.js'));
-// mockery.registerMock('knockout-undomanager', require('../node_modules/knockout-undomanager/knockout-undomanager.js'));
-
-var undoserializer = require("../src/js/undomanager/undoserializer.js");
+var undoserializer = require('../src/js/undomanager/undoserializer.js');
 var console = require("console");
 
 var ko = require('knockout');
-// var undoManager = require('knockout-undomanager');
 var undoManager = require('../src/js/undomanager/undomanager.js');
 var modelDef = require('../src/js/converter/model.js');
 

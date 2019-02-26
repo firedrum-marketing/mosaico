@@ -9,7 +9,7 @@ var $ = require("jquery");
 require("./ko-bindings.js");
 require('jquery-ui');
 require('jquery-textselection');
-require('jqueryui-touch-punch');
+require('jquery-ui-touch-punch');
 var performanceAwareCaller = require("./timed-call.js").timedCall;
 
 var addUndoStackExtensionMaker = require("./undomanager/undomain.js");
@@ -190,27 +190,13 @@ var getModelReferences = function() {
 };
 
 var isIE = function() {
-  var tmp = global.document.documentMode;
-
-  // Try to force this property to be a string. 
-  try {
-    global.document.documentMode = '';
-  } catch(e){}
-
-  // If document.documentMode is a number, then it is a read-only property, and so 
-  // we have IE 8+.
-  // Otherwise, if conditional compilation works, then we have IE < 11.
-  // Otherwise, we have a non-IE browser. 
   /* jshint ignore:start */
-  var isIE = typeof global.document.documentMode == 'number' || new Function('return/*@cc_on!@*/!1')( );
+  return new Function('return/*@cc_on!@*/!1')( ) || global.document.documentMode;
   /* jshint ignore:end */
+};
 
-  // Switch back the value to be unobtrusive for non-IE browsers. 
-  try {
-    global.document.documentMode = tmp;
-  } catch(e){}
-  
-  return isIE;
+var isEdge = function() {
+  return !global.document.documentMode && global.StyleMedia;
 };
 
 module.exports = {
@@ -222,5 +208,6 @@ module.exports = {
   url: require('url'),
   download: require('downloadjs'),
   getModelReferences: getModelReferences,
-  isIE: isIE
+  isIE: isIE,
+  isEdge: isEdge
 };

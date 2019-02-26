@@ -114,7 +114,9 @@ var elaborateDeclarations = function(styleSheet, templateUrlConverter, bindingPr
                 var appendDefaultValue = null;
                 var bindType;
                 if (isAttr) {
-                  propDefaultValue = domutils.getAttribute(element, propName);
+                  if (typeof element !== 'undefined') {
+                    propDefaultValue = domutils.getAttribute(element, propName);
+                  }
                   internalNeedDefaultValue = false;
                   bindType = 'virtualAttr';
                 } else if (!isBind) {
@@ -264,7 +266,7 @@ var elaborateDeclarations = function(styleSheet, templateUrlConverter, bindingPr
     }
   }
 
-  if (typeof element != 'undefined' && element !== null) {
+  if (typeof element !== 'undefined' && element !== null && typeof newBindings !== 'undefined' && newBindings !== null) {
     for (var prop in newBindings['virtualStyle'])
       if (newBindings['virtualStyle'].hasOwnProperty(prop)) {
         console.log("Unexpected virtualStyle binding after conversion to virtualAttr.style", prop, newBindings['virtualStyle'][prop], styleSheet);

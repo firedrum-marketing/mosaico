@@ -76,10 +76,10 @@ ko.bindingHandlers['fileupload'] = {
     // webkitNbspMode is not defined in Chrome
     // StyleMedia is defined only in IE/Edge
     // we tried "window.chrome.webstore" but Opera blink based doesn't have this property but still wants the Chrome workaround
-    if (('WebkitAppearance' in global.document.documentElement.style) && !('webkitNbspMode' in global.document.documentElement.style) && !('StyleMedia' in global)) // was global.webkitURL but this gave a deprecation warning
+    /*if (('WebkitAppearance' in global.document.documentElement.style) && !('webkitNbspMode' in global.document.documentElement.style) && !('StyleMedia' in global)) // was global.webkitURL but this gave a deprecation warning
       $(element).attr('title', ' ');
     else
-      $(element).attr('title', '');
+      $(element).attr('title', '');*/
   },
 
   update: function(element, valueAccessor) {

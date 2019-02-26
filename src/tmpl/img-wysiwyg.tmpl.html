@@ -21,26 +21,26 @@
   <div class="midtools" data-bind="">
     <!-- ko if: $root.lockDownMode() < 2 || ($root.lockDownMode() === 2 && !_src._locked()) -->
     <!-- ko if: _src() != '' -->
-    <div title="Remove image" class="tool delete" data-bind="attr: { title: $root.t('Remove image') }, click: _src.bind(_src, ''), clickBubble: false"><i class="fa fa-fw fa-trash-o"></i></div>
+    <div title="Remove image" class="tool delete" data-bind="attr: { title: $root.t('Remove image') }, click: _src.bind(_src, ''), clickBubble: false, tooltip: {show: {delay: 500}, track: true}"><i class="fa fa-fw fa-trash-o"></i></div>
     <!-- ko if: typeof $root.editImage !== 'undefined' -->
-    <div title="Open the image editing tool" class="tool edit" data-bind="attr: { title: $root.t('Open the image editing tool') }, click: $root.editImage.bind($element, _src), clickBubble: false"><i class="fa fa-fw fa-pencil"></i></div>
+    <div title="Open the image editing tool" class="tool edit" data-bind="attr: { title: $root.t('Open the image editing tool') }, click: $root.editImage.bind($element, _src), clickBubble: false, tooltip: {show: {delay: 500}, track: true}"><i class="fa fa-fw fa-pencil"></i></div>
     <!-- /ko -->
     <!-- /ko -->
     <!-- ko if: _src() == '' -->
-    <div title="Upload a new image" data-bind="attr: { title: $root.t('Upload a new image') }" class="tool upload" style="position: relative; overflow: hidden;"><i class="fa fa-fw fa-upload"></i>
+    <div title="Upload a new image" data-bind="attr: { title: $root.t('Upload a new image') }, tooltip: {show: {delay: 500}, track: true}" class="tool upload" style="position: relative; overflow: hidden;"><i class="fa fa-fw fa-upload"></i>
       <input class="fileupload nofile" type="file" name="files[]" data-bind="fileupload: { data: _src, onerror: $root.notifier.error, onfile: $root.loadImage, canvasPreview: true }" style="z-index: 20; position: absolute; top: 0; left: 0; right: 0; bottom: 0; min-width: 100%; min-height: 100%; font-size: 999px; text-align: right; filter: alpha(opacity=0); opacity: 0; outline: none; cursor: inherit; display: block">
     </div>
     <!-- /ko -->
     <!-- ko if: typeof $root.selectImage !== 'undefined' -->
-    <div title="Select image from gallery" class="tool gallery" data-bind="attr: { title: $root.t('Select image from gallery') }, click: $root.selectImage.bind($element, _src), clickBubble: true"><i class="fa fa-fw fa-picture-o"></i></div>
+    <div title="Select image from gallery" class="tool gallery" data-bind="attr: { title: $root.t('Select image from gallery') }, click: $root.selectImage.bind($element, _src), clickBubble: true, tooltip: {show: {delay: 500}, track: true}"><i class="fa fa-fw fa-picture-o"></i></div>
     <!-- /ko -->
     <!-- /ko -->
     <!-- ko if: $root.lockDownMode() === 1 -->
     <!-- ko if: !_src._locked() -->
-    <div title="Lock image" class="tool lock" data-bind="attr: { title: $root.t('Lock image') }, click: _src._locked.bind(undefined, true), clickBubble: false"><i class="fa fa-fw fa-unlock-alt"></i></div>
+    <div title="Lock image" class="tool lock" data-bind="attr: { title: $root.t('Lock image') }, click: _src._locked.bind(undefined, true), clickBubble: false, tooltip: {show: {delay: 500}, track: true}"><i class="fa fa-fw fa-unlock-alt"></i></div>
     <!-- /ko -->
     <!-- ko if: _src._locked() -->
-    <div title="Unlock image" class="tool unlock" data-bind="attr: { title: $root.t('Unlock image') }, click: _src._locked.bind(undefined, false), clickBubble: false"><i class="fa fa-fw fa-lock"></i></div>
+    <div title="Unlock image" class="tool unlock" data-bind="attr: { title: $root.t('Unlock image') }, click: _src._locked.bind(undefined, false), clickBubble: false, tooltip: {show: {delay: 500}, track: true}"><i class="fa fa-fw fa-lock"></i></div>
     <!-- /ko -->
     <!-- /ko -->
     <!-- ko if: $root.lockDownMode() > 2 || ($root.lockDownMode() === 2 && _src._locked()) -->
@@ -62,7 +62,7 @@
     -->
   <!-- /ko -->
   <!-- pulsante per la cancellazione -->
-  <div title="Drop an image here or click the upload button" data-bind="attr: { title: $root.t('Drop an image here or click the upload button') }, tooltips: {}" class="workzone" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; overflow: hidden;">
+  <div title="Drop an image here or click the upload button" data-bind="attr: { title: $root.t('Drop an image here or click the upload button') }, tooltip: {show: {delay: 500}, track: true}" class="workzone" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; overflow: hidden;">
     <!-- ko if: _src.preloaded && _src() != _src.preloaded() -->PRELOADING....<!-- /ko -->
     <!-- ko if: _src() != '' -->
       <input class="fileupload withfile" type="file" name="files[]" data-bind="fileupload: { data: _src, onerror: $root.notifier.error, onfile: $root.galleryRecent.unshift.bind($root.galleryRecent), canvasPreview: true }" style="z-index: -20; position: absolute; top: 0; left: 0; right: 0; bottom: 0; min-width: 100%; min-height: 100%; font-zie: 999px; text-align: right; filter: alpha(opacity=0); opacity: 0; outline: none; cursor: inherit; display: block">
