@@ -49,16 +49,16 @@
   </div>
   <style type="text/css" data-bind="text: ($root.mosaicoConfig.mainElement && $root.mosaicoConfig.mainElement.id ? \'#\' + $root.mosaicoConfig.mainElement.id + \' \' : \'\') + '#main-edit-area #main-wysiwyg-area:not(.isdragging):not(.isdraggingimg) #' + id() + ' .mce-content-body:hover:after { background: url(\\'data:image/svg+xml;utf8,<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; xmlns:xlink=&quot;http://www.w3.org/1999/xlink&quot; shape-rendering=&quot;crispEdges&quot;><defs><line x1=&quot;0&quot; y1=&quot;0&quot; x2=&quot;100%&quot; y2=&quot;0&quot; id=&quot;top&quot;/><line x1=&quot;100%&quot; y1=&quot;0&quot; x2=&quot;100%&quot; y2=&quot;100%&quot; id=&quot;right&quot;/><line x1=&quot;100%&quot; y1=&quot;100%&quot; x2=&quot;0&quot; y2=&quot;100%&quot; id=&quot;bottom&quot;/><line x1=&quot;0&quot; y1=&quot;100%&quot; x2=&quot;0&quot; y2=&quot;0&quot; id=&quot;left&quot;/><filter id=&quot;invert&quot; x=&quot;0&quot; y=&quot;0&quot; width=&quot;100%&quot; height=&quot;100%&quot;><feColorMatrix result=&quot;base&quot; type=&quot;matrix&quot; values=&quot;-1 0 0 0 1 0 -1 0 0 1 0 0 -1 0 1 0 0 0 1 0&quot; /><feColorMatrix result=&quot;mask&quot; type=&quot;matrix&quot; values=&quot;0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0&quot; /><feComposite in=&quot;base&quot; in2=&quot;mask&quot; operator=&quot;in&quot; /></filter></defs><g stroke-width=&quot;2&quot; filter=&quot;url(%23invert)&quot; stroke=&quot;' + (((typeof backgroundColor !== 'undefined' ? backgroundColor._defaultComputed() : $root.content().theme().contentTheme().backgroundColor()) !== '') && ((typeof backgroundColor !== 'undefined' ? backgroundColor._defaultComputed() : $root.content().theme().contentTheme().backgroundColor()) !== 'transparent') ? (typeof backgroundColor !== 'undefined' ? backgroundColor._defaultComputed() : $root.content().theme().contentTheme().backgroundColor()).replace(/#/g, '%23') : '%23FFFFFF') + '&quot;><use xlink:href=&quot;%23top&quot;/><use xlink:href=&quot;%23right&quot;/><use xlink:href=&quot;%23bottom&quot;/><use xlink:href=&quot;%23left&quot;/></g></svg>\\'); }'"></style>
   <div class="tools" data-bind="">
-    <div title="This block was pushed from another campaign" data-bind="attr: { title: $root.t('This block was pushed to region &quot;__label__&quot; from another campaign', {label: $context.pushRegionLabel}) }, tooltip: {show: {delay: 500}, track: true}" class="tool pushed"><i class="fa fa-fw fa-indent"></i></div>
+    <div title="This block was pushed from another campaign" data-bind="attr: { title: $root.t('This block was pushed to region &quot;__label__&quot; from another campaign', {label: $context.pushRegionLabel}) }, tooltip: {show: {delay: 500}, track: true}" class="tool pushed"><i class="material-icons" aria-hidden="true">format_indent_increase</i></div>
     <div class="center" data-bind="">
       <!-- ko if: typeof $index != 'undefined' -->
       <!-- ko if: $root.lockDownMode() < 2 || ($root.lockDownMode() === 2 && !_locked()) -->
-      <div title="Drag this handle to move the block" data-bind="attr: { title: $root.t('Drag this handle to move the block') }, tooltip: {show: {delay: 500}, track: true}" class="tool handle"><i class="fa fa-fw fa-arrows"></i></div>
+      <div title="Drag this handle to move the block" data-bind="attr: { title: $root.t('Drag this handle to move the block') }, tooltip: {show: {delay: 500}, track: true}" class="tool handle"><i class="material-icons" aria-hidden="true">drag_indicator</i></div>
       <!-- ko if: $index() > 0 && $data.getNearestUnlockedIndex($root, $parent.blocks, true) > -1 -->
-      <div title="Move this block up" data-bind="attr: { title: $root.t('Move this block up') }, tooltip: {show: {delay: 500}, track: true}" class="tool moveup"><i class="fa fa-fw fa-arrow-up" data-bind='click: $root.moveBlock.bind($element, $index, $parent, true)'></i></div>
+      <div title="Move this block up" data-bind="attr: { title: $root.t('Move this block up') }, tooltip: {show: {delay: 500}, track: true}" class="tool moveup"><i class="material-icons" aria-hidden="true" data-bind='click: $root.moveBlock.bind($element, $index, $parent, true)'>arrow_upward</i></div>
       <!-- /ko -->
       <!-- ko if: $index() < $parent.blocks().length -1 && $data.getNearestUnlockedIndex($root, $parent.blocks, false) > -1 -->
-      <div title="Move this block down" data-bind="attr: { title: $root.t('Move this block down') }, tooltip: {show: {delay: 500}, track: true}" class="tool movedown"><i class="fa fa-fw fa-arrow-down" data-bind='click: $root.moveBlock.bind($element, $index, $parent, false)'></i></div>
+      <div title="Move this block down" data-bind="attr: { title: $root.t('Move this block down') }, tooltip: {show: {delay: 500}, track: true}" class="tool movedown"><i class="material-icons" aria-hidden="true" data-bind='click: $root.moveBlock.bind($element, $index, $parent, false)'>arrow_downward</i></div>
       <!-- /ko -->
       <!-- ko if: $index() <= 0 || $data.getNearestUnlockedIndex($root, $parent.blocks, true) === -1 -->
       <div class="tool nomoveup"></div>
@@ -68,21 +68,21 @@
       <!-- /ko -->
       <!-- /ko -->
       <!-- ko if: $root.lockDownMode() > 2 || ($root.lockDownMode() === 2 && _locked()) -->
-      <div title="This block is locked" data-bind="attr: { title: $root.t('This block is locked') }, tooltip: {show: {delay: 500}, track: true}" class="tool locked"><i class="fa fa-fw fa-lock"></i></div>
+      <div title="This block is locked" data-bind="attr: { title: $root.t('This block is locked') }, tooltip: {show: {delay: 500}, track: true}" class="tool locked"><i class="material-icons" aria-hidden="true">lock_outline</i></div>
       <!-- /ko -->
       <!-- ko if: $root.lockDownMode() === 1 -->
       <!-- ko if: !_locked() -->
-      <div title="Lock block" class="tool lock" data-bind="attr: { title: $root.t('Lock block') }, click: function(){$root.startMultiple();_locked(true);$root.stopMultiple()}, clickBubble: false, tooltip: {show: {delay: 500}, track: true}"><i class="fa fa-fw fa-unlock-alt"></i></div>
+      <div title="Lock block" class="tool lock" data-bind="attr: { title: $root.t('Lock block') }, click: function(){$root.startMultiple();_locked(true);$root.stopMultiple()}, clickBubble: false, tooltip: {show: {delay: 500}, track: true}"><i class="material-icons" aria-hidden="true">lock_open</i></div>
       <!-- /ko -->
       <!-- ko if: _locked() -->
-      <div title="Unlock block" class="tool unlock" data-bind="attr: { title: $root.t('Unlock block') }, click: function(){$root.startMultiple();_locked(false);$root.stopMultiple()}, clickBubble: false, tooltip: {show: {delay: 500}, track: true}"><i class="fa fa-fw fa-lock"></i></div>
+      <div title="Unlock block" class="tool unlock" data-bind="attr: { title: $root.t('Unlock block') }, click: function(){$root.startMultiple();_locked(false);$root.stopMultiple()}, clickBubble: false, tooltip: {show: {delay: 500}, track: true}"><i class="material-icons" aria-hidden="true">lock_outline</i></div>
       <!-- /ko -->
       <!-- /ko -->
-      <!-- ko if: typeof $data._nextVariant != 'undefined' && ($root.lockDownMode() < 2 || ($root.lockDownMode() === 2 && !$data._variantTarget._locked())) --><div title="Switch block variant" class="tool variant" data-bind="attr: { title: $root.t($data._variantText||'Switch block variant') }, click: $data._nextVariant, tooltip: {show: {delay: 500}, track: true}"><i class="fa fa-fw fa-magic"></i></div><!-- /ko -->
+      <!-- ko if: typeof $data._nextVariant != 'undefined' && ($root.lockDownMode() < 2 || ($root.lockDownMode() === 2 && !$data._variantTarget._locked())) --><div title="Switch block variant" class="tool variant" data-bind="attr: { title: $root.t($data._variantText||'Switch block variant') }, click: $data._nextVariant, tooltip: {show: {delay: 500}, track: true}"><i class="material-icons" aria-hidden="true">autorenew</i></div><!-- /ko -->
       <!-- ko if: typeof $data._nextVariant === 'undefined' || ($root.lockDownMode() === 2 && $data._variantTarget._locked()) || $root.lockDownMode() === 3 --><div class="tool novariants"></div><!-- /ko -->
       <!-- ko if: (typeof $data.pushRegionName !== 'function' || $root.pushMode() < 2) && ($root.lockDownMode() < 2 || ($root.lockDownMode() === 2 && !_locked())) -->
-      <div title="Delete block" class="tool delete" data-bind="attr: { title: $root.t('Delete block') }, click: $root.removeBlock.bind($element, $rawData, $parent), tooltip: {show: {delay: 500}, track: true}"><i class="fa fa-fw fa-trash-o"></i></div>
-      <div title="Duplicate block" class="tool clone" data-bind="attr: { title: $root.t('Duplicate block') }, click: $root.duplicateBlock.bind($element, $index, $parent), tooltip: {show: {delay: 500}, track: true}"><i class="fa fa-fw fa-files-o"></i></div>
+      <div title="Delete block" class="tool delete" data-bind="attr: { title: $root.t('Delete block') }, click: $root.removeBlock.bind($element, $rawData, $parent), tooltip: {show: {delay: 500}, track: true}"><i class="material-icons" aria-hidden="true">delete</i></div>
+      <div title="Duplicate block" class="tool clone" data-bind="attr: { title: $root.t('Duplicate block') }, click: $root.duplicateBlock.bind($element, $index, $parent), tooltip: {show: {delay: 500}, track: true}"><i class="material-icons" aria-hidden="true">content_copy</i></div>
       <div class="tool dummy"></div>
       <!-- /ko -->
       <!-- /ko -->

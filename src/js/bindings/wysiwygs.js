@@ -682,7 +682,6 @@ ko.bindingHandlers.wysiwyg = {
     toolbar1: 'bold italic forecolor backcolor hr styleselect removeformat | link unlink | pastetext code',
     //toolbar1: "bold italic | forecolor backcolor | link unlink | hr | pastetext code", // | newsletter_profile newsletter_optlink newsletter_unsubscribe newsletter_showlink";
     //toolbar2: "formatselect fontselect fontsizeselect | alignleft aligncenter alignright alignjustify | bullist numlist",
-    plugins: ["link hr paste lists textcolor code"],
     // valid_elements: 'strong/b,em/i,*[*]',
     // extended_valid_elements: 'strong/b,em/i,*[*]',
     // Removed: image fullscreen contextmenu 
@@ -729,7 +728,6 @@ ko.bindingHandlers.wysiwyg = {
       inline: true,
       // maybe not needed, but won't hurt.
       hidden_input: false,
-      plugins: ["paste"],
       toolbar1: "bold italic",
       // we have to disable preview_styles otherwise tinymce push inline every style it thinks will be applied and this makes the style menu to inherit color/font-family and more.
       preview_styles: false,

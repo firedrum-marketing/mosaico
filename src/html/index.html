@@ -159,10 +159,10 @@ a, a:link, a:visited {
   </div>
     <!-- ko if: edits().length -->
     <div style="overflow-y: auto; max-height: 200px; z-index: 10; position: relative; padding: 1em; background-color: #f1eee6;">
-    <!-- ko ifnot: $root.showSaved --><span>You have saved contents in this browser! <a class="resumeButton" href="#" data-bind="click: $root.showSaved.bind(undefined, true);"><i class="fa fa-plus-square"></i> Show</a></span><!-- /ko -->
+    <!-- ko ifnot: $root.showSaved --><span>You have saved contents in this browser! <a class="resumeButton" href="#" data-bind="click: $root.showSaved.bind(undefined, true);"><i class="material-icons" aria-hidden="true">visibility</i> Show</a></span><!-- /ko -->
     <!-- ko if: $root.showSaved -->
     <table id="savedTable" align="center" cellspacing="0" cellpadding="8" style="padding: 5px; ">
-    <caption>Email contents saved in your browser <a href="#" class="resumeButton" data-bind="click: $root.showSaved.bind(undefined, false);"><i class="fa fa-minus-square"></i> Hide</a></caption>
+    <caption>Email contents saved in your browser <a href="#" class="resumeButton" data-bind="click: $root.showSaved.bind(undefined, false);"><i class="material-icons" aria-hidden="true">visibility_off</i> Hide</a></caption>
       <thead><tr>
         <th>Id</th><th>Name</th><th>Created</th><th>Last changed</th><th>Operations</th>
       </tr></thead>
@@ -173,9 +173,9 @@ a, a:link, a:visited {
         <td><span data-bind="text: typeof created !== 'undefined' ? $root.dateFormat(created) : '-'">YYYY-MM-DD</span></td>
         <td><span style="font-weight: bold" data-bind="text: typeof changed !== 'undefined' ? $root.dateFormat(changed) : '-'">YYYY-MM-DD</span></td>
         <td>
-        <a class="operationButton" href="#" data-bind="attr: { href: 'editor.html?__VERSION__#'+key }, tooltip: {show: {delay: 500}, track: true}" title="edit"><i class="fa fa-pencil"></i></a>
-        <!--(<a href="#" data-bind="click: $root.renameEdit.bind(undefined, $index()), tooltip: {show: {delay: 500}, track: true}" title="rinomina"><i class="fa fa-trash-o"></i></a>)-->
-        <a class="operationButton" href="#" data-bind="click: $root.deleteEdit.bind(undefined, $index()), tooltip: {show: {delay: 500}, track: true}" title="delete"><i class="fa fa-trash-o"></i></a>
+        <a class="operationButton" href="#" data-bind="attr: { href: 'editor.html?__VERSION__#'+key }, tooltip: {show: {delay: 500}, track: true}" title="edit"><i class="material-icons" aria-hidden="true">edit</i></a>
+        <!--(<a href="#" data-bind="click: $root.renameEdit.bind(undefined, $index()), tooltip: {show: {delay: 500}, track: true}" title="rinomina"><i class="material-icons" aria-hidden="true">delete</i></a>)-->
+        <a class="operationButton" href="#" data-bind="click: $root.deleteEdit.bind(undefined, $index()), tooltip: {show: {delay: 500}, track: true}" title="delete"><i class="material-icons" aria-hidden="true">delete</i></a>
         </td>
       </tr>
     </tbody>

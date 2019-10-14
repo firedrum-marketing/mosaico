@@ -32,7 +32,7 @@ $.widget("ui.tabs", tabs, {
 
     this.tablist.wrap( '<div class="ui-tabs-scroll" style="margin:0px;white-space:nowrap;position:absolute;top:0px;left:0;right:0"/>' );
     this.tablist.parent().prepend( '<span class="ui-tabs-scroll-left-finisher" style="display:none">&nbsp;</span>' ).append( '<span class="ui-tabs-scroll-right-finisher" style="display:none">&nbsp;</span>' );
-    this.tablist.before( '<div class="ui-tabs-scroll-left-button fa fa-chevron-left" style="position:absolute;left:0;bottom:0;cursor:pointer;text-align:center;line-height:31px"/>' ).after( '<div class="ui-tabs-scroll-right-button fa fa-chevron-right" style="position:absolute;right:0;bottom:0;cursor:pointer;text-align:center;line-height:31px"/>' );
+    this.tablist.before( '<div class="ui-tabs-scroll-left-button material-icons material-icons-chevron-left" style="position:absolute;left:0;bottom:0;cursor:pointer;text-align:center;line-height:31px"/>' ).after( '<div class="ui-tabs-scroll-right-button material-icons material-icons-chevron-right" style="position:absolute;right:0;bottom:0;cursor:pointer;text-align:center;line-height:31px"/>' );
 
     this.tablist.css( {
       'position': 'relative',

@@ -4,10 +4,10 @@
       <!-- ko with: $root.selectedEditable -->
       <!-- ko if: $root.lockDownMode() === 1 && ($rawData._locked._widget === 'text' || $rawData._locked._widget === 'longtext') -->
       <!-- ko if: !$rawData._locked() -->
-      <div title="Lock text" class="tool lock" data-bind="attr: { title: $root.t('Lock text') }, click: function(){$root.startMultiple();$rawData._locked(true);$root.stopMultiple()}, clickBubble: false, event: { mousedown: function(){} }, mousedownBubble: false, tooltip: {show: {delay: 500}, track: true}"><i class="fa fa-fw fa-unlock-alt"></i></div>
+      <div title="Lock text" class="tool lock" data-bind="attr: { title: $root.t('Lock text') }, click: function(){$root.startMultiple();$rawData._locked(true);$root.stopMultiple()}, clickBubble: false, event: { mousedown: function(){} }, mousedownBubble: false, tooltip: {show: {delay: 500}, track: true}"><i class="material-icons" aria-hidden="true">lock_open</i></div>
       <!-- /ko -->
       <!-- ko if: $rawData._locked() -->
-      <div title="Unlock text" class="tool unlock" data-bind="attr: { title: $root.t('Unlock text') }, click: function(){$root.startMultiple();$rawData._locked(false);$root.stopMultiple()}, clickBubble: false, event: { mousedown: function(){} }, mousedownBubble: false, tooltip: {show: {delay: 500}, track: true}"><i class="fa fa-fw fa-lock"></i></div>
+      <div title="Unlock text" class="tool unlock" data-bind="attr: { title: $root.t('Unlock text') }, click: function(){$root.startMultiple();$rawData._locked(false);$root.stopMultiple()}, clickBubble: false, event: { mousedown: function(){} }, mousedownBubble: false, tooltip: {show: {delay: 500}, track: true}"><i class="material-icons" aria-hidden="true">lock_outline</i></div>
       <!-- /ko -->
       <!-- /ko -->
       <!-- /ko -->
@@ -20,8 +20,8 @@
   <div id="toolbar" class="mo ui-front">
     <!-- ko if: typeof $root.undo != 'undefined' -->
     <span data-bind="buttonset: { }" class="leftButtons">
-    <span title="Undo last operation" data-bind="attr: { title: $root.t('Undo last operation') }, tooltip: {show: {delay: 500}, track: true, classes: {'ui-tooltip':'toolbar-tooltip'}}"><a href="javascript:void(0)" data-bind="click: $root.undo.execute, clickBubble: false, button: { disabled: !$root.undo.enabled(), icon: 'fa fa-reply', label: $root.undo.name, showLabel: true }">UNDO</a></span>
-    <span title="Redo last operation" data-bind="attr: { title: $root.t('Redo last operation') }, tooltip: {show: {delay: 500}, track: true, classes: {'ui-tooltip':'toolbar-tooltip'}}"><a href="javascript:void(0)" data-bind="click: $root.redo.execute, clickBubble: false, button: { disabled: !$root.redo.enabled(), icon: 'fa fa-share', label: $root.redo.name, showLabel: true }">REDO</a></span>
+    <span title="Undo last operation" data-bind="attr: { title: $root.t('Undo last operation') }, tooltip: {show: {delay: 500}, track: true, classes: {'ui-tooltip':'toolbar-tooltip'}}"><a href="javascript:void(0)" data-bind="click: $root.undo.execute, clickBubble: false, button: { disabled: !$root.undo.enabled(), icon: 'material-icons material-icons-undo', label: $root.undo.name, showLabel: true }">UNDO</a></span>
+    <span title="Redo last operation" data-bind="attr: { title: $root.t('Redo last operation') }, tooltip: {show: {delay: 500}, track: true, classes: {'ui-tooltip':'toolbar-tooltip'}}"><a href="javascript:void(0)" data-bind="click: $root.redo.execute, clickBubble: false, button: { disabled: !$root.redo.enabled(), icon: 'material-icons material-icons-redo', label: $root.redo.name, showLabel: true }">REDO</a></span>
     </span>
     <!-- ko if: $root.debug -->
     <a href="javascript:void(0)" data-bind="click: $root.undoReset, clickBubble: false, button: { disabled: !$root.undo.enabled() && !$root.redo.enabled(), label: 'reset', showLabel: true }">RESET</a>
@@ -29,31 +29,31 @@
     <!-- /ko -->
 
     <span>
-      <label title="Show image gallery" data-bind="attr: { title: $root.t('Show image gallery') }, tooltip: {show: {delay: 500}, track: true, classes: {'ui-tooltip':'toolbar-tooltip'}}"><input id="showGallery" type="checkbox" data-bind="checked: $root.showGallery, button: { refreshOn: $root.showGallery, icon: 'fa fa-fw fa-picture-o', showLabel: true, label: $root.t('Gallery') }">show gallery</input></label>
+      <label title="Show image gallery" data-bind="attr: { title: $root.t('Show image gallery') }, tooltip: {show: {delay: 500}, track: true, classes: {'ui-tooltip':'toolbar-tooltip'}}"><input id="showGallery" type="checkbox" data-bind="checked: $root.showGallery, button: { refreshOn: $root.showGallery, icon: 'material-icons material-icons-photo-library', showLabel: true, label: $root.t('Gallery') }">show gallery</input></label>
     </span>
 
     <span style="position:relative;">
-      <label title="Show live preview" data-bind="attr: { title: $root.t('Show live preview') }, tooltip: {show: {delay: 500}, track: true, classes: {'ui-tooltip':'toolbar-tooltip'}}"><input id="previewFrameToggle" type="checkbox" data-bind="checked: $root.showPreviewFrame, button: { refreshOn: $root.showPreviewFrame, icon: 'fa fa-fw fa-tablet', showLabel: true, label: $root.t('Preview') }">PREVIEW</input></label>
+      <label title="Show live preview" data-bind="attr: { title: $root.t('Show live preview') }, tooltip: {show: {delay: 500}, track: true, classes: {'ui-tooltip':'toolbar-tooltip'}}"><input id="previewFrameToggle" type="checkbox" data-bind="checked: $root.showPreviewFrame, button: { refreshOn: $root.showPreviewFrame, icon: 'material-icons material-icons-smartphone', showLabel: true, label: $root.t('Preview') }">PREVIEW</input></label>
     </span>
 
     <!-- ko if: typeof $root.showSocialSharing !== 'undefined' -->
     <span>
-      <label  title="Show social content" data-bind="attr: { title: $root.t('Show social content') }, tooltip: {show: {delay: 500}, track: true, classes: {'ui-tooltip':'toolbar-tooltip'}}"><input id="showSocialSharing" type="checkbox" data-bind="checked: $root.showSocialSharing, button: { refreshOn: $root.showSocialSharing, icon: 'fa fa-fw fa-share-alt', showLabel: true, label: $root.t('Social Content') }">show social content</input></label>
+      <label  title="Show social content" data-bind="attr: { title: $root.t('Show social content') }, tooltip: {show: {delay: 500}, track: true, classes: {'ui-tooltip':'toolbar-tooltip'}}"><input id="showSocialSharing" type="checkbox" data-bind="checked: $root.showSocialSharing, button: { refreshOn: $root.showSocialSharing, icon: 'material-icons material-icons-share', showLabel: true, label: $root.t('Social Content') }">show social content</input></label>
     </span>
     <!-- /ko -->
 
     <!-- ko if: typeof $root.tests !== 'undefined' -->
     <div id="testMenu">
-      <a href="javascript:void(0)" data-bind="button: { icon: 'fa fa-fw fa-flask', label: $root.t('Test'), showLabel: true }">TEST</a>
+      <a href="javascript:void(0)" data-bind="button: { icon: 'material-icons material-icons-lightbulb', label: $root.t('Test'), showLabel: true }">TEST</a>
       <div>
         <!-- ko if: typeof $root.tests.inboxPreview != 'undefined' -->
-        <a href="javascript:void(0)" data-bind="click: $root.testMode.bind($root.testMode, 'inboxPreview'), clickBubble: false, button: { icon: 'fa fa-fw fa-inbox', label: $root.t('Inbox Preview Assistant'), showLabel: true }">INBOX PREVIEW ASSISTANT</a>
+        <a href="javascript:void(0)" data-bind="click: $root.testMode.bind($root.testMode, 'inboxPreview'), clickBubble: false, button: { icon: 'material-icons material-icons-inbox', label: $root.t('View Inbox Preview'), showLabel: true }">VIEW INBOX PREVIEW</a>
         <!-- /ko -->
         <!-- ko if: typeof $root.tests.send != 'undefined' -->
-        <a href="javascript:void(0)" data-bind="click: $root.testMode.bind($root.testMode, 'send'), clickBubble: false, button: { icon: 'fa fa-fw fa-paper-plane-o', label: $root.t('Send a Test Email'), showLabel: true }">SEND A TEST EMAIL</a>
+        <a href="javascript:void(0)" data-bind="click: $root.testMode.bind($root.testMode, 'send'), clickBubble: false, button: { icon: 'material-icons material-icons-send', label: $root.t('Send a Test Email'), showLabel: true }">SEND A TEST EMAIL</a>
         <!-- /ko -->
         <!-- ko if: typeof $root.tests.spamassassin != 'undefined' -->
-        <a href="javascript:void(0)" data-bind="click: $root.testMode.bind($root.testMode, 'spamassassin'), clickBubble: false, button: { icon: 'fa fa-fw fa-eye', label: $root.t('Content Spam Checker'), showLabel: true }">CONTENT SPAM CHECKER</a>
+        <a href="javascript:void(0)" data-bind="click: $root.testMode.bind($root.testMode, 'spamassassin'), clickBubble: false, button: { icon: 'material-icons material-icons-visibility', label: $root.t('Content Spam Checker'), showLabel: true }">CONTENT SPAM CHECKER</a>
         <!-- /ko -->
       </div>
     </div>
@@ -61,7 +61,7 @@
 
     <span id="variation-toolbar-wrapper" style="position:relative;" data-bind="visible: $root.splitTestingEnabled">
       <label class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-icon-primary" role="label" aria-disabled="false" aria-pressed="false">
-        <span class="ui-button-icon-primary ui-icon fa fa-fw fa-random"></span>
+        <span class="ui-button-icon-primary ui-icon material-icons material-icons-shuffle"></span>
         <span class="ui-button-text" data-bind="text: $root.t('Variation:')">Variation:</span>
       </label>
       <div id="variation-toolbar" style="display: inline-block;">
@@ -75,7 +75,7 @@
     <!-- ko if: $root.debug -->
     <a href="javascript:void(0)" data-bind="click: $root.export, clickBubble: false, button: { label: 'export', showLabel: true }">EXPORT</a>
     <input type="checkbox" data-bind="checked: $root.debug" /> debug
-    <a href="javascript:void(0)" data-bind="click: $root.loadDefaultBlocks, clickBubble: false, button: { icon: 'fa fa-fw fa-upload', label: 'Default', showLabel: true }">LOAD BLOCKS</a>
+    <a href="javascript:void(0)" data-bind="click: $root.loadDefaultBlocks, clickBubble: false, button: { icon: 'material-icons material-icons-file-upload', label: 'Default', showLabel: true }">LOAD BLOCKS</a>
     [<a id="subscriptionsCount" href="javascript:viewModel.loopSubscriptionsCount()">subs</a>]
     <!-- /ko -->
 
@@ -85,10 +85,10 @@
 
     <div class="rightButtons">
     <!-- ko if: typeof $root.save !== 'undefined' -->
-    <a title="Save template" href="javascript:void(0)" data-bind="attr: { title: $root.t('Save template') }, click: $root.save.execute, clickBubble: false, button: { disabled: !$root.save.enabled(), icon: 'fa fa-fw fa-cloud-upload', label: $root.t($root.save.name), showLabel: true }">SALVA</a>
+    <a title="Save template" href="javascript:void(0)" data-bind="attr: { title: $root.t('Save template') }, click: $root.save.execute, clickBubble: false, button: { disabled: !$root.save.enabled(), icon: 'material-icons material-icons-save', label: $root.t($root.save.name), showLabel: true }">SALVA</a>
     <!-- /ko -->
     <!-- ko if: typeof $root.test !== 'undefined' -->
-    <a title="Show preview and send test" href="javascript:void(0)" data-bind="attr: { title: $root.t('Show preview and send test') }, click: $root.test.execute, clickBubble: false, button: { disabled: !$root.test.enabled(), icon: 'fa fa-fw fa-paper-plane', label: $root.t($root.test.name), showLabel: true }">TEST</a>
+    <a title="Show preview and send test" href="javascript:void(0)" data-bind="attr: { title: $root.t('Show preview and send test') }, click: $root.test.execute, clickBubble: false, button: { disabled: !$root.test.enabled(), icon: 'material-icons material-icons-send', label: $root.t($root.test.name), showLabel: true }">TEST</a>
     <!-- /ko -->
     <!-- ko if: typeof $root.download !== 'undefined' -->
     <form id="downloadForm" action="#" method="POST">
@@ -96,36 +96,36 @@
       <input type="hidden" name="filename" value="email.html" />
       <input type="hidden" name="html" id="downloadHtmlTextarea" />
       <!-- ko if: typeof $root.download !== 'undefined' -->
-        <a href="javascript:void(0)" data-bind="click: $root.download.execute, clickBubble: false, button: { disabled: !$root.download.enabled(), icon: 'fa fa-fw fa-download', label: $root.t($root.download.name), showLabel: true }">DOWNLOAD</a>
+        <a href="javascript:void(0)" data-bind="click: $root.download.execute, clickBubble: false, button: { disabled: !$root.download.enabled(), icon: 'material-icons material-icons-get-app', label: $root.t($root.download.name), showLabel: true }">DOWNLOAD</a>
       <!-- /ko -->
     </form>
     <!-- /ko -->
     <!-- ko if: $root.developerMode -->
-    <a title="Export" href="javascript:void(0)" data-bind="attr: { title: $root.t('Export') }, click: $root.exportTemplate.execute, clickBubble: false, button: { disabled: !$root.exportTemplate.enabled(), icon: 'fa fa-fw fa-file-archive-o', label: $root.t($root.exportTemplate.name), showLabel: true }">EXPORT</a>
+    <a title="Export" href="javascript:void(0)" data-bind="attr: { title: $root.t('Export') }, click: $root.exportTemplate.execute, clickBubble: false, button: { disabled: !$root.exportTemplate.enabled(), icon: 'material-icons material-icons-cloud-download', label: $root.t($root.exportTemplate.name), showLabel: true }">EXPORT</a>
     <!-- /ko -->
     <!-- ko if: typeof $root.helpAndSupport !== 'undefined' -->
     <div id="helpAndSupportMenu">
-      <a href="javascript:void(0)" data-bind="button: { icon: 'fa fa-fw fa-life-ring', label: $root.t('Help'), showLabel: true }">HELP</a>
+      <a href="javascript:void(0)" data-bind="button: { icon: 'material-icons material-icons-help', label: $root.t('Help'), showLabel: true }">HELP</a>
       <div>
-        <!-- ko if: typeof $root.helpAndSupport.support !== 'undefined' --><a href="javascript:void(0)" data-bind="click: $root.helpAndSupport.support.execute, clickBubble: false, button: { disabled: !$root.helpAndSupport.support.enabled(), icon: 'fa fa-fw fa-' + ($root.helpAndSupport.support.method === 'Chat' ? 'comments' : 'envelope'), label: $root.t($root.helpAndSupport.support.label), showLabel: true }">CHAT|EMAIL SUPPORT</a><!-- /ko -->
-        <!-- ko if: typeof $root.helpAndSupport.tour !== 'undefined' --><a href="javascript:void(0)" data-bind="click: $root.helpAndSupport.tour.execute, clickBubble: false, button: { disabled: !$root.helpAndSupport.tour.enabled(), icon: 'fa fa-fw fa-graduation-cap', label: $root.t('Guided Tour'), showLabel: true }">GUIDED TOUR</a><!-- /ko -->
+        <!-- ko if: typeof $root.helpAndSupport.support !== 'undefined' --><a href="javascript:void(0)" data-bind="click: $root.helpAndSupport.support.execute, clickBubble: false, button: { disabled: !$root.helpAndSupport.support.enabled(), icon: 'material-icons material-icons-' + ($root.helpAndSupport.support.method === 'Chat' ? 'chat' : 'email'), label: $root.t($root.helpAndSupport.support.label), showLabel: true }">CHAT|EMAIL SUPPORT</a><!-- /ko -->
+        <!-- ko if: typeof $root.helpAndSupport.tour !== 'undefined' --><a href="javascript:void(0)" data-bind="click: $root.helpAndSupport.tour.execute, clickBubble: false, button: { disabled: !$root.helpAndSupport.tour.enabled(), icon: 'material-icons material-icons-school', label: $root.t('Guided Tour'), showLabel: true }">GUIDED TOUR</a><!-- /ko -->
       </div>
     </div>
     <!-- /ko -->
     <div id="backMenu">
-      <a href="javascript:void(0)" data-bind="button: { icon: 'fa fa-fw fa-arrow-circle-left', label: $root.t('Exit Studio'), showLabel: true }">EXIT STUDIO</a>
+      <a href="javascript:void(0)" data-bind="button: { icon: 'material-icons material-icons-arrow-back', label: $root.t('Exit Studio'), showLabel: true }">EXIT STUDIO</a>
       <div>
-        <a href="javascript:void(0)" data-bind="click: function(){window.location.href='#design'}, clickBubble: false, button: { icon: 'fa fa-fw fa-arrow-circle-left', label: $root.t('Back to Design'), showLabel: true }">BACK TO DESIGN</a>
-        <a href="javascript:void(0)" data-bind="click: function(){window.location.href='/campaigns.jsp'}, clickBubble: false, button: { icon: 'fa fa-fw fa-arrow-circle-left', label: $root.t('Back to Campaigns'), showLabel: true }">BACK TO CAMPAIGNS</a>
+        <a href="javascript:void(0)" data-bind="click: function(){window.location.href='#design'}, clickBubble: false, button: { icon: 'material-icons material-icons-arrow-back', label: $root.t('Back to Design'), showLabel: true }">BACK TO DESIGN</a>
+        <a href="javascript:void(0)" data-bind="click: function(){window.location.href='/campaigns.jsp'}, clickBubble: false, button: { icon: 'material-icons material-icons-arrow-back', label: $root.t('Back to Campaigns'), showLabel: true }">BACK TO CAMPAIGNS</a>
       </div>
     </div>
     <!-- ko if: typeof $root.continue !== 'undefined' -->
     <div id="saveMenu">
-      <a href="javascript:void(0)" data-bind="click: $root.continue.execute.bind($element, true) , clickBubble: false, button: { disabled: !$root.continue.enabled(), icon: 'fa fa-fw fa-arrow-circle-right', label: $root.t($root.continue.name), showLabel: true }">SAVE AND CONTINUE</a>
+      <a href="javascript:void(0)" data-bind="click: $root.continue.execute.bind($element, true) , clickBubble: false, button: { disabled: !$root.continue.enabled(), icon: 'material-icons material-icons-arrow-forward', label: $root.t($root.continue.name), showLabel: true }">SAVE AND CONTINUE</a>
       <!-- ko if: (typeof $root.continue.name2 !== 'undefined' || typeof $root.continue.name3 !== 'undefined') -->
       <div>
-        <!-- ko if: typeof $root.continue.name2 !== 'undefined' --><a href="javascript:void(0)" data-bind="click: $root.continue.execute.bind($element, false), clickBubble: false, button: { disabled: !$root.continue.enabled(), icon: 'fa fa-fw fa-floppy-o', label: $root.t($root.continue.name2), showLabel: true }">SAVE</a><!-- /ko -->
-        <!-- ko if: typeof $root.continue.name3 !== 'undefined' --><a href="javascript:void(0)" data-bind="click: $root.continue.execute.bind($element, false, true), clickBubble: false, button: { disabled: !$root.continue.enabled(), icon: 'fa fa-fw fa-file-text-o', label: $root.t($root.continue.name3), showLabel: true }">SAVE AS TEMPLATE</a><!-- /ko -->
+        <!-- ko if: typeof $root.continue.name2 !== 'undefined' --><a href="javascript:void(0)" data-bind="click: $root.continue.execute.bind($element, false), clickBubble: false, button: { disabled: !$root.continue.enabled(), icon: 'material-icons material-icons-save', label: $root.t($root.continue.name2), showLabel: true }">SAVE</a><!-- /ko -->
+        <!-- ko if: typeof $root.continue.name3 !== 'undefined' --><a href="javascript:void(0)" data-bind="click: $root.continue.execute.bind($element, false, true), clickBubble: false, button: { disabled: !$root.continue.enabled(), icon: 'material-icons material-icons-note-add', label: $root.t($root.continue.name3), showLabel: true }">SAVE AS TEMPLATE</a><!-- /ko -->
       </div>
       <!-- /ko -->
     </div>
@@ -141,9 +141,9 @@
     <div id="main-preview-content">
       <div id="preview-toolbar">
         <div data-bind="visible: true, css: { hiddenPreview: !$root.showPreviewFrame() }, buttonset: { refreshOn: $root.previewMode }" style="display: inline-block">
-          <label><input id="previewLarge" type="radio" name="previewMode" value="large" data-bind="checked: $root.previewMode, button: { showLabel: false, label: 'desktop', icon: 'fa fa-fw fa-desktop' }" /> Desktop</label>
-          <label><input id="previewDesktop" type="radio" name="previewMode" value="desktop" data-bind="checked: $root.previewMode, button: { showLabel: false, label: 'tablet', icon: 'fa fa-fw fa-tablet' }" /> Tablet</label>
-          <label><input id="previewMobile" type="radio" name="previewMode" value="mobile" data-bind="checked: $root.previewMode, button: { showLabel: false, label: 'mobile', icon: 'fa fa-fw fa-mobile' }" /> Mobile</label>
+          <label><input id="previewLarge" type="radio" name="previewMode" value="large" data-bind="checked: $root.previewMode, button: { showLabel: false, label: 'desktop', icon: 'material-icons material-icons-desktop-windows' }" /> Desktop</label>
+          <label><input id="previewDesktop" type="radio" name="previewMode" value="desktop" data-bind="checked: $root.previewMode, button: { showLabel: false, label: 'tablet', icon: 'material-icons material-icons-tablet' }" /> Tablet</label>
+          <label><input id="previewMobile" type="radio" name="previewMode" value="mobile" data-bind="checked: $root.previewMode, button: { showLabel: false, label: 'mobile', icon: 'material-icons material-icons-smartphone' }" /> Mobile</label>
         </div>
       </div>
 

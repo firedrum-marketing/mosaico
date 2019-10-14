@@ -23,7 +23,6 @@ var checkModel = function(reference, blockDefs, model, origPrefix, reverse) {
           continue;
         }
         switch(prop) {
-          case 'manualImageHeight':
           case 'dynamicContent':
           case '_variantTarget':
           case '_locks':
@@ -134,7 +133,6 @@ var checkModel = function(reference, blockDefs, model, origPrefix, reverse) {
           continue;
         }
         switch(prop) {
-          case 'manualImageHeight':
           case 'dynamicContent':
           case '_variantTarget':
           case '_locks':

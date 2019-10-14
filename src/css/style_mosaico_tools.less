@@ -29,9 +29,11 @@
     font-size: 1.2em;
   }
   .propInput .data-select::after,
+  .propInput .data-font::after,
   .propInput .evo-pointer::before {
     width: 31px;
     padding: 0 10px;
+    font-size: 24px;
   }
   .propInput .ui-textbutton .ui-textbutton-button.ui-button-icon-only {
     width: 30px;
@@ -111,9 +113,10 @@
     overflow: visible; // preview icons to select desktop/tablet/smartphone are truncated without this.
   }
 
-  .fa { // reset .fa
+  .material-icons { // reset .material-icons
     display: inline-block;
     font-style: normal;
+    vertical-align: middle;
   }
 
   .buttons {
@@ -132,6 +135,8 @@
     }
 
     .emojionearea {
+      padding: 5px 7px 0;
+
       input[type=text] {
         width: auto;
       }
@@ -141,7 +146,8 @@
       }
     }
 
-    .data-select {
+    .data-select,
+    .data-font {
       display: block;
       .input-select();
     }
@@ -191,26 +197,29 @@
   }
 
   .propLabel {
-    padding: 8px 8px;
+    padding: 8px;
     padding-left: 0;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     width: 48%;
     float: left; 
-    text-align: left;
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-start;
 
     // "?" for tooltips
-    &[title]:before {
+    &[title]:after {
       .makeFontAwesome();
-      float: right;
-      position: static;
       color: #5D96CF;
-      content: "\f059";
-      line-height: .75em;
+      content: "\e887";
       margin-left: 0.5em;
       font-size: 2em;
       border-bottom: none;
+      position: absolute;
+      top: 50%;
+      right: 8px;
+      transform: translateY(-50%);
     }
 
     &[title] span {
@@ -227,15 +236,16 @@
     padding: 5px 5px 5px 1em;
     background-color: #738999;
     border-radius: 2px 2px 0 0;
-    text-align: center;
+    justify-content: center;
     color: #FFFFFF;
     font-size: 1.2em;
     box-shadow: 0 3px 1px -2px rgba(0,0,0,.2), 0 2px 2px 0 rgba(0,0,0,.14), 0 1px 5px 0 rgba(0,0,0,.12);
     text-transform: uppercase;
 
-    &:before {
+    &:after {
       color: #FFFFFF;
       font-size: 1.85em;
+      right: 5px;
     }
   }
 
@@ -297,7 +307,7 @@
     display: none;
   }
 
-  .propLabel:after, .propInput:after, .objEdit:after {
+  .propInput:after, .objEdit:after {
     content: "";
     display: table;
   }
@@ -398,6 +408,8 @@
     margin-top: 15px;
   }
   .objPreview {
+    display: flex;
+    align-items: center;
     width: 50px;
     height: 50px;
     border-radius: 100%;
@@ -410,8 +422,13 @@
 
   .objPreview > div {
     position: absolute;
-    bottom: 20%;
     left: 20%;
+
+    &.material-icons {
+      left: 50%;
+      transform: translateX(-50%);
+      color: #fff;
+    }
   }
 
   .propEditor {
@@ -481,9 +498,10 @@
     &:before {
       .button-style();
 
-      font-family: FontAwesome;
-      content: "\f0d7";
+      font-family: 'Mosaico Icons';
+      content: "\e5c5";
       font-weight: normal;
+      font-size: 24px;
 
       // see .button_dropdown_split styles
       border-left: @input-border-size solid fade(@button-border-color-split, 50%) !important; // !important to work also on .big and .primary
@@ -505,47 +523,49 @@
     display: none;
 
     & + .checkbox-replacer {
-      width: 1.28571429em;
+      width: 1em;
+      font-size: 19px;
       display: block;
       text-align: center;
-    }
 
-    & + .checkbox-replacer:before {
-      .makeFontAwesome();
+      &:before {
+        .makeFontAwesome();
+        justify-content: center;
+        position: relative;
+        z-index: 2;
+      }
+
+      &:after {
+        justify-content: center;
+      }
     }
   }
 
   .objEdit input[type=checkbox] {
-    &:checked + .checkbox-replacer:before {
-      content: '\f205'; /* '\f096'; */
-    }
     & + .checkbox-replacer:before {
-      font-size: 150%;
       text-align: center;
-      content: '\f204'; /* '\f14a'; */
     }
   }
 
   .propCheck {
     input[type=checkbox] {
       &:checked + .checkbox-replacer:before {
-        content: "\f1b2"; /* cubo */
-        font-size: 14px;
+        font-size: 19px;
+        content: "\e8ba"; /* single cube */
         opacity: 1;
       }
       & + .checkbox-replacer:before {
-        content: "\f1b3"; /* cubi */
-        font-size: 14px;
+        font-size: 19px;
+        content: "\e1bd"; /* multiple cubes */
         opacity: .8;
       }
     }
     &.propLock input[type=checkbox] {
       &:checked + .checkbox-replacer:before {
-        content: "\f023";
+        content: "\e899";
       }
       & + .checkbox-replacer:before {
-        content: "\f13e";
-        font-size: 14px;
+        content: "\e898";
         vertical-align: bottom;
         opacity: 1;
       }
@@ -562,8 +582,8 @@
     }
 
     // NOTE: maybe this could be applied also to non-propInput spinners
-    .ui-state-default .ui-icon.fa,
-    .ui-widget-content .ui-icon.fa {
+    .ui-state-default .ui-icon.material-icons,
+    .ui-widget-content .ui-icon.material-icons {
       background-image: none;
       font-size: 10px;
       top: 9px;
@@ -572,6 +592,7 @@
 
   .propLabel[title] {
     cursor: help;
+    position: relative;
   }
 
   .noSelectedBlock, .customStyleHelp, .objEmpty, .galleryEmpty, .blockDescription {
@@ -763,7 +784,7 @@
       line-height: 34px;
 
       &:after {
-        font-family: FontAwesome;
+        font-family: 'Material Icons';
         background: none repeat scroll 0 0 transparent;
         text-indent: 0;
         width: auto;
@@ -773,7 +794,7 @@
         margin-right: .5em;
         display: inline-block;
         font-style: normal;
-        content: '\f078';
+        content: '\e313';
         border: 0;
         border-left: 1px solid #FFFFFF;
         margin: 0 0 0 .5em;
@@ -839,7 +860,6 @@
   > div:not(.ui-widget),
   > div:not(.ui-widget) > div {
     height: 100%;
-    overflow: hidden;
   }
 
   #tooltabs{
@@ -847,7 +867,7 @@
       position: absolute;
       left: 100%;
       top: @topbar-height + 35px;
-      display: inline-block;
+      display: flex;
       text-align: center;
       height: 80px;
       width: 1em;
@@ -856,19 +876,21 @@
       border-radius: 0 8px 8px 0;
       background: #EEEEEE;
       cursor: pointer;
+      overflow: hidden;
+      justify-content: center;
 
-      .fa {
+      .material-icons {
         line-height: 80px;
+        font-size: 48px;
         transform: rotate3d(0,0,0,0);
         animation: rotateleft .2s ease-out 0s 1;
       }
-      &.hidden .fa {
+      &.hidden .material-icons {
         transform: rotate3d(0,0,1,180deg);
         animation: rotateright .2s ease-out 0s 1;
       }
     }
     &.ui-tabs {
-      overflow: hidden;
       .ui-tabs-panel {
         top: @topbar-height;
         overflow-y: auto;
@@ -881,14 +903,20 @@
         top: 0 !important;
         font-size: 1.2em;
         padding: 0px 0px 0px 4px;
-  
+
         li {
           margin: 4px 4px 0 0; // margin-top for good tabs also when they wrap on new line.
           line-height: @topbar-height - 4px + 1px;
-  
+
           a {
+            display: flex;
+            align-items: center;
             width: 100%;
             padding: 0 .325em;
+
+            i {
+              margin-right: .141em;
+            }
           }
         }
       }
@@ -1067,8 +1095,12 @@
       width: 56px;
     }
 
+    & + .checkbox-replacer:before {
+      position: relative;
+      z-index: 2;
+    }
     & + .checkbox-replacer:after {
-      .makeFontAwesome;
+      .makeFontAwesome();
     }
 
     & + .checkbox-replacer:before,
@@ -1078,12 +1110,9 @@
       padding: 1px;
       display: block;
       float: left;
-      font-size: 14px;
-      line-height: 18px;
-      width: 22px;
+      width: 24px;
       opacity: 1;
-      height: 18px;
-      // border-radius: 5px;
+      height: 24px;
       top: 0;
       left: 0;
       box-sizing: content-box;
@@ -1091,12 +1120,12 @@
 
     & + .checkbox-replacer:after,
     &:checked + .checkbox-replacer:after {
-      content: "\f1b2"; /* cubo */
+      content: "\e047"; /* single cube */
     }
 
     & + .checkbox-replacer:before,
     &:checked + .checkbox-replacer:before {
-      content: "\f1b3"; /* cubi */
+      content: "\e1bd"; /* multiple cubes */
     }
 
 
@@ -1106,8 +1135,8 @@
 
       width: 22px;
       font-weight: normal;
-      min-height: 18px;
-      line-height: 18px;
+      min-height: 24px;
+      line-height: 24px;
       color: fade(@mosaico-text-color, 50%);
 
       padding: 2px;
@@ -1129,8 +1158,8 @@
       .button-style();
 
       font-weight: normal;
-      min-height: 18px;
-      line-height: 18px;
+      min-height: 24px;
+      line-height: 24px;
 
       padding: 4px;
       margin: -3px -2px;
@@ -1167,19 +1196,26 @@
     }
   }
 
-  .customStyled span {
-    display: none;
-  }
+  
+  .customStyled {
+    display: inline-flex;
+    vertical-align: middle;
+    align-items: center;
 
-  .customStyled:before {
-    content: " ";
-  }
+    span {
+      display: none;
+    }
 
-  .customStyled:after {
-    .makeFontAwesome();
-    content: "\f1b2";
-    font-size: 14px;
-    opacity: 1;
+    &:before {
+      content: "";
+    }
+
+    &:after {
+      .makeFontAwesome();
+      content: "\e8ba";
+      font-size: 1em;
+      opacity: 1;
+    }
   }
 
   #tooldebug {
@@ -1271,8 +1307,8 @@
 
     &:before {
       font-size: 24px;
-      font-family: FontAwesome;
-      content: '\f00d';
+      font-family: 'Material Icons';
+      content: '\e5cd';
       position: relative;
       top: 0px;
       right: 0px;

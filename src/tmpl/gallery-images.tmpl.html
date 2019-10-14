@@ -4,19 +4,19 @@
       <img title="Drag this image and drop it on any template image placeholder" style="display: block;" data-bind="tooltip: {show: {delay: 500}, track: true, classes: { 'ui-tooltip-content': 'breakall' }, content: function() {return Mosaico.$(this).attr('title')} }, attr: { src: thumbnailUrl, 'title': name + '<br><br>' + $root.t('Drag this image and drop it on any template image placeholder') }"/>
     </div>
     <!-- ko if: typeof $root.libraryPath !== 'undefined' && typeof $root.libraryPaths()['/Favorites'] !== 'undefined' && typeof $root.addFavoriteImage !== 'undefined' && typeof $root.removeFavoriteImage !== 'undefined' -->
-    <div data-bind="click: function() { if ( favorited() ) { $root.removeFavoriteImage($data) } else { $root.addFavoriteImage($data) } }, attr: { title: $root.t( ( favorited() ? 'Remove from' : 'Add to' ) + ' Favorites' ), class: 'manipulate-favorite-image fa fa-star' + ( favorited() ? '' : '-o' ) }, tooltip: {show: {delay: 500}, track: true}"></div>
+    <div data-bind="click: function() { if ( favorited() ) { $root.removeFavoriteImage($data) } else { $root.addFavoriteImage($data) } }, attr: { title: $root.t( ( favorited() ? 'Remove from' : 'Add to' ) + ' Favorites' ), class: 'manipulate-favorite-image material-icons material-icons-favorite' + ( favorited() ? '' : '-outline' ) }, tooltip: {show: {delay: 500}, track: true}"></div>
     <!-- /ko -->
   </div>
   <div class="directory-item" data-bind="if: attributes[0] === 'd'">
-	<div class="directory fa fa-folder-open" data-bind="click: navigate"><span data-bind="text: name, attr:{ 'title': name }, tooltip: {show: {delay: 500}, track: true}"></span></div>
+	<div class="directory material-icons material-icons-folder" data-bind="click: navigate"><span data-bind="text: name, attr:{ 'title': name }, tooltip: {show: {delay: 500}, track: true}"></span></div>
   </div>
 </div>
 <!-- ko if: items.pageCount() > 1 -->
 <div class="galleryPager" data-bind="buttonset: {}">
-  <a href="javascript:void(0)" data-bind="click: items.moveFirst, button: { disabled: items.currentPage() == 1, icon: 'fa fa-fast-backward', showLabel: false }">First</a>
-  <a href="javascript:void(0)" data-bind="click: items.movePrevious, button: { disabled: items.currentPage() == 1, icon: 'fa fa-backward', showLabel: false }">Previous</a>
+  <a href="javascript:void(0)" data-bind="click: items.moveFirst, button: { disabled: items.currentPage() == 1, icon: 'material-icons material-icons-first-page', showLabel: false }">First</a>
+  <a href="javascript:void(0)" data-bind="click: items.movePrevious, button: { disabled: items.currentPage() == 1, icon: 'material-icons material-icons-chevron-left', showLabel: false }">Previous</a>
   <span data-bind="button: { disabled: true, text: true, label: ' '+$root.t('__current__ of __total__', { current: items.currentPage(), total: items.pageCount() })+' ' }"> X of Y </span>
-  <a href="javascript:void(0)" data-bind="click: items.moveNext, button: { disabled: items.currentPage() == items.pageCount(), icon: 'fa fa-forward', showLabel: false }">Next</a>
-  <a href="javascript:void(0)" data-bind="click: items.moveLast, button: { disabled: items.currentPage() == items.pageCount(), icon: 'fa fa-fast-forward', showLabel: false }">Last</a>
+  <a href="javascript:void(0)" data-bind="click: items.moveNext, button: { disabled: items.currentPage() == items.pageCount(), icon: 'material-icons material-icons-chevron-right', showLabel: false }">Next</a>
+  <a href="javascript:void(0)" data-bind="click: items.moveLast, button: { disabled: items.currentPage() == items.pageCount(), icon: 'material-icons material-icons-last-page', showLabel: false }">Last</a>
 </div>
 <!-- /ko -->

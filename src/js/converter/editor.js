@@ -241,9 +241,8 @@ var _propInput = function(model, prop, propAccessor, editType, widgets, isGlobal
      onfocusbinding += ' }';
     }
     html += '<div class="ui-textbutton">';
-    // <a class="ui-spinner-button ui-spinner-down ui-corner-br ui-button ui-widget ui-state-default ui-button-text-only" tabindex="-1" role="button"><span class="ui-button-text"><span class="ui-icon fa fa-fw caret-down">▼</span></span></a>
     html += '<input class="ui-textbutton-input" size="7" type="url" pattern="((mailto:(.+@.+)|(\\[.*\\].*))|(tel:([0-9]+)|(\\[.*\\].*))|[a-zA-Z]+://.+\\..+|\\[.*\\].*)" value="nothing" data-bind="css: { withButton: typeof $root.linkDialog !== \'undefined\' }, validatedValue: { defaultProtocol: \'http://\', value: ' + propAccessor + ' }, ' + onfocusbinding + '" />';
-    html += '<a href="javascript:void(0)" class="ui-textbutton-button" data-bind="visible: typeof $root.linkDialog === \'function\', click: typeof $root.linkDialog === \'function\' ? $root.linkDialog.bind(undefined, \'' + propAccessor + '\', \'' + (model !== null && typeof model._disabledOn !== 'undefined' ? model._disabledOn : 'false') + '\', {}) : false, button: { icon: \'fa fa-fw fa-file-text-o\', label: $root.t(\'Opzioni\'), showLabel: false }"></a>';
+    html += '<a href="javascript:void(0)" class="ui-textbutton-button" data-bind="visible: typeof $root.linkDialog === \'function\', click: typeof $root.linkDialog === \'function\' ? $root.linkDialog.bind(undefined, \'' + propAccessor + '\', \'' + (model !== null && typeof model._disabledOn !== 'undefined' ? model._disabledOn : 'false') + '\', {}) : false, button: { icon: \'material-icons material-icons-library-books\', label: $root.t(\'Opzioni\'), showLabel: false }"></a>';
     html += '</div>';
   } else if (widget == 'integer') {
     if (Object.keys(eventbinding).length > 0) {
@@ -283,7 +282,7 @@ var _propInput = function(model, prop, propAccessor, editType, widgets, isGlobal
     }
     html += '<div class="ui-textbutton">';
     html += '<input class="ui-textbutton-input" size="7" type="text" value="nothing" data-bind="' + valuebinding + ', ' + onfocusbinding + '" />';
-    html += '<a href="javascript:void(0)" class="ui-textbutton-button" data-bind="visible: typeof $root.linkDialog === \'function\', click: typeof $root.linkDialog === \'function\' ? $root.linkDialog.bind(undefined, \'' + propAccessor + '\', \'' + (model !== null && typeof model._disabledOn !== 'undefined' ? model._disabledOn : 'false') + '\', ' + ( propAccessor === 'annotationLogoImage' ? '{ extensions: \'bmp,jpg,jpeg,gif,png\' }' : propAccessor === 'annotationPromotionImage' ? '{ extensions: \'bmp,jpg,jpeg,png\' }' : '{ extensions: \'bmp,jpg,jpeg,gif,png\', path: \'/Backgrounds\' }' ) + ') : false, button: { icon: \'fa fa-fw fa-image\', label: $root.t(\'' + ( propAccessor === 'annotationLogoImage' ? 'Select Logo Image' : propAccessor === 'annotationPromotionImage' ? 'Select Promotion Image' : 'Select Background' ) + '\'), showLabel: false }"></a>';
+    html += '<a href="javascript:void(0)" class="ui-textbutton-button" data-bind="visible: typeof $root.linkDialog === \'function\', click: typeof $root.linkDialog === \'function\' ? $root.linkDialog.bind(undefined, \'' + propAccessor + '\', \'' + (model !== null && typeof model._disabledOn !== 'undefined' ? model._disabledOn : 'false') + '\', ' + ( propAccessor === 'annotationLogoImage' ? '{ extensions: \'bmp,jpg,jpeg,gif,png\' }' : propAccessor === 'annotationPromotionImage' ? '{ extensions: \'bmp,jpg,jpeg,png\' }' : '{ extensions: \'bmp,jpg,jpeg,gif,png\', path: \'/Backgrounds\' }' ) + ') : false, button: { icon: \'material-icons material-icons material-icons-photo-library\', label: $root.t(\'' + ( propAccessor === 'annotationLogoImage' ? 'Select Logo Image' : propAccessor === 'annotationPromotionImage' ? 'Select Promotion Image' : 'Select Background' ) + '\'), showLabel: false }"></a>';
     html += '</div>';
   } else {
     if (Object.keys(eventbinding).length > 0) {
@@ -296,7 +295,7 @@ var _propInput = function(model, prop, propAccessor, editType, widgets, isGlobal
       }
      onfocusbinding += ' }';
     }
-    html += '<input size="7" type="text" value="nothing" data-bind="' + valuebinding + ', ' + onfocusbinding + '" />';
+    html += '<input size="7" type="text" value="nothing"' + (model !== null && typeof model._max !== 'undefined' ? ' maxlength="' + model._max + '"' : '') + ' data-bind="' + valuebinding + ', ' + onfocusbinding + '" />';
   }
 
   html += '</label>';

@@ -1,12 +1,12 @@
 <div id="tooltabs" class="tabs_horizontal button_color" data-bind="tabs: { active: $root.selectedTool }">
-<div class="drawer" data-bind="click: function(){$root.showToolbox(!$root.showToolbox())}, css: { hidden: $root.showToolbox() === false }"><span class="fa fa-angle-left"></span></div>
+  <div class="drawer" data-bind="click: function(){$root.showToolbox(!$root.showToolbox())}, css: { hidden: $root.showToolbox() === false }"><i class="material-icons" aria-hidden="true">chevron_left</i></div>
   <ul>
     <!-- ko if: typeof $root.envelope !== 'undefined' -->
-    <li><a data-local="true" href="#toolenvelope"><i class="fa fa-fw fa-envelope-o"></i> <span data-bind="html: $root.t('Subject')">Subject</span></a></li>
+    <li><a data-local="true" href="#toolenvelope"><i class="material-icons" aria-hidden="true">email</i> <span data-bind="html: $root.t('Subject')">Subject</span></a></li>
     <!-- /ko -->
-    <li><a data-local="true" href="#toolblocks"><i class="fa fa-fw fa-cubes"></i> <span data-bind="html: $root.t('Blocks')">Blocks</span></a></li>
-    <li><a href="#toolcontents" data-local="true"><i class="fa fa-fw fa-pencil"></i> <span data-bind="html: $root.t('Content')">Content</span></a></li>
-    <li><a href="#toolstyles" data-local="true"><i class="fa fa-fw fa-paint-brush"></i> <span data-bind="html: $root.t('Style')">Style</span></a></li>
+    <li><a data-local="true" href="#toolblocks"><i class="material-icons" aria-hidden="true">widgets</i> <span data-bind="html: $root.t('Blocks')">Blocks</span></a></li>
+    <li><a href="#toolcontents" data-local="true"><i class="material-icons" aria-hidden="true">edit</i> <span data-bind="html: $root.t('Content')">Content</span></a></li>
+    <li><a href="#toolstyles" data-local="true"><i class="material-icons" aria-hidden="true">style</i> <span data-bind="html: $root.t('Style')">Style</span></a></li>
   </ul>
 
   <!-- ko if: typeof $root.envelope !== 'undefined' -->
@@ -93,7 +93,7 @@
       </div>
 
       <div id="toolimagesgallery">
-      <!-- ko if: $root.galleryLoaded() === false --><a class="loadbutton" title="Show images from the gallery" href="javascript:void(0)" data-bind="attr: { title: $root.t('Show images from the gallery') }, click: $root.loadGallery, button: { disabled: $root.galleryLoaded, icons: { primary: 'fa fa-fw fa-picture-o' }, label: $root.galleryLoaded() == 'loading' ? $root.t('Loading...') : $root.t('Load gallery'), text: true }"># load gally #</a><!-- /ko -->
+      <!-- ko if: $root.galleryLoaded() === false --><a class="loadbutton" title="Show images from the gallery" href="javascript:void(0)" data-bind="attr: { title: $root.t('Show images from the gallery') }, click: $root.loadGallery, button: { disabled: $root.galleryLoaded, icons: { primary: 'material-icons material-icons-photo-library' }, label: $root.galleryLoaded() == 'loading' ? $root.t('Loading...') : $root.t('Load gallery'), text: true }"># load gally #</a><!-- /ko -->
 
 
       <!-- ko if: $root.galleryLoaded() === 'loading' --><div class="galleryEmpty" data-bind="text: $root.t('Loading gallery...')">Loading gallery...</div><!-- /ko -->
@@ -111,11 +111,11 @@
       <div id="galleryPath" data-bind="text: $root.libraryPath"></div>
 
       <div style="text-align:center">
-        <!-- ko if: $root.galleryLoaded() === false --><a class="loadbutton" title="Load your Image Library" href="javascript:void(0)" data-bind="attr: { title: $root.t('Load your Image Library') }, click: $root.loadGallery, button: { disabled: $root.galleryLoaded, icon: 'fa fa-fw fa-picture-o', label: $root.galleryLoaded() == 'loading' ? $root.t('Loading...') : $root.t('Load Library'), showLabel: true }"># load gallery #</a><!-- /ko -->
+        <!-- ko if: $root.galleryLoaded() === false --><a class="loadbutton" title="Load your Image Library" href="javascript:void(0)" data-bind="attr: { title: $root.t('Load your Image Library') }, click: $root.loadGallery, button: { disabled: $root.galleryLoaded, icon: 'material-icons material-icons-photo-library', label: $root.galleryLoaded() == 'loading' ? $root.t('Loading...') : $root.t('Load Library'), showLabel: true }"># load gallery #</a><!-- /ko -->
         <!-- ko if: $root.galleryLoaded() === 'loading' --><div class="galleryEmpty" data-bind="text: $root.t('Loading your image library...')">Loading your image library...</div><!-- /ko -->
         <!-- ko if: $root.galleryLoaded() === 0 --><div class="galleryEmpty" data-bind="text: $root.t('The image library is empty.')">Your image library is empty.</div><!-- /ko -->
         <!-- ko if: $root.libraryPath() != $root.libraryFileSystem() -->
-        <a class="loadbutton" title="Up one directory" href="javascript:void(0)" data-bind="attr: { title: $root.t('Up one directory') }, click: $root.libraryPaths()[$root.libraryPath()]().ascend, button: { disabled: $root.libraryPath() === $root.libraryFileSystem(), icon: 'fa fa-fw fa-arrow-up', label: $root.t('Up one directory'), showLabel: true }"># up one directory #</a>
+        <a class="loadbutton" title="Up one directory" href="javascript:void(0)" data-bind="attr: { title: $root.t('Up one directory') }, click: $root.libraryPaths()[$root.libraryPath()]().ascend, button: { disabled: $root.libraryPath() === $root.libraryFileSystem(), icon: 'material-icons material-icons-arrow-upward', label: $root.t('Up one directory'), showLabel: true }"># up one directory #</a>
         <!-- /ko -->
       </div>
 
@@ -260,9 +260,9 @@
 
 
     <div class="statusContainer" style="float: left;margin: 10px 7px 10px 0;padding: 2.5px;vertical-align: middle;">
-      <div class="hidden" data-passed="true"><img class="medium_icon" data-bind="attr: { src: $root.infoSaveIcon() }" style="vertical-align: middle;"> <span>Passed</span></div>
-      <div class="hidden" data-passed="false"><img class="medium_icon" data-bind="attr: { src: $root.cautionIcon() }" style="vertical-align: middle;"> <span class="inputlabel">Failed</span></div>
-      <div class="hidden" data-passed="" style="opacity: 1; display: block;"><img class="medium_icon" data-bind="attr: { src: $root.cautionIcon() }" style="vertical-align: middle;"> <span class="inputlabel">Not Checked</span></div>
+      <div class="hidden" data-passed="true"><i class="material-icons success_icon" aria-hidden="true">check_circle</i><span>Passed</span></div>
+      <div class="hidden" data-passed="false"><i class="material-icons error_icon" aria-hidden="true">error</i><span>Failed</span></div>
+      <div class="hidden" data-passed="" style="opacity: 1; display: block;"><i class="material-icons warning_icon" aria-hidden="true">warning</i><span>Not Checked</span></div>
     </div>
   
     <div style="text-align: right;padding-right: 8px;">
@@ -272,12 +272,10 @@
 
     <div class="reportContainer hidden">
       <div class="pane-title">Spam Content Checker Results</div>
-      <div data-passed="true" style="background-color: #C4FFCF; margin: 5px 5px 16px 5px;" >
-        <img class="medium_icon" style="vertical-align: middle;" data-bind="attr: { src: $root.infoSaveIcon() }">
+      <div data-passed="true" style="background-color: #C4FFCF; margin: 5px 5px 16px 5px;">
         Your content is spam safe.  Your score is <span class="points"></span>, lower than the required score of <span class="threshold"></span> to be marked as spam.
       </div>
       <div data-passed="false" style="background-color: #FFC4C4; margin: 5px;">
-        <img class="medium_icon" style="vertical-align: middle;" data-bind="attr: { src: $root.cautionIcon() }">
         Your content is NOT spam safe. Your score is <span class="points"></span>, higher than the required score of <span class="threshold"></span> to be marked as spam.
       </div>
       <pre class="report" style="overflow:scroll;margin-top:16px;"></pre>
@@ -292,10 +290,10 @@
   <div class="pane-content">
     <div class="messageContainer clearfix" style="display: none;"></div>
 
-    <div class="galleryEmpty recommendationContainer"><img class="medium_icon" data-bind="attr: { src: $root.infoIcon() }" style="vertical-align: middle;"> <span data-bind="text: $root.tests.send.strings.recommendation"># Recommended, to ensure your email looks as expected.  Click tracking is disabled on test emails. #</span></div>
+    <div class="galleryEmpty recommendationContainer"><span data-bind="text: $root.tests.send.strings.recommendation"># Recommended, to ensure your email looks as expected.  Click tracking is disabled on test emails. #</span></div>
 
     <div class="galleryEmpty multipleAddressesTip">
-      <img class="medium_icon" data-bind="attr: { src: $root.infoIcon() }" style="vertical-align: middle;"> <span data-bind="text: $root.tests.send.strings.instructions"># Use semicolon to separate multiple email addresses. #</span>
+      <i class="material-icons info_icon" aria-hidden="true">info_outline</i><span data-bind="text: $root.tests.send.strings.instructions"># Use semicolon to separate multiple email addresses. #</span>
     </div>
 
     <div class="propEditor testsendemailaddress">
@@ -308,8 +306,8 @@
       </div>
     </div>
     <div class="statusContainer" style="float: left;margin: 10px 7px 10px 0;padding: 2.5px;vertical-align: middle;">
-      <span data-sent="false" class="sendTestStatus hidden" style="opacity: 1; display: block;"><img class="medium_icon" data-bind="attr: { src: $root.cautionIcon() }" style="vertical-align: middle;"> <span class="inputlabel">Not Sent</span></span>
-      <span data-sent="true" class="sendTestStatus hidden"><img class="medium_icon" data-bind="attr: { src: $root.infoSaveIcon() }" style="vertical-align: middle;"> <span class="inputlabel">Sent</span></span>
+      <span data-sent="false" class="sendTestStatus hidden" style="opacity: 1; display: block;"><i class="material-icons warning_icon" aria-hidden="true">warning</i><span class="inputlabel">Not Sent</span></span>
+      <span data-sent="true" class="sendTestStatus hidden"><i class="material-icons success_icon" aria-hidden="true">check_circle</i><span class="inputlabel">Sent</span></span>
     </div>
     <div style="text-align: right;padding-right: 8px;">
       <a class="loadbutton" title="Send Test Email" href="javascript:void(0)" data-bind="attr: { title: $root.t('Send Test email') }, click: $root.tests.send.execute, button: { disabled: $root.tests.send.disabled, label: $root.t('Send Test Email'), showLabel: true }"># send test email #</a>
@@ -319,13 +317,13 @@
 
 <div id="toolinboxpreview" class="slidebar" data-bind="scrollable: true, css: { hidden: $root.testMode() !== 'inboxPreview' }">
   <div class="close" data-bind="click: $root.testMode.bind($element, '');"></div>
-  <span class="pane-title" data-bind="text: $root.t('Inbox Preview Assistant:')">Inbox Preview Assistant:</span>
+  <span class="pane-title" data-bind="text: $root.t('Inbox Preview:')">Inbox Preview:</span>
 
   <div class="pane-content">
-    <div class="galleryEmpty" data-bind="text: $root.tests.inboxPreview.strings.recommendation"># Inbox preview assistant #</div>
+    <div class="galleryEmpty" data-bind="text: $root.tests.inboxPreview.strings.recommendation"># Inbox preview #</div>
 
     <div style="text-align: right;padding-right: 8px;">
-      <a class="loadbutton" title="Run Preview Test" href="javascript:void(0)" data-bind="attr: { title: $root.t('Run Preview Test') }, click: $root.tests.inboxPreview.execute, button: { disabled: $root.tests.inboxPreview.disabled, label: $root.t('Run Preview Test'), showLabel: true }"># run preview test #</a>
+      <a class="loadbutton" title="View Preview" href="javascript:void(0)" data-bind="attr: { title: $root.t('View Preview') }, click: $root.tests.inboxPreview.execute, button: { disabled: $root.tests.inboxPreview.disabled, label: $root.t('View Preview'), showLabel: true }"># view preview #</a>
     </div>
   </div>
 </div>

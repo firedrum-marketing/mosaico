@@ -473,7 +473,7 @@ ul.popup_links {
  *************************************************************************************************************************/
 
 // WARN: direct selectors are only used by mosaico (no .form-select-wrapper here)
-select, textarea {
+select:not(.mdc-select__native-control), textarea:not(.mdc-text-field__input) {
   .input-style;
 }
 input:disabled, select:disabled, textarea:disabled {

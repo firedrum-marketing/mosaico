@@ -194,24 +194,6 @@ module.exports = function(grunt) {
       }
     },
 
-    googlefonts: {
-      noto: {
-        options: {
-          fontPath: './dist/rs/notoregular/',
-          httpPath: './notoregular/',
-          cssFile: './build/notoregular.css',
-          formats: { eot: true, woff: true, svg: false, ttf: true, woff2: false },
-          fonts: [
-            {
-              family: 'Noto Sans',
-              styles: [ 400 ],
-              subsets: [ 'latin' ]
-            }
-          ]
-        }
-      }
-    },
-
     copy: {
       res: {
         expand: true,
@@ -237,25 +219,12 @@ module.exports = function(grunt) {
         },
       },
 
-      fontawesome: {
-        expand: true,
-        cwd: 'node_modules/font-awesome/fonts',
-        src: 'fontawesome-webfont.*',
-        dest: 'dist/rs/fontawesome/'
-      },
-
     },
 
     cssmin: {
       deps: {
         files: {
           'dist/rs/<%= pkg.name %>-libs.min.css': [
-            /* 'node_modules/jquery-ui-package/jquery-ui.css', */
-            'build/notoregular.css',
-            /*
-            'res/vendor/skins/gray-flat/skin.min.css',
-            'res/vendor/skins/gray-flat/content.inline.min.css'
-            */
           ]
         }
       }
@@ -352,7 +321,6 @@ module.exports = function(grunt) {
           'mosaico': 'GPL-3.0', // SELF
           /* MIT with bad license declarations */
           'expand-template': 'MIT', // Say "WTFPL" but on github project says "All code, unless stated otherwise, is dual-licensed under WTFPL and MIT."
-          'font-awesome': 'MIT', // (OFL-1.1 AND MIT)
           'jshint': 'MIT', // (MIT AND JSON)
           'pako': 'MIT', // (MIT AND Zlib)
           'xmldom': 'MIT', // MIT or LGPL (https://github.com/jindw/xmldom/blob/master/LICENSE)
@@ -403,7 +371,7 @@ module.exports = function(grunt) {
   grunt.registerTask('css', ['less', 'postcss']);
   grunt.registerTask('server', ['express', 'watch', 'keepalive']);
   grunt.registerTask('deps', ['copy', 'uglify', 'cssmin']);
-  grunt.registerTask('build', ['googlefonts', 'jshint', 'js', 'css']);
+  grunt.registerTask('build', ['jshint', 'js', 'css']);
   grunt.registerTask('default', ['build', 'server']);
   grunt.registerTask('test', ['jasmine_node']);
   grunt.registerTask('dist', ['check_licenses', 'build', 'test', 'compress']);

@@ -4,7 +4,7 @@
 @background-color: #EEEEEE;
 @link-color: #FF5722; // #ea1c0d;
 
-@font-family: "Noto Sans", "Helvetica Neue", Helvetica, Arial, "Nimbus Sans L", "Liberation Sans", Arimo, sans-serif;
+@font-family: Roboto, sans-serif;
 @standard-border-radius: 2px;
 @info-border-radius: @standard-border-radius;
 @button-border-radius: @standard-border-radius;
@@ -125,11 +125,18 @@
 
 #main-toolbox {
   .blockCheck input[type=checkbox] {
+    + .checkbox-replacer:before,
+    + .checkbox-replacer:after {
+      line-height: 24px;
+    }
+
     &:checked + .checkbox-replacer:after,
     & + .checkbox-replacer:before {
       border-radius: 50%;
       box-shadow: 1px 1px 2px @shadow-color;
       color: #FFFFFF;
+      position: relative;
+      z-index: 2;
     }
 
     & + .checkbox-replacer:after,
@@ -138,11 +145,13 @@
       background-color: #FFFFFF;
       color: @button-text-color;
     }
+
     & + .checkbox-replacer:after {
       padding-left: 15px;
       margin-left: -15px;
       border-color: transparent;
     }
+
     &:checked + .checkbox-replacer:before {
       padding-right: 15px;
       margin-right: -15px;
@@ -158,7 +167,7 @@
     }
     & + .checkbox-replacer:after,
     & + .checkbox-replacer:before {
-      content: " ";
+      content: "";
       display: block;
       transition: margin-left .2s, background-color .2s;
     }
@@ -187,16 +196,25 @@
   color: @button-background-color;
 }
 
-.mo .propInput .data-select select {
-  border-top-right-radius: 0;
-  border-bottom-right-radius: 0;
+.mo .propInput {
+  .data-select,
+  .data-font {
+    select {
+      border-top-right-radius: 0;
+      border-bottom-right-radius: 0;
+    }
+  }
 }
-.mo .propInput .data-select:after {
-  background-color: transparent;
-  color: lighten(@text-color, 30%);
+
+.mo .propInput {
+  .data-select:after,
+  .data-font:after {
+    background-color: transparent;
+    color: lighten(@text-color, 30%);
+  }
 }
 .mo .propInput .data-font select optgroup {
-  font-family: Noto Sans,Helvetica Neue,Helvetica,Arial,Nimbus Sans L,Liberation Sans,Arimo,sans-serif;
+  font-family: Roboto, sans-serif;
 }
 .mo .propInput .evo-pointer:before {
   background-color: white;
@@ -207,6 +225,7 @@
   color: lighten(@text-color, 30%);
 }
 .mo .propInput .data-select:hover:after,
+.mo .propInput .data-font:hover:after
 .mo .propInput .evo-pointer:hover:before,
 .mo .ui-button.ui-spinner-button.ui-state-hover,
 .mo .propInput .data-integer .ui-button-text,
@@ -309,54 +328,57 @@
     border-radius: 2px 2px 0 0;
   }
 
-  .mo .propInput input[type=text],
-  .mo .propInput input[type=number],
-  .mo .propInput input[type=url],
-  .mo .propInput select,
-  .mo .propInput .data-select select,
-  .mo .propInput .ui-spinner .ui-spinner-input,
-  .mo .propInput textarea,
-  .mo .propInput .emojionearea {
-    border-width: 0 0 2px 0;
-    background-color: transparent;
-    &:hover, &:focus {
-      border-color: @link-color;
-    }
-  }
-  
-  .mo .propInput .ui-spinner {
-    &:hover, &:focus {
-      .ui-spinner-button .ui-icon {
-        color: @link-color;
+  .mo .propInput {
+    input[type=text],
+    input[type=number],
+    input[type=url],
+    select,
+    .data-select select,
+    .data-font select,
+    .ui-spinner .ui-spinner-input,
+    textarea,
+    .emojionearea {
+      border-width: 0 0 2px 0;
+      background-color: transparent;
+      &:hover, &:focus {
+        border-color: @link-color;
       }
     }
-  }
 
-  .mo .propInput textarea,
-  .mo .propInput textarea + .emojionearea {
-    border-width: 0 2px 2px 2px;
-  }
-
-  .mo .propInput textarea + .emojionearea .emojionearea-editor {
-    min-height: 0;
-    padding: 0 16px 0 0;
-  }
-
-  .mo .propInput .data-color input[type=text] {
-    margin-left: 35px;
-    &:hover, &:focus {
-      margin-left: 35px;
+    .ui-spinner {
+      &:hover, &:focus {
+        .ui-spinner-button .ui-icon {
+          color: @link-color;
+        }
+      }
     }
-  }
 
-  .mo .propInput .evo-pointer {
-    border-radius: 50%;
-    width: 30px;
-    border: 0;
-    box-shadow: 0 3px 1px -2px rgba(0,0,0,.2), 0 2px 2px 0 rgba(0,0,0,.14), 0 1px 5px 0 rgba(0,0,0,.12);
-    &:before {
-      content: none;
-      display: none;
+    textarea,
+    textarea + .emojionearea {
+      border-width: 0 2px 2px 2px;
+    }
+
+    textarea + .emojionearea .emojionearea-editor {
+      min-height: 0;
+      padding: 0 16px 0 0;
+    }
+
+    .data-color input[type=text] {
+      margin-left: 35px;
+      &:hover, &:focus {
+        margin-left: 35px;
+      }
+    }
+
+    .evo-pointer {
+      border-radius: 50%;
+      width: 30px;
+      border: 0;
+      box-shadow: 0 3px 1px -2px rgba(0,0,0,.2), 0 2px 2px 0 rgba(0,0,0,.14), 0 1px 5px 0 rgba(0,0,0,.12);
+      &:before {
+        content: none;
+        display: none;
+      }
     }
   }
 

@@ -18,7 +18,7 @@
 .ui-state-disabled, &.ui-state-disabled {cursor: default !important;}
 
 // states and images
-.ui-icon, &.ui-icon {display: block;text-indent: -99999px;overflow: hidden;background-repeat: no-repeat;}
+.ui-icon, &.ui-icon {text-indent: 99999px;overflow: hidden;background-repeat: no-repeat;}
 
 // Overlays
 .ui-widget-overlay, &.ui-widget-overlay, &.ui-dialog + .ui-widget-overlay {position: fixed;top: 0;left: 0;width: 100%;height: 100%;}
@@ -38,7 +38,8 @@
     position: relative;
     width: 2em;
     box-sizing: border-box;
-    text-indent: -9999px;
+    // text-indent: 9999px; - This is broken in Chrome >= 76
+    font-size: 0px !important;
     white-space: nowrap;
 
     .ui-icon {
@@ -111,7 +112,8 @@
         display: block;
         line-height: normal;
         padding: .4em;
-        text-indent: -9999999px;
+        // text-indent: 9999999px; - This is broken in Chrome >= 76
+        font-size: 0px !important;
       }
     }
   }
@@ -331,10 +333,12 @@
     cursor: pointer;
     .ui-icon {
       &.ui-icon-triangle-1-n:after {
-        content: "\f0d8";
+        content: "\e5c7";
+        font-size: 24px;
       }
       &.ui-icon-triangle-1-s:after {
-        content: "\f0d7";
+        content: "\e5c5";
+        font-size: 24px;
       }
     }
   }
@@ -343,9 +347,9 @@
     border-bottom: none;
     border-radius: 0 @button-border-radius 0 0;
     .ui-button-text:after {
-      font-family: FontAwesome;
+      font-family: 'Material Icons';
       font-weight: normal;
-      content: "\f0d8";
+      content: "\e5c7";
     }
   }
   .ui-spinner-down {
@@ -353,15 +357,15 @@
     border-top: none;
     border-radius: 0 0 @button-border-radius 0;
     .ui-button-text:after {
-      font-family: FontAwesome;
+      font-family: 'Material Icons';
       font-weight: normal;
-      content: "\f0d7";
+      content: "\e5c5";
     }
   }
 }
 
 .ui-icon, &.ui-icon {
-  font-family: FontAwesome;
+  font-family: 'Material Icons';
   background: none repeat scroll 0 0 transparent;
   text-indent: 0; 
   width: auto; height: auto;
@@ -372,7 +376,7 @@
   margin-right: .5em;
 }
 .ui-icon-closethick:before, &.ui-icon-closethick:before {
-  content: @fa-var-times;
+  content: '\e5cd';
 }
 
 .ui-draggable .ui-dialog-titlebar, &.ui-draggable .ui-dialog-titlebar {

@@ -883,6 +883,12 @@ function initializeEditor(content, blockDefs, thumbPathConverter, galleryUrl) {
       viewModel.loadGallery();
     }
   }, viewModel, 'change');
+  viewModel.selectedTool.subscribe(function(newValue) {
+    var blocksIndex = (typeof viewModel.envelope !== 'undefined' ? 1 : 0);
+    if (viewModel.selectedTool() <= blocksIndex) {
+      viewModel.selectBlock(null, true);
+    }
+  }, viewModel, 'change');
 
   return viewModel;
 
