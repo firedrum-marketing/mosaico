@@ -1,0 +1,1 @@
+grunt build & copy /Y dist\rs\*.css ..\firedrum\web\js\libraries\mosaico\dist & copy /Y dist\rs\*.js ..\firedrum\web\js\libraries\mosaico\dist
